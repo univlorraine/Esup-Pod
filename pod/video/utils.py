@@ -346,3 +346,11 @@ def send_email_encoding(video_to_encode):
                 fail_silently=False,
                 html_message=html_message,
             )
+
+
+def add_default_thumbnail_to_video(video_id, thumbnail):
+    video_to_encode = Video.objects.get(id=video_id)
+    if video_to_encode.thumbnail is None:
+        video_to_encode.thumbnail = thumbnail
+        video_to_encode.save()
+
