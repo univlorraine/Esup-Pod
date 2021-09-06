@@ -16,7 +16,9 @@ class Playlist(models.Model):
         max_length=100,
         help_text=_('Used to access this instance, the "slug" is a short' +
                     ' label containing only letters, numbers, underscore' +
-                    ' or dash top.'))
+                    ' or dash top.'),
+        editable=False,
+    )
     owner = select2_fields.ForeignKey(User, verbose_name=_('Owner'))
     description = models.TextField(
         _('Description'),
