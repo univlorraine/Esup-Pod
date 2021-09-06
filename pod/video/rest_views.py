@@ -44,14 +44,14 @@ class TypeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Type
-        fields = ('id', 'url', 'title', 'description', 'icon')
+        fields = ('id', 'url', 'title', 'description', 'icon', 'sites')
 
 
 class DisciplineSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Discipline
-        fields = ('id', 'url', 'title', 'description', 'icon')
+        fields = ('id', 'url', 'title', 'description', 'icon', 'sites')
 
 
 class VideoSerializer(serializers.HyperlinkedModelSerializer):
