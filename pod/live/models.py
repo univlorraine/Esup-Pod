@@ -1,19 +1,23 @@
 """Esup-Pod "live" models."""
+from datetime import timedelta, date, datetime
 
-from django.db import models
-from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from ckeditor.fields import RichTextField
-from django.template.defaultfilters import slugify
-from pod.video.models import Video
-from django.contrib.sites.models import Site
-from select2 import fields as select2_fields
-from django.dispatch import receiver
-from django.db.models.signals import post_save
-from django.urls import reverse
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django import forms
+from django.template.defaultfilters import slugify
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from select2 import fields as select2_fields
 
+from pod.main.models import get_nextautoincrement
+from pod.video.models import Video, Type
 
 if getattr(settings, "USE_PODFILE", False):
     from pod.podfile.models import CustomImageModel
@@ -182,3 +186,116 @@ class HeartBeat(models.Model):
         verbose_name = _("Heartbeat")
         verbose_name_plural = _("Heartbeats")
         ordering = ["broadcaster"]
+
+class Event(models.Model):
+
+    slug = models.SlugField(
+        _("Slug"),
+        unique=True,
+        max_length=255,
+        editable=False,
+    )
+
+    title = models.CharField(
+        _("Title"),
+        max_length=250,
+    )
+
+    description = RichTextField(
+        _("Description"),
+        config_name="complete",
+        blank=True,
+        help_text=
+            "In this field you can describe your content, "
+            "add all needed related information, and "
+            "format the result using the toolbar."
+        ,
+    )
+
+    owner = models.ForeignKey(
+        get_user_model(),
+        verbose_name=_("Owner"),
+        on_delete=models.CASCADE,
+        null=True,
+    )
+
+    start_date = models.DateField(
+        _("Date of Event"),
+        default=timezone.now,
+        help_text="Start date of the live.",
+    )
+    start_time = models.TimeField(
+        _("Start time"),
+        default=timezone.now,
+        blank=True,
+        help_text="Start time of the live event.",
+    )
+    end_time = models.TimeField(
+        _("End time"),
+        default=timezone.now() + timedelta(hours=1),
+        blank=True,
+        help_text="End time of the live event.",
+    )
+
+    broadcaster = models.ForeignKey(Broadcaster)
+
+    type = models.ForeignKey(Type, verbose_name=_("Type"))
+
+    is_draft = models.BooleanField(
+        verbose_name=_("Draft"),
+        help_text=_(
+            "If this box is checked, "
+            "the video will be visible and accessible only by you "
+            "and the additional owners."
+        ),
+        default=True,
+    )
+    is_restricted = models.BooleanField(
+        verbose_name=_("Restricted access"),
+        help_text=_(
+            "If this box is checked, "
+            "the video will only be accessible to authenticated users."
+        ),
+        default=False,
+    )
+
+    password = models.CharField(
+        _("password"),
+        help_text=_("Viewing this video will not be possible without this password."),
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+
+    videos = models.ManyToManyField(Video, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            try:
+                new_id = get_nextautoincrement(Event)
+            except Exception:
+                try:
+                    new_id = Event.objects.latest("id").id
+                    new_id += 1
+                except Exception:
+                    new_id = 1
+        else:
+            new_id = self.id
+        new_id = "%04d" % new_id
+        self.slug = "%s-%s" % (new_id, slugify(self.title))
+        super(Event, self).save(*args, **kwargs)
+
+    def __str__(self):
+        if self.id:
+            return "%s - %s" % ("%04d" % self.id, self.title)
+#         return "%s (%s,  %s - %s, %s)" % (self.title, self.start_date.strftime("%d/%m/%Y"),self.start_time.strftime("%H:%M"),self.end_time.strftime("%H:%M"),self.owner.username)
+        else:
+            return "None"
+
+    def get_absolute_url(self):
+        return reverse("live:event", args=[str(self.slug)])
+
+    @property
+    def is_current(self):
+        return self.start_date==date.today() and (self.end_time >= datetime.now().time() >= self.start_time)
+

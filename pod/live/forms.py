@@ -1,9 +1,10 @@
 from django import forms
 from django.conf import settings
-from pod.live.models import Building
-from pod.live.models import Broadcaster
-from pod.main.forms import add_placeholder_and_asterisk
 from django.utils.translation import ugettext_lazy as _
+
+from pod.live.models import Broadcaster
+from pod.live.models import Building, Event
+from pod.main.forms import add_placeholder_and_asterisk
 
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
@@ -45,10 +46,77 @@ class BroadcasterAdminForm(forms.ModelForm):
         model = Broadcaster
         fields = "__all__"
 
+class EventAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(EventAdminForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        super(EventAdminForm, self).clean()
+
+    class Meta(object):
+        model = Event
+        fields = "__all__"
+        widgets = {
+            'start_time': forms.TimeInput(format='%H:%M'),
+            'end_time': forms.TimeInput(format='%H:%M'),
+        }
 
 class LivePasswordForm(forms.Form):
     password = forms.CharField(label=_("Password"), widget=forms.PasswordInput())
 
     def __init__(self, *args, **kwargs):
         super(LivePasswordForm, self).__init__(*args, **kwargs)
+        self.fields = add_placeholder_and_asterisk(self.fields)
+
+class CustomBroadcasterChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+         return obj.name
+
+class EventForm(forms.ModelForm):
+
+    buildingQueryset=Building.objects.filter(
+            broadcaster__is_restricted=False # TODO modifier ça selon les regles d'acces du Broadcaster
+        ).distinct()
+
+    building = forms.ModelChoiceField(
+        queryset=buildingQueryset,
+        to_field_name="name",
+        empty_label=None,
+    )
+
+    broadcaster = CustomBroadcasterChoiceField(
+        queryset=Broadcaster.objects.filter(building=buildingQueryset.first()),
+        empty_label=None,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(EventForm, self).__init__(*args, **kwargs)
+
+        # gère la mise a jour dynamique de la liste
+        if 'building' in self.data:
+            try:
+                building_name = self.data.get('building')
+                self.fields['broadcaster'].queryset = Broadcaster.objects.filter(building__name=building_name).order_by('name')
+            except (ValueError, TypeError):
+                pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
+        elif self.instance.pk:
+            self.fields['building_id'].queryset = self.instance.building.broadcaster_set.order_by('name')
+
+    class Meta(object):
+        model = Event
+        fields = "__all__"
+        widgets = {
+            'start_time': forms.TimeInput(format='%H:%M'),
+            'end_time': forms.TimeInput(format='%H:%M'),
+        }
+
+class EventDeleteForm(forms.Form):
+    agree = forms.BooleanField(
+        label=_("I agree"),
+        help_text=_("Delete Event cannot be undo"),
+        widget=forms.CheckboxInput(),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(EventDeleteForm, self).__init__(*args, **kwargs)
         self.fields = add_placeholder_and_asterisk(self.fields)

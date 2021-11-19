@@ -1,7 +1,11 @@
+from django import forms
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from .models import Building, Broadcaster, HeartBeat
-from .forms import LivePasswordForm
+from django.urls import reverse
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+
+from .models import Building, Broadcaster, HeartBeat, Event
+from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from django.conf import settings
 from django.shortcuts import redirect
 from django.contrib.sites.shortcuts import get_current_site
@@ -9,12 +13,13 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Prefetch
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 import json
 from django.utils import timezone
 from pod.bbb.models import Livestream
+from ..main.views import in_maintenance
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
 
@@ -163,3 +168,117 @@ def heartbeat(request):
             mimetype,
         )
     return HttpResponseBadRequest()
+
+def event(request, slug):  # affichage d'un event
+    live = Event.objects.filter(slug=slug).first()
+    return render(
+        request,
+        "live/event.html",
+        {
+            "event":live
+        }
+    )
+
+def events(request):  # affichage des evenemants
+    lives = Event.objects.all()
+    return render(
+        request,
+        "live/events.html",
+        {
+            "events": lives
+        }
+    )
+
+@csrf_protect
+@ensure_csrf_cookie
+@login_required(redirect_field_name="referrer")
+def event_add(request):
+    if request.POST:
+        form = EventForm(
+            request.POST
+        )
+        if form.is_valid():
+            form.save()
+            return redirect("/live/events")
+    else:
+        form = EventForm()
+        form.fields['videos'].widget = forms.HiddenInput()
+
+    return render(
+        request, "live/event_add.html", {"form": form}
+    )
+
+@csrf_protect
+@ensure_csrf_cookie
+@login_required(redirect_field_name="referrer")
+def event_edit(request, slug=None):
+    if in_maintenance():
+        return redirect(reverse("maintenance"))
+    event = (
+        get_object_or_404(Event, slug=slug)
+        if slug
+        else None
+    )
+
+    form = EventForm(
+        request.POST,
+        instance=event,
+    )
+    form.fields['videos'].widget = forms.HiddenInput()
+
+    if request.POST:
+        form = EventForm(
+            request.POST,
+            instance= event
+        )
+        if form.is_valid():
+            event = form.save()
+            messages.add_message(
+                request, messages.INFO, _("The changes have been saved.")
+            )
+            return redirect(reverse("event", args=(event.slug,)))
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                _(u"One or more errors have been found in the form."),
+            )
+    return render(request, "live/event_edit.html", {"form": form})
+
+@csrf_protect
+@login_required(redirect_field_name="referrer")
+def event_delete(request, slug=None):
+
+    event = get_object_or_404(Event, slug=slug)
+
+    if request.user != event.owner and not (
+        request.user.is_superuser or request.user.has_perm("event.delete_video")
+    ):
+        messages.add_message(request, messages.ERROR, _(u"You cannot delete this event."))
+        raise PermissionDenied
+
+    form = EventDeleteForm()
+
+    if request.method == "POST":
+        form = EventDeleteForm(request.POST)
+        if form.is_valid():
+            event.delete()
+            messages.add_message(request, messages.INFO, _("The event has been deleted."))
+            return redirect(reverse("my_videos"))
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                _(u"One or more errors have been found in the form."),
+            )
+
+    return render(request, "live/event_delete.html", {"event": event, "form": form})
+
+def broadcasters_from_building(request):
+    building_name = request.GET.get('building')
+    building = Building.objects.filter(name=building_name).first()
+    broadcasters = Broadcaster.objects.filter(building=building)
+    response_data={}
+    for broadcaster in broadcasters:
+        response_data[broadcaster.id] = {'id':broadcaster.id, 'name':broadcaster.name}
+    return JsonResponse(response_data)
