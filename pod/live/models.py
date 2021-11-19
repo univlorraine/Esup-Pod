@@ -11,6 +11,7 @@ from select2 import fields as select2_fields
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.urls import reverse
+from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -142,6 +143,34 @@ class Broadcaster(models.Model):
     )
     viewcount = models.IntegerField(_("Number of viewers"), default=0, editable=False)
     viewers = models.ManyToManyField(User, editable=False)
+    restrict_access_to_groups = select2_fields.ManyToManyField(
+        Group,
+        blank=True,
+        help_text=_("Select one or more groups who can access to this broadcater"),
+        related_name='restrictaccesstogroups',
+    )
+
+    manage_groups = select2_fields.ManyToManyField(
+        Group,
+        blank=True,
+        help_text=_("Select one or more groups who can manage to this broadcaster"),
+        related_name='managegroups'
+    )
+
+    piloting_api_url = models.URLField(
+        _("Url API"),
+        null=True,
+        blank=True,
+        help_text=_("Url of API"),
+    )
+
+    piloting_implementation = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text=_("Select one implementation to this broadcaster"),
+    )
+
 
     def get_absolute_url(self):
         return reverse("live:video_live", args=[str(self.slug)])
