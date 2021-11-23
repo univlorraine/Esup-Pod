@@ -1,12 +1,10 @@
 from django.contrib import admin
-
-from .models import Building, Event
-from .models import Broadcaster
-from .models import HeartBeat
 from django.contrib.sites.models import Site
-from pod.live.forms import BuildingAdminForm, EventAdminForm, BroadcasterAdminForm
 from django.contrib.sites.shortcuts import get_current_site
-from pod.video.models import Video
+
+from pod.live.forms import BuildingAdminForm, EventAdminForm, BroadcasterAdminForm
+from pod.live.models import Building, Event, Broadcaster, HeartBeat, Video
+
 
 # Register your models here.
 
@@ -97,17 +95,18 @@ class BroadcasterAdmin(admin.ModelAdmin):
 
 class EventAdmin(admin.ModelAdmin):
     form = EventAdminForm
-    list_display = (
+    fields  = (
         "title",
         "description",
-        "owner"
+        "owner",
         "start_date",
         "start_time",
         "end_time",
+        "type",
         "broadcaster",
     )
 
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(Broadcaster, BroadcasterAdmin)
 admin.site.register(HeartBeat, HeartBeatAdmin)
-# admin.site.register(Event, EventAdminForm)
+admin.site.register(Event, EventAdmin)
