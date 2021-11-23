@@ -15,7 +15,7 @@ urlpatterns = [
     url(r"^event_delete/(?P<slug>[\-\d\w]+)/$", event_delete, name="event_delete"),
     url(r"^event_add/getbfromb/$", broadcasters_from_building, name="event_add_get_broadcaster"),
     url(r"^event_edit/getbfromb/$", broadcasters_from_building, name="event_edit_get_broadcaster"),
-    url(r"^events$", events, name="events"),
+    url(r"^events/$", events, name="events"),
     url(r"^getbfromb/$", broadcasters_from_building, name="event_get_broadcaster"),
     url(r"^(?P<slug>[\-\d\w]+)/$", video_live, name="video_live"),
 ]
