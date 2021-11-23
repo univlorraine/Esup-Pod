@@ -1,0 +1,15 @@
+{% load i18n event_tags %}
+
+{% get_last_events as LAST_LIVEEVENTS %}
+
+{% if LAST_LIVEEVENTS %}
+<div class="jumbotron" id="last_videos">
+<h3>{% trans "Next livevents" %}</h3>
+
+{% include "live/events_list.html" with liveevents=LAST_LIVEEVENTS %}
+
+<div class="hightlight">
+     TODO
+</div> <!-- fin hightlight -->
+</div>
+{% endif %}

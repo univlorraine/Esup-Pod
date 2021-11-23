@@ -101,6 +101,7 @@
             </div>
             <!-- fin contenu page statique -->
             {% if request.path == "/" %}
+            {% include "live/events_last.html" %}
             {% include "videos/last_videos.html" %}
             {% endif %}
           </div>
