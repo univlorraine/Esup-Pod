@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block more_style %}
+  {% if use_category %}
+    <link rel="stylesheet" href="{% static 'css/video_category.css' %}?ver={{VERSION}}">
+  {% endif %}
+{% endblock more_style %}
+
+{% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "My events" %}</li>{% endblock %}
+
+{% block page_title %}
+  {% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
+  {{ events.paginator.count }}
+{% endblock %}
+
+
+
+{% block page_content %}
+
+  {% if use_category %}
+    <!-- Loader -->
+    <div class="loader_wrapper">
+      <div id="my_events" class="lds-roller">
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+    <!-- End Loader -->
+
+{#    {% include "events/category_modal.html" %}#}
+
+  {% endif %}
+
+  {% if events.count == 0 %}
+    <h3>{% trans "No event found"%}</h3>
+    <p class="alert alert-info">{% trans 'You have not planned any event yet, please use the "Add a new event" button to add one'%}</p>
+  {% else %}
+    <h3>{% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
+    <p class="alert alert-info">{% trans "Please use the thumbnails toolbar which is located under the video on which you want to work with." %}</p>
+
+
+    <div class="row infinite-container" id="event_add">
+        <div class="infinite-item col-12 col-md-6 col-lg-3 mb-2 card-group" style="min-width: 12rem; min-height: 11rem;"  >
+            <div class="card mb-4 box-shadow border-secondary video-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted time">{{ video.duration_in_time }}</small>
+                        <span class="text-muted small">
+                            <span> Plus
+                                <i data-feather="film"></i>
+                            </span>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-thumbnail" style="background-color: darkgray">
+                    <a class="link-center-pod" href="{% url 'live:event_add' %}" title="add event">
+                        <i data-feather="file-plus" width="100" height="100"></i> Add an event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% include "live/events_list.html" %}
+
+  {% endif %}
+{% endblock page_content %}
+
+{% block collapse_page_aside %}
+  {% if use_category %}
+    {{ block.super }}
+  {% endif %}
+{% endblock collapse_page_aside %}
+
+{% block page_aside %}
+  {% if use_category %}
+
+{#    {% include 'events/filter_aside_category.html' %}#}
+
+  {% endif %}
+{% endblock page_aside %}

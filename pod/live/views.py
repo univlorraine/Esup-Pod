@@ -189,6 +189,19 @@ def events(request):  # affichage des evenemants
         }
     )
 
+
+def my_events(request):
+    data_context = {}
+    lives_list = request.user.event_set.all().order_by("-start_date","-start_time","-end_time")
+    lives_list = lives_list.distinct()
+    data_context["events"] = lives_list
+
+    return render(
+        request,
+        "live/my_events.html",
+        data_context
+    )
+
 @csrf_protect
 @ensure_csrf_cookie
 @login_required(redirect_field_name="referrer")
@@ -282,3 +295,5 @@ def broadcasters_from_building(request):
     for broadcaster in broadcasters:
         response_data[broadcaster.id] = {'id':broadcaster.id, 'name':broadcaster.name}
     return JsonResponse(response_data)
+
+
