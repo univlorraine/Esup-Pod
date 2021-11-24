@@ -1,10 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Event edit view</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load i18n %}
+{% load staticfiles %}
 
-</body>
-</html>
+{#{% block page_extra_head %}#}
+{#    <script src="{% static 'js/broadcaster_from_building.js' %}?ver={{VERSION}}"></script>#}
+{#{% endblock %}#}
+
+{% block page_content %}
+
+    <div class="jumbotron">
+        <h3>Editer un évènement live</h3>
+
+        <form id="event_form" action="{% url 'live:event_edit' slug=form.instance.slug %}" method="post" class='needs-validation' novalidate>
+            {% csrf_token %}
+            <div class="list-group">
+                <fieldset>
+                    {% for field in form.visible_fields %}
+                        {% spaceless %}
+                            <div class="list-group-item">
+                                <div class="form-group {% if field.field.required %}form-group-required {% endif %}">
+                                    {{ field.errors }}
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    <br/>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small id="{{ field.id_for_label }}Help"
+                                               class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                    {% endif %}
+                                    {% if field.field.required %}
+                                        <div class="invalid-feedback">{% trans "Please provide a valid value for this field" %}.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endspaceless %}
+                    {% endfor %}
+                    <div class="text-center mt-1">
+                        <button type="submit" class="btn btn-primary">{% trans "Send" %}</button>
+                    </div>
+                </fieldset>
+            </div>
+        </form>
+    </div>
+{% endblock %}

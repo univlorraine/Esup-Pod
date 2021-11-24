@@ -1,7 +1,7 @@
 from django.conf.urls import url
-from .views import lives, heartbeat, building, event, events,my_events, event_add, event_edit, event_delete, \
-    broadcasters_from_building
-from .views import video_live
+
+from .views import broadcasters_from_building, building, event, events, event_add, event_edit, event_delete, heartbeat, \
+    lives, my_events, video_live
 
 app_name = "live"
 

@@ -100,7 +100,9 @@ class EventForm(forms.ModelForm):
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
         elif self.instance.pk:
-            self.fields['building_id'].queryset = self.instance.building.broadcaster_set.order_by('name')
+            building_name = self.instance.broadcaster.building.name
+            self.fields['broadcaster'].queryset = Broadcaster.objects.filter(building__name=building_name).order_by('name')
+            self.initial['building'] = building_name
 
     class Meta(object):
         model = Event

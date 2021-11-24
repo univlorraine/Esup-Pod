@@ -189,7 +189,9 @@ def events(request):  # affichage des evenemants
         }
     )
 
-
+@csrf_protect
+@ensure_csrf_cookie
+@login_required(redirect_field_name="referrer")
 def my_events(request):
     data_context = {}
     lives_list = request.user.event_set.all().order_by("-start_date","-start_time","-end_time")
@@ -227,6 +229,7 @@ def event_add(request):
 def event_edit(request, slug=None):
     if in_maintenance():
         return redirect(reverse("maintenance"))
+
     event = (
         get_object_or_404(Event, slug=slug)
         if slug
@@ -234,7 +237,7 @@ def event_edit(request, slug=None):
     )
 
     form = EventForm(
-        request.POST,
+        request.POST or None,
         instance=event,
     )
     form.fields['videos'].widget = forms.HiddenInput()
@@ -249,7 +252,7 @@ def event_edit(request, slug=None):
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )
-            return redirect(reverse("event", args=(event.slug,)))
+            return redirect(reverse("live:events"))
         else:
             messages.add_message(
                 request,
@@ -277,7 +280,7 @@ def event_delete(request, slug=None):
         if form.is_valid():
             event.delete()
             messages.add_message(request, messages.INFO, _("The event has been deleted."))
-            return redirect(reverse("my_videos"))
+            return redirect(reverse("live:events"))
         else:
             messages.add_message(
                 request,
@@ -295,5 +298,3 @@ def broadcasters_from_building(request):
     for broadcaster in broadcasters:
         response_data[broadcaster.id] = {'id':broadcaster.id, 'name':broadcaster.name}
     return JsonResponse(response_data)
-
-
