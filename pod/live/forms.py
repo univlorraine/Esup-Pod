@@ -106,7 +106,7 @@ class EventForm(forms.ModelForm):
 
     class Meta(object):
         model = Event
-        fields = "__all__"
+        fields = ["title" ,"description","owner","start_date","start_time","end_time","building","broadcaster","type","is_draft","is_restricted","password","videos"]
         widgets = {
             'start_time': forms.TimeInput(format='%H:%M'),
             'end_time': forms.TimeInput(format='%H:%M'),
