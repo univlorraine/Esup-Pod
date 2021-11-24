@@ -5,7 +5,7 @@ $(document).ready(function () {
     $("#id_building").change(function () {
 
         $.ajax({
-            url: "getbfromb/",
+            url: "/live/ajax_calls/getbroadcastersfrombuiding/",
             type: "GET",
             dataType: "JSON",
             cache: false,
