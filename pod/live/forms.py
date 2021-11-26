@@ -1,7 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
+from django.contrib.admin import widgets
 from pod.live.models import Broadcaster
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
@@ -108,6 +108,7 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ["title" ,"description","owner","start_date","start_time","end_time","building","broadcaster","type","is_draft","is_restricted","password","videos"]
         widgets = {
+            'start_date': widgets.AdminDateWidget,
             'start_time': forms.TimeInput(format='%H:%M'),
             'end_time': forms.TimeInput(format='%H:%M'),
         }
