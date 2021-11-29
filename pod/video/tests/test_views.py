@@ -82,6 +82,7 @@ class ChannelTestView(TestCase):
             "has_more_themes": False,
             "has_more_videos": False,
             "videos": [self.v],
+            "count_videos": 1,
             "count_themes": 1,
             "theme": None,
             "channel": self.c,
@@ -126,6 +127,7 @@ class ChannelTestView(TestCase):
         )
         expected.pop("next_videos", None)
         expected.pop("has_more_videos", None)
+        expected.pop("count_videos", None)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertCountEqual(expected, response.json())
 
@@ -138,6 +140,7 @@ class ChannelTestView(TestCase):
         )
         expected["next_videos"] = None
         expected["has_more_videos"] = False
+        expected["count_videos"] = 1
 
         expected.pop("next", None)
         expected.pop("previous", None)
@@ -1050,7 +1053,8 @@ class video_recordTestView(TestCase):
         response = self.client.get("/video_record/")
         self.assertEqual(response.status_code, HTTPStatus.OK)
         print(
-            " --->  test_video_recordTestView_get_request_restrict of video_recordTestView: OK!"
+            " --->  test_video_recordTestView_get_request_restrict ",
+            "of video_recordTestView: OK!",
         )
 
     def test_video_recordTestView_upload_recordvideo(self):
@@ -1077,7 +1081,8 @@ class video_recordTestView(TestCase):
         vid = Video.objects.get(id=1)
         self.assertEqual(vid.title, "test upload")
         print(
-            " --->  test_video_recordTestView_upload_recordvideo of video_recordTestView: OK!"
+            " --->  test_video_recordTestView_upload_recordvideo ",
+            "of video_recordTestView: OK!",
         )
 
 
@@ -1422,7 +1427,8 @@ class VideoTestJSONView(TestCase):
         v.password = "password"
         v.save()
         self.client.logout()
-        response = self.client.get("/video_xhr/%s/" % v.slug, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.get("/video_xhr/%s/" % v.slug,
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.json()['status'], 'ok')
         self.assertTrue(response.context["form"])
