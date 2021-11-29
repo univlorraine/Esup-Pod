@@ -2,8 +2,8 @@
 {% load i18n %}
 {% load staticfiles %}
 
-{% block page_extra_head %}
-    <script src="{% static 'js/broadcaster_from_building.js' %}?ver={{VERSION}}"></script>
+{% block more_style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}?ver={{ VERSION }}"/>
 {% endblock %}
 
 {% block page_content %}
@@ -47,19 +47,16 @@
                 </div>
             </form>
         {% endif %}
-            </div>
+    </div>
 {% endblock %}
 
 {% block more_script %}
-<script src="/admin/jsi18n/"></script>
-<script src="{% static 'admin/js/core.js' %}?ver={{VERSION}}"></script>
-<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}?ver={{VERSION}}"></script>
-<script src="{% static 'admin/js/jquery.init.js' %}?ver={{VERSION}}"></script>
+    <script src="/admin/jsi18n/"></script>
+    <script src="{% static 'admin/js/core.js' %}?ver={{ VERSION }}"></script>
+    <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}?ver={{ VERSION }}"></script>
+    <script src="{% static 'admin/js/jquery.init.js' %}?ver={{ VERSION }}"></script>
+    <script src="{% static 'js/broadcaster_from_building.js' %}?ver={{ VERSION }}"></script>
 
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}?ver={{VERSION}}" />
-<!-- form . media -->
-{{form.media}}
-
-
+    {{ form.media }}
 
 {% endblock more_script %}
