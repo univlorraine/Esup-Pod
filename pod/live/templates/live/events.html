@@ -8,10 +8,10 @@
   {% endif %}
 {% endblock more_style %}
 
-{% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "My events" %}</li>{% endblock %}
+{% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "Events" %}</li>{% endblock %}
 
 {% block page_title %}
-  {% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
+  {% blocktrans count counter=events.paginator.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
   {{ events.paginator.count }}
 {% endblock %}
 
@@ -36,7 +36,7 @@
     <h3>{% trans "No event found"%}</h3>
     <p class="alert alert-info">{% trans 'You have not planned any event yet, please use the "Add a new event" button to add one'%}</p>
   {% else %}
-    <h3>{% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
+    <h3>{% blocktrans count counter=events.paginator.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
     <p class="alert alert-info">{% trans "Please use the thumbnails toolbar which is located under the video on which you want to work with." %}</p>
 
     {% include "live/events_list.html" %}

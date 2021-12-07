@@ -1,4 +1,5 @@
 from django import forms
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -169,7 +170,7 @@ def heartbeat(request):
         )
     return HttpResponseBadRequest()
 
-def event(request, slug):  # affichage d'un event
+def event(request, slug):  # affichage d'un evenement
     live = Event.objects.filter(slug=slug).first()
     return render(
         request,
@@ -179,13 +180,32 @@ def event(request, slug):  # affichage d'un event
         }
     )
 
-def events(request):  # affichage des evenemants
-    lives = Event.objects.all()
+def events(request):  # affichage des evenements
+    events_list = Event.objects.all().order_by("start_date", "start_time")
+
+    page = request.GET.get("page", 1)
+    full_path = ""
+    if page:
+        full_path = (
+            request.get_full_path()
+            .replace("?page=%s" % page, "")
+            .replace("&page=%s" % page, "")
+        )
+
+    paginator = Paginator(events_list, 12)
+    try:
+        lives = paginator.page(page)
+    except PageNotAnInteger:
+        lives = paginator.page(1)
+    except EmptyPage:
+        lives = paginator.page(paginator.num_pages)
+
     return render(
         request,
         "live/events.html",
         {
-            "events": lives
+            "events": lives,
+            "full_path": full_path,
         }
     )
 
