@@ -376,14 +376,18 @@ def event_isstreamavailabletorecord(request):
 		port="8087",
 		application="recamphis"
 	)
-    print(url_state_live_stream_recording)
-    r = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
-    json_r = r.json()
-    print(json_r)
-    return HttpResponse("A")
-    # for stream in json_r["streamFiles"]:
-    #     if ".stream" in livestream:
-    #         livestreamId = livestream[0:-7]
-    #         if stream["id"]==livestreamId:
-    #             return JsonResponse({"success":True}, status=200)
-    # return JsonResponse({"success": False}, status=400)
+
+    response = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
+
+    response_dict = json.loads(response.text)
+
+    if ".stream" not in livestream:
+        return JsonResponse({"success": False}, status=400)
+    
+    livestream_id = livestream[0:-7]
+
+    for stream in response_dict["streamFiles"]:
+        if stream["id"]==livestream_id:
+            return JsonResponse({"success":True}, status=200)
+
+    return JsonResponse({"success": False}, status=400)
