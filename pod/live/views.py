@@ -1,8 +1,9 @@
 from django import forms
+from django.conf.urls import url
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 
 from .models import Building, Broadcaster, HeartBeat, Event
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
@@ -20,6 +21,8 @@ import json
 from django.utils import timezone
 from pod.bbb.models import Livestream
 from ..main.views import in_maintenance
+
+import requests
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
 
@@ -252,7 +255,7 @@ def event_edit(request, slug=None):
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )
-            return redirect(reverse("live:events"))
+            return redirect(reverse("live:my_events"))
         else:
             messages.add_message(
                 request,
@@ -298,3 +301,89 @@ def broadcasters_from_building(request):
     for broadcaster in broadcasters:
         response_data[broadcaster.id] = {'id':broadcaster.id, 'name':broadcaster.name}
     return JsonResponse(response_data)
+
+@csrf_exempt
+@login_required(redirect_field_name="referrer")
+def event_startrecord(request):
+    # if request.method == "POST" and request.is_ajax():
+    url_start_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}".format(
+        server="stream01.univ-lorraine.fr",
+        port=8087,
+        application="recamphis",
+        livestream="artem-salleB201.stream"
+    )
+    data = {
+        "instanceName": "",
+        "fileVersionDelegateName": "",
+        "serverName": "",
+        "recorderName": "",
+        "currentSize": 0,
+        "segmentSchedule": "",
+        "startOnKeyFrame": True,
+        "outputPath": "//data//partage//VideosUL//vod_live_sandbox//",
+        "baseFile": "_pod_test_${RecordingStartTime}",
+        "currentFile": "",
+        "saveFieldList": [""],
+        "recordData": False,
+        "applicationName": "",
+        "moveFirstVideoFrameToZero": False,
+        "recorderErrorString": "",
+        "segmentSize": 0,
+        "defaultRecorder": False,
+        "splitOnTcDiscontinuity": False,
+        "version": "",
+        "segmentDuration": 0,
+        "recordingStartTime": "",
+        "fileTemplate": "",
+        "backBufferTime": 0,
+        "segmentationType": "",
+        "currentDuration": 0,
+        "fileFormat": "",
+        "recorderState": "",
+        "option": ""
+    }
+
+    r = requests.post(url_start_record, json=data, headers={"Content-Type": "application/json"})
+
+    print(r)
+
+    return JsonResponse(
+        {'action': 'début enregistrement'}
+    )
+
+
+@csrf_exempt
+@login_required(redirect_field_name="referrer")
+def event_stoprecord(request):
+    if request.method == "POST" and request.is_ajax():
+        url_stop_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/stopRecording".format(
+            server="stream01.univ-lorraine.fr",
+            port=8087,
+            application="recamphis",
+            livestream="artem-salleB201.stream"
+        )
+        r = requests.put(url_stop_record)
+        print(r)
+        return JsonResponse(
+            {'action': 'arrêt enregistrement'}
+        )
+
+@csrf_exempt
+def event_isstreamavailabletorecord(request):
+    livestream="artem-salleB201.stream"
+    url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
+		server="stream01.univ-lorraine.fr",
+		port="8087",
+		application="recamphis"
+	)
+    print(url_state_live_stream_recording)
+    r = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
+    json_r = r.json()
+    print(json_r)
+    return HttpResponse("A")
+    # for stream in json_r["streamFiles"]:
+    #     if ".stream" in livestream:
+    #         livestreamId = livestream[0:-7]
+    #         if stream["id"]==livestreamId:
+    #             return JsonResponse({"success":True}, status=200)
+    # return JsonResponse({"success": False}, status=400)

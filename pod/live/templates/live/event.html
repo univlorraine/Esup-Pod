@@ -20,7 +20,7 @@
 {% block page_title %}{{ event.title|title|truncatechars:45 }}{% endblock %}
 
 {% block page_content %}
-
+{% csrf_token %}
     <h3 id="livename" data-liveid="{{ event.id }}"><i data-feather="airplay"></i>&nbsp;{{ event.title|title }}</h3>
 
     {% if event.is_current %}
@@ -45,6 +45,7 @@
             </div>
 
         </div>
+        <button type="button" class="btn btn-primary btn-sm m-1" id="startrecord">{% trans "Save Record"%}</button>
 
         <div id="info-video" style="display:none" class="jumbotron">
             <button type="button" class="close" aria-label="Close">
@@ -191,6 +192,24 @@
                 $("#divvideoplayer").css("display", "block");
             }
         })
+
+
+        $(document).on('click',  '#startrecord', function(e){
+            console.log("dans js avant appel");
+            $.ajax({
+                url: "{% url 'live:event_isstreamavailabletorecord' %}",
+                method: 'POST',
+                processData: false,
+                data: {
+                     csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(data) {
+                    console.log("azerty")
+                    console.log(data);
+                }
+            })
+        });
+
     </script>
 
 
