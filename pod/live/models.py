@@ -175,6 +175,11 @@ class Broadcaster(models.Model):
         help_text=_("Select one implementation to this broadcaster"),
     )
 
+    piloting_conf = models.TextField(
+        null=True,
+        blank=True
+    )
+
 
     def get_absolute_url(self):
         return reverse("live:video_live", args=[str(self.slug)])
