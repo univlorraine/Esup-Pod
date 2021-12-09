@@ -415,11 +415,11 @@ def event_stoprecord(request):
 def event_isstreamrecording(idbroadcaster):
 
     broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
-
+    pilot_conf = json.loads(broadcaster.piloting_conf)
     url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders".format(
-            server="stream01.univ-lorraine.fr",
-            port="8087",
-            application="recamphis"
+        server=pilot_conf["server"],
+        port=pilot_conf["port"],
+        application=pilot_conf["application"]
     )
     response = requests.get(url_state_live_stream_recording,verify=True,headers={"Accept": "application/json","Content-Type": "application/json"})
     response_dict = json.loads(response.text)
@@ -432,13 +432,15 @@ def event_isstreamrecording(idbroadcaster):
                  return True
     return False
 
+
 @csrf_protect
-def event_isstreamavailabletorecord(request):
-    livestream="artem-salleB201.stream"
+def event_isstreamavailabletorecord(idbroadcaster):
+    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+    pilot_conf = json.loads(broadcaster.piloting_conf)
     url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
-		server="stream01.univ-lorraine.fr",
-		port="8087",
-		application="recamphis"
+        server=pilot_conf["server"],
+        port=pilot_conf["port"],
+        application=pilot_conf["application"],
 	)
 
     response = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
@@ -447,7 +449,7 @@ def event_isstreamavailabletorecord(request):
 
     if ".stream" not in livestream:
         return JsonResponse({"success": False}, status=400)
-    
+
     livestream_id = livestream[0:-7]
 
     for stream in response_dict["streamFiles"]:
