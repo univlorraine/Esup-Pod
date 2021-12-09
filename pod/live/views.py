@@ -368,7 +368,7 @@ def event_stoprecord(request):
             {'action': 'arrêt enregistrement'}
         )
 
-@csrf_exempt
+@csrf_protect
 def event_isstreamavailabletorecord(request):
     livestream="artem-salleB201.stream"
     url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
@@ -383,7 +383,7 @@ def event_isstreamavailabletorecord(request):
 
     if ".stream" not in livestream:
         return JsonResponse({"success": False}, status=400)
-    
+
     livestream_id = livestream[0:-7]
 
     for stream in response_dict["streamFiles"]:

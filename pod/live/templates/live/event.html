@@ -200,8 +200,8 @@
                 url: "{% url 'live:event_isstreamavailabletorecord' %}",
                 method: 'POST',
                 processData: false,
-                data: {
-                     csrfmiddlewaretoken: '{{ csrf_token }}'
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
                 },
                 success: function(data) {
                     console.log("azerty")
