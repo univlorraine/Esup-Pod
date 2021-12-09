@@ -11,7 +11,7 @@
 {% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "My events" %}</li>{% endblock %}
 
 {% block page_title %}
-  {% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
+  {% blocktrans count counter=events.paginator.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
   {{ events.paginator.count }}
 {% endblock %}
 
@@ -32,13 +32,13 @@
 
   {% endif %}
 
-    <div class="row infinite-container mb-2" id="event_add">
+    <div class="d-flex infinite-container mb-2" id="event_add">
     {% if events.count == 0 %}
         <h3>{% trans "No event found" %}</h3>
     {% else %}
-        <h3>{% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
+        <h3>{% blocktrans count counter=events.paginator.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
     {% endif %}
-        <a class="link-center-pod" href="{% url 'live:event_add' %}" title="add event">
+        <a class="ml-auto" href="{% url 'live:event_add' %}" title="add event">
             <button type="button" class="btn btn-primary">
                 <i data-feather="plus" aria-hidden="true" class="d-lg-none d-xl-inline"></i>
                 {% trans "add an event" %}
@@ -53,17 +53,3 @@
     {% endif %}
 
 {% endblock page_content %}
-
-{% block collapse_page_aside %}
-  {% if use_category %}
-    {{ block.super }}
-  {% endif %}
-{% endblock collapse_page_aside %}
-
-{% block page_aside %}
-  {% if use_category %}
-
-{#    {% include 'events/filter_aside_category.html' %}#}
-
-  {% endif %}
-{% endblock page_aside %}

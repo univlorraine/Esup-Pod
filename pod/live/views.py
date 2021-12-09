@@ -181,7 +181,12 @@ def event(request, slug):  # affichage d'un evenement
     )
 
 def events(request):  # affichage des evenements
-    events_list = Event.objects.all().order_by("start_date", "start_time")
+
+    queryset = Event.objects.filter(is_draft=False)
+    if not request.user.is_authenticated():
+        queryset.filter(is_restricted=False)
+
+    events_list = queryset.all().order_by("start_date", "start_time", "end_time")
 
     page = request.GET.get("page", 1)
     full_path = ""
@@ -194,17 +199,17 @@ def events(request):  # affichage des evenements
 
     paginator = Paginator(events_list, 12)
     try:
-        lives = paginator.page(page)
+        events = paginator.page(page)
     except PageNotAnInteger:
-        lives = paginator.page(1)
+        events = paginator.page(1)
     except EmptyPage:
-        lives = paginator.page(paginator.num_pages)
+        events = paginator.page(paginator.num_pages)
 
     return render(
         request,
         "live/events.html",
         {
-            "events": lives,
+            "events": events,
             "full_path": full_path,
         }
     )
@@ -213,15 +218,34 @@ def events(request):  # affichage des evenements
 @ensure_csrf_cookie
 @login_required(redirect_field_name="referrer")
 def my_events(request):
-    data_context = {}
-    lives_list = request.user.event_set.all().order_by("-start_date","-start_time","-end_time")
-    lives_list = lives_list.distinct()
-    data_context["events"] = lives_list
+    events_list = request.user.event_set.all().order_by("-start_date","-start_time","-end_time")
+    events_list = events_list.distinct()
+
+    page = request.GET.get("page", 1)
+    full_path = ""
+    if page:
+        full_path = (
+            request.get_full_path()
+            .replace("?page=%s" % page, "")
+            .replace("&page=%s" % page, "")
+        )
+
+    paginator = Paginator(events_list, 12)
+    try:
+        events = paginator.page(page)
+    except PageNotAnInteger:
+        events = paginator.page(1)
+    except EmptyPage:
+        events = paginator.page(paginator.num_pages)
 
     return render(
         request,
         "live/my_events.html",
-        data_context
+        {
+            "events": events,
+            "types": request.GET.getlist("type"),
+            "full_path": full_path,
+        }
     )
 
 @csrf_protect
