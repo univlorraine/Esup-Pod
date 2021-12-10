@@ -1,25 +1,29 @@
+import json
+import re
+from datetime import date, datetime
+
 from django import forms
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.shortcuts import render
+from django.db.models import Prefetch
+from django.db.models import Q
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
-from .models import Building, Broadcaster, HeartBeat, Event
-from .forms import LivePasswordForm, EventForm, EventDeleteForm
-from django.conf import settings
-from django.shortcuts import redirect
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
-from django.db.models import Prefetch
-from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
-import json
-from django.utils import timezone
 from pod.bbb.models import Livestream
+from .forms import LivePasswordForm, EventForm, EventDeleteForm
+from .models import Building, Broadcaster, HeartBeat, Event
 from ..main.views import in_maintenance
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
@@ -218,33 +222,61 @@ def events(request):  # affichage des evenements
 @ensure_csrf_cookie
 @login_required(redirect_field_name="referrer")
 def my_events(request):
-    events_list = request.user.event_set.all().order_by("-start_date","-start_time","-end_time")
-    events_list = events_list.distinct()
+    queryset = request.user.event_set
 
-    page = request.GET.get("page", 1)
-    full_path = ""
-    if page:
-        full_path = (
-            request.get_full_path()
-            .replace("?page=%s" % page, "")
-            .replace("&page=%s" % page, "")
-        )
+    previous_events = queryset.filter(
+        Q(start_date__lt=date.today())
+        |(Q(start_date=date.today()) & Q(end_time__lte=datetime.now()))
+        ).all().order_by("-start_date", "-start_time", "-end_time")
 
-    paginator = Paginator(events_list, 12)
+
+    next_events = queryset.filter(
+        Q(start_date__gt=date.today())
+        |(Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
+        ).all().order_by("start_date", "start_time", "end_time")
+
+    events_number = queryset.all().distinct().count()
+
+    PREVIOUS_EVENT_URL_NAME= "ppage"
+    NEXT_EVENT_URL_NAME= "npage"
+
+    full_path = request.get_full_path()
+    full_path = re.sub("\?|\&"+PREVIOUS_EVENT_URL_NAME+"=\d+", "", full_path)
+    full_path = re.sub("\?|\&"+NEXT_EVENT_URL_NAME+"=\d+", "", full_path)
+
+    paginatorNext = Paginator(next_events, 8)
+    paginatorPrevious = Paginator(previous_events, 8)
+
+    pageP = request.GET.get(PREVIOUS_EVENT_URL_NAME,1)
+    pageN = request.GET.get(NEXT_EVENT_URL_NAME,1)
+
     try:
-        events = paginator.page(page)
+        next_events = paginatorNext.page(pageN)
+        previous_events = paginatorPrevious.page(pageP)
     except PageNotAnInteger:
-        events = paginator.page(1)
+        pageP = 1
+        pageN = 1
+        next_events = paginatorNext.page(1)
+        previous_events = paginatorPrevious.page(1)
     except EmptyPage:
-        events = paginator.page(paginator.num_pages)
+        pageP = 1
+        pageN = 1
+        next_events = paginatorNext.page(paginatorNext.num_pages)
+        previous_events = paginatorPrevious.page(paginatorPrevious.num_pages)
 
     return render(
         request,
         "live/my_events.html",
         {
-            "events": events,
-            "types": request.GET.getlist("type"),
             "full_path": full_path,
+            "types": request.GET.getlist("type"),
+            "events_number": events_number,
+            "previous_events": previous_events,
+            "previous_events_url": PREVIOUS_EVENT_URL_NAME,
+            "previous_events_url_page": PREVIOUS_EVENT_URL_NAME+"="+str(pageP),
+            "next_events": next_events,
+            "next_events_url": NEXT_EVENT_URL_NAME,
+            "next_events_url_page": NEXT_EVENT_URL_NAME+"="+str(pageN),
         }
     )
 
