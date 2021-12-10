@@ -85,7 +85,8 @@ class EventForm(forms.ModelForm):
     )
 
     broadcaster = CustomBroadcasterChoiceField(
-        queryset=Broadcaster.objects.filter(building=buildingQueryset.first()),
+        queryset=Broadcaster.objects.all(),
+        # queryset=Broadcaster.objects.filter(building=buildingQueryset.first()),
         empty_label=None,
     )
 
