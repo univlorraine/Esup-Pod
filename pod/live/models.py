@@ -177,7 +177,8 @@ class Broadcaster(models.Model):
 
     piloting_conf = models.TextField(
         null=True,
-        blank=True
+        blank=True,
+        help_text="encode Json format with fields {'server': '...', 'port': '...', 'application':'...', 'livestream':'...'}"
     )
 
 

@@ -62,6 +62,7 @@ class BroadcasterAdmin(admin.ModelAdmin):
         "url",
         "status",
         "is_restricted",
+        "piloting_conf",
     )
     readonly_fields = ["slug"]
 
