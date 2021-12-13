@@ -229,7 +229,6 @@ def my_events(request):
         |(Q(start_date=date.today()) & Q(end_time__lte=datetime.now()))
         ).all().order_by("-start_date", "-start_time", "-end_time")
 
-
     next_events = queryset.filter(
         Q(start_date__gt=date.today())
         |(Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
