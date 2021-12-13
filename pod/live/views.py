@@ -405,7 +405,7 @@ def event_stoprecord(request):
             )
         response = requests.put(url_stop_record,headers={"Accept": "application/json","Content-Type": "application/json"})
         response_dict = json.loads(response.text)
-        print(response_dict)
+
         return JsonResponse(
             {'action': 'arrêt enregistrement'}
         )
@@ -415,7 +415,9 @@ def event_stoprecord(request):
 def event_isstreamrecording(idbroadcaster):
 
     broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+
     pilot_conf = json.loads(broadcaster.piloting_conf)
+
     url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders".format(
         server=pilot_conf["server"],
         port=pilot_conf["port"],
@@ -423,8 +425,6 @@ def event_isstreamrecording(idbroadcaster):
     )
     response = requests.get(url_state_live_stream_recording,verify=True,headers={"Accept": "application/json","Content-Type": "application/json"})
     response_dict = json.loads(response.text)
-
-    pilot_conf = json.loads(broadcaster.piloting_conf)
 
     if response_dict["streamrecorder"]:
          for streamrecorder in response_dict["streamrecorder"]:
@@ -446,6 +446,8 @@ def event_isstreamavailabletorecord(idbroadcaster):
     response = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
 
     response_dict = json.loads(response.text)
+
+    livestream = pilot_conf["livestream"]
 
     if ".stream" not in livestream:
         return JsonResponse({"success": False}, status=400)
