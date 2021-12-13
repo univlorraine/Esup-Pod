@@ -572,3 +572,5 @@ def parseAndCheckPilotingConfJson(piloting_conf):
     if not {"server", "port", "application", "livestream"} <= decoded.keys():
         print("piloting_conf format value must be like : {'server':'...','port':'...','application':'...','livestream':'...'}")
         return False
+
+    return True
