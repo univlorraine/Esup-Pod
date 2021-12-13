@@ -1,8 +1,9 @@
 from django import forms
+from django.conf.urls import url
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 
 from .models import Building, Broadcaster, HeartBeat, Event
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
@@ -12,7 +13,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Prefetch
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -20,6 +21,8 @@ import json
 from django.utils import timezone
 from pod.bbb.models import Livestream
 from ..main.views import in_maintenance
+
+import requests
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
 
@@ -170,12 +173,15 @@ def heartbeat(request):
     return HttpResponseBadRequest()
 
 def event(request, slug):  # affichage d'un event
-    live = Event.objects.filter(slug=slug).first()
+    event = Event.objects.filter(slug=slug).first()
+    isstreamavailabletorecord = event_isstreamrecording(event.broadcaster.id)
+
     return render(
         request,
         "live/event.html",
         {
-            "event":live
+            "event":event,
+            "isStreamRecording": isstreamavailabletorecord
         }
     )
 
@@ -252,7 +258,7 @@ def event_edit(request, slug=None):
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )
-            return redirect(reverse("live:events"))
+            return redirect(reverse("live:my_events"))
         else:
             messages.add_message(
                 request,
@@ -298,3 +304,156 @@ def broadcasters_from_building(request):
     for broadcaster in broadcasters:
         response_data[broadcaster.id] = {'id':broadcaster.id, 'name':broadcaster.name}
     return JsonResponse(response_data)
+
+@csrf_protect
+@login_required(redirect_field_name="referrer")
+def event_startrecord(request):
+    idbroadcaster = request.POST.get("idbroadcaster", None)
+    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+    pilot_conf = json.loads(broadcaster.piloting_conf)
+
+    if request.method == "POST" and request.is_ajax():
+        if event_isstreamrecording(idbroadcaster)==True :
+            raise SuspiciousOperation("the broadcaster is already recording")
+        else:
+            # if request.method == "POST" and request.is_ajax():
+            url_start_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}".format(
+                server=pilot_conf["server"],
+                port=pilot_conf["port"],
+                application=pilot_conf["application"],
+                livestream=pilot_conf["livestream"],
+            )
+            data = {
+                "instanceName": "",
+                "fileVersionDelegateName": "",
+                "serverName": "",
+                "recorderName": "",
+                "currentSize": 0,
+                "segmentSchedule": "",
+                "startOnKeyFrame": True,
+                "outputPath": "//data//partage//VideosUL//vod_live_sandbox//",
+                "baseFile": "_pod_test_${RecordingStartTime}",
+                "currentFile": "",
+                "saveFieldList": [""],
+                "recordData": False,
+                "applicationName": "",
+                "moveFirstVideoFrameToZero": False,
+                "recorderErrorString": "",
+                "segmentSize": 0,
+                "defaultRecorder": False,
+                "splitOnTcDiscontinuity": False,
+                "version": "",
+                "segmentDuration": 0,
+                "recordingStartTime": "",
+                "fileTemplate": "",
+                "backBufferTime": 0,
+                "segmentationType": "",
+                "currentDuration": 0,
+                "fileFormat": "",
+                "recorderState": "",
+                "option": ""
+            }
+
+            response = requests.post(url_start_record, json=data, headers={"Accept": "application/json","Content-Type": "application/json"})
+            response_dict = json.loads(response.text)
+            print(response_dict)
+            return JsonResponse(
+                {'state': 'début enregistrement'}
+            )
+
+@csrf_protect
+@login_required(redirect_field_name="referrer")
+def event_splitrecord(request):
+    if request.method == "POST" and request.is_ajax():
+        idbroadcaster = request.POST.get("idbroadcaster", None)
+        broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+        pilot_conf = json.loads(broadcaster.piloting_conf)
+        if event_isstreamrecording(idbroadcaster) == False:
+            raise SuspiciousOperation("the broadcaster does not recording")
+        else:
+            url_split_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/splitRecording".format(
+                server=pilot_conf["server"],
+                port=pilot_conf["port"],
+                application=pilot_conf["application"],
+                livestream=pilot_conf["livestream"],
+            )
+            response = requests.put(url_split_record,
+                                    headers={"Accept": "application/json", "Content-Type": "application/json"})
+            response_dict = json.loads(response.text)
+            print(response_dict)
+            return JsonResponse(
+                {'action': 'split enregistrement'}
+            )
+
+
+@csrf_protect
+@login_required(redirect_field_name="referrer")
+def event_stoprecord(request):
+    if request.method == "POST" and request.is_ajax():
+        idbroadcaster = request.POST.get("idbroadcaster", None)
+        broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+        pilot_conf = json.loads(broadcaster.piloting_conf)
+
+        if event_isstreamrecording(idbroadcaster) == False:
+            raise SuspiciousOperation("the broadcaster does not recording")
+        else:
+            url_stop_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/stopRecording".format(
+                server=pilot_conf["server"],
+                port=pilot_conf["port"],
+                application=pilot_conf["application"],
+                livestream=pilot_conf["livestream"],
+            )
+        response = requests.put(url_stop_record,headers={"Accept": "application/json","Content-Type": "application/json"})
+        response_dict = json.loads(response.text)
+        print(response_dict)
+        return JsonResponse(
+            {'action': 'arrêt enregistrement'}
+        )
+
+
+@csrf_exempt
+def event_isstreamrecording(idbroadcaster):
+
+    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+    pilot_conf = json.loads(broadcaster.piloting_conf)
+    url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders".format(
+        server=pilot_conf["server"],
+        port=pilot_conf["port"],
+        application=pilot_conf["application"]
+    )
+    response = requests.get(url_state_live_stream_recording,verify=True,headers={"Accept": "application/json","Content-Type": "application/json"})
+    response_dict = json.loads(response.text)
+
+    pilot_conf = json.loads(broadcaster.piloting_conf)
+
+    if response_dict["streamrecorder"]:
+         for streamrecorder in response_dict["streamrecorder"]:
+             if streamrecorder["recorderName"] == pilot_conf["livestream"]:
+                 return True
+    return False
+
+
+@csrf_protect
+def event_isstreamavailabletorecord(idbroadcaster):
+    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+    pilot_conf = json.loads(broadcaster.piloting_conf)
+    url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
+        server=pilot_conf["server"],
+        port=pilot_conf["port"],
+        application=pilot_conf["application"],
+	)
+
+    response = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
+
+    response_dict = json.loads(response.text)
+
+    if ".stream" not in livestream:
+        return JsonResponse({"success": False}, status=400)
+
+    livestream_id = livestream[0:-7]
+
+    for stream in response_dict["streamFiles"]:
+        if stream["id"]==livestream_id:
+            return JsonResponse({"success":True}, status=200)
+
+    return JsonResponse({"success": False}, status=400)

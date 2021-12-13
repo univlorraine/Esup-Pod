@@ -20,7 +20,7 @@
 {% block page_title %}{{ event.title|title|truncatechars:45 }}{% endblock %}
 
 {% block page_content %}
-
+{% csrf_token %}
     <h3 id="livename" data-liveid="{{ event.id }}"><i data-feather="airplay"></i>&nbsp;{{ event.title|title }}</h3>
 
     {% if event.is_current %}
@@ -45,7 +45,12 @@
             </div>
 
         </div>
-
+        <div id="control">
+            <p>Flux en cours d'enregistrement : {{ isStreamRecording }}</p>
+            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == True %}d-none{% endif %}" id="startrecord">{% trans "Start Record"%}</button>
+            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="stoprecord">{% trans "Stop Record"%}</button>
+            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="splitrecord">{% trans "Split Record"%}</button>
+        </div>
         <div id="info-video" style="display:none" class="jumbotron">
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -191,6 +196,70 @@
                 $("#divvideoplayer").css("display", "block");
             }
         })
+
+
+        $(document).on('click',  '#startrecord', function(e){
+            console.log("dans js #startrecord");
+            $.ajax({
+                url: "{% url 'live:event_startrecord' %}",
+                method: 'POST',
+                dataType: 'json',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data: {
+                    "idbroadcaster": "{{ event.broadcaster.id }}",
+                },
+                success: function(data) {
+                    console.log('Enregistrement commence');
+                    $("#startrecord").addClass("d-none");
+                    $("#stoprecord").removeClass("d-none");
+                    $("#splitrecord").removeClass("d-none")
+                }
+            })
+        });
+
+
+        $(document).on('click',  '#stoprecord', function(e){
+            console.log("dans js #stoprecord");
+            $.ajax({
+                url: "{% url 'live:event_stoprecord' %}",
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data: {
+                    "idbroadcaster": "{{ event.broadcaster.id }}",
+                },
+                success: function(data) {
+                    console.log('Enregistrement arrêt');
+                    $("#startrecord").removeClass("d-none");
+                    $("#stoprecord").addClass("d-none");
+                    $("#splitrecord").addClass("d-none")
+                }
+            })
+        });
+
+        $(document).on('click',  '#splitrecord', function(e){
+            console.log("dans js #splitrecord");
+            $.ajax({
+                url: "{% url 'live:event_splitrecord' %}",
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data: {
+                    "idbroadcaster": "{{ event.broadcaster.id }}",
+                },
+                success: function(data) {
+                    console.log("Enregistrement split")
+                    $("#startrecord").addClass("d-none");
+                    $("#stoprecord").removeClass("d-none");
+                    $("#splitrecord").removeClass("d-none")
+                }
+            })
+        });
+
     </script>
 
 
