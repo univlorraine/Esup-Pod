@@ -2,16 +2,10 @@
 {% load i18n %}
 {% load staticfiles %}
 
-{% block more_style %}
-  {% if use_category %}
-    <link rel="stylesheet" href="{% static 'css/video_category.css' %}?ver={{VERSION}}">
-  {% endif %}
-{% endblock more_style %}
-
-{% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "My events" %}</li>{% endblock %}
+{% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "Events" %}</li>{% endblock %}
 
 {% block page_title %}
-  {% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
+  {% blocktrans count counter=events.paginator.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
   {{ events.paginator.count }}
 {% endblock %}
 
@@ -28,32 +22,19 @@
     </div>
     <!-- End Loader -->
 
-{#    {% include "events/category_modal.html" %}#}
-
   {% endif %}
 
   {% if events.count == 0 %}
     <h3>{% trans "No event found"%}</h3>
-    <p class="alert alert-info">{% trans 'You have not planned any event yet, please use the "Add a new event" button to add one'%}</p>
   {% else %}
-    <h3>{% blocktrans count counter=events.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
-    <p class="alert alert-info">{% trans "Please use the thumbnails toolbar which is located under the video on which you want to work with." %}</p>
+    <h3>{% blocktrans count counter=events.paginator.count %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
+    <p class="alert alert-info">{% trans "Please use the thumbnails toolbar which is located under the event on which you want to work with." %}</p>
 
     {% include "live/events_list.html" %}
 
   {% endif %}
 {% endblock page_content %}
 
-{% block collapse_page_aside %}
-  {% if use_category %}
-    {{ block.super }}
-  {% endif %}
-{% endblock collapse_page_aside %}
-
 {% block page_aside %}
-  {% if use_category %}
-
-{#    {% include 'events/filter_aside_category.html' %}#}
-
-  {% endif %}
+  {% include 'live/filter_aside.html' %}
 {% endblock page_aside %}

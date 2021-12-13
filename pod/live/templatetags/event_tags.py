@@ -15,4 +15,11 @@ def get_last_events(context: object):
         |
         (Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
     ).order_by('start_date','start_time')
-    return events
+    count = 0
+    next_events = []
+    for event in events:
+        next_events.append(event)
+        count += 1
+        if count >= 4:
+            break
+    return next_events
