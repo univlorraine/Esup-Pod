@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
+from django.forms import Textarea
 
 from pod.live.forms import BuildingAdminForm, EventAdminForm, BroadcasterAdminForm
 from pod.live.models import Building, Event, Broadcaster, HeartBeat, Video
@@ -65,6 +66,12 @@ class BroadcasterAdmin(admin.ModelAdmin):
         "piloting_conf",
     )
     readonly_fields = ["slug"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        kwargs['widgets'] = {
+            'piloting_conf': Textarea(attrs={'placeholder': "{\n 'server':'...',\n 'port':'...',\n 'application':'...',\n 'livestream':'...',\n}"})
+        }
+        return super().get_form(request, obj, **kwargs)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
