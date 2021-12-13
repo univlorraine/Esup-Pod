@@ -2,25 +2,15 @@ import json
 import re
 from datetime import date, datetime
 
+import requests
 from django import forms
-from django.conf.urls import url
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404
-from django.urls import reverse
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
-
-from .models import Building, Broadcaster, HeartBeat, Event
-from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from django.conf import settings
 from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
-from django.db.models import Prefetch
-from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
+from django.core.exceptions import SuspiciousOperation
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Prefetch
 from django.db.models import Q
@@ -31,14 +21,13 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from pod.bbb.models import Livestream
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from .models import Building, Broadcaster, HeartBeat, Event
 from ..main.views import in_maintenance
-
-import requests
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
 
@@ -396,6 +385,10 @@ def broadcasters_from_building(request):
 def event_startrecord(request):
     idbroadcaster = request.POST.get("idbroadcaster", None)
     broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+
+    if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
+        raise SuspiciousOperation("the broadcaster is not set for recording")
+
     pilot_conf = json.loads(broadcaster.piloting_conf)
 
     if request.method == "POST" and request.is_ajax():
@@ -453,9 +446,14 @@ def event_splitrecord(request):
     if request.method == "POST" and request.is_ajax():
         idbroadcaster = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+
+        if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
+            raise SuspiciousOperation("the broadcaster is not set for recording")
+
         pilot_conf = json.loads(broadcaster.piloting_conf)
+
         if event_isstreamrecording(idbroadcaster) == False:
-            raise SuspiciousOperation("the broadcaster does not recording")
+            raise SuspiciousOperation("the broadcaster is not recording")
         else:
             url_split_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/splitRecording".format(
                 server=pilot_conf["server"],
@@ -478,10 +476,14 @@ def event_stoprecord(request):
     if request.method == "POST" and request.is_ajax():
         idbroadcaster = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+
+        if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
+            raise SuspiciousOperation("the broadcaster is not set for recording")
+
         pilot_conf = json.loads(broadcaster.piloting_conf)
 
         if event_isstreamrecording(idbroadcaster) == False:
-            raise SuspiciousOperation("the broadcaster does not recording")
+            raise SuspiciousOperation("the broadcaster is not recording")
         else:
             url_stop_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/stopRecording".format(
                 server=pilot_conf["server"],
@@ -502,6 +504,9 @@ def event_isstreamrecording(idbroadcaster):
 
     broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
 
+    if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
+        return False
+
     pilot_conf = json.loads(broadcaster.piloting_conf)
 
     url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders".format(
@@ -516,12 +521,17 @@ def event_isstreamrecording(idbroadcaster):
          for streamrecorder in response_dict["streamrecorder"]:
              if streamrecorder["recorderName"] == pilot_conf["livestream"]:
                  return True
+
     return False
 
 
 @csrf_protect
 def event_isstreamavailabletorecord(idbroadcaster):
     broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+
+    if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
+        return JsonResponse({"success": False}, status=400)
+
     pilot_conf = json.loads(broadcaster.piloting_conf)
     url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
         server=pilot_conf["server"],
@@ -545,3 +555,20 @@ def event_isstreamavailabletorecord(idbroadcaster):
             return JsonResponse({"success":True}, status=200)
 
     return JsonResponse({"success": False}, status=400)
+
+def parseAndCheckPilotingConfJson(piloting_conf):
+
+     # TODO verifier aussi l'implementation
+    if not piloting_conf:
+        print("piloting_conf value is not set")
+        return False
+
+    try:
+        decoded = json.loads(piloting_conf)
+    except:
+        print("piloting_conf has not a valid Json format")
+        return False
+
+    if not {"server", "port", "application", "livestream"} <= decoded.keys():
+        print("piloting_conf format value must be like : {'server':'...','port':'...','application':'...','livestream':'...'}")
+        return False
