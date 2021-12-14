@@ -56,12 +56,53 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+
+    {% elif event.is_past %}
+        <div class="p-3 mb-2 bg-warning text-dark">
+            {% trans "Event is finished at : " %} {{ event.start_date }} {{ event.end_time }}
+            <br>
+            {% trans "TODO : <br> <ul> <li> add the videos linked to the event </li> </ul>" %}
+        </div>
     {% else %}
-        <div class="p-3 mb-2 bg-warning text-white">Cet évènement est programmé le {{ event.start_date }} de {{ event.start_time }} à {{ event.end_time }}</div>
+        <div class="p-3 mb-2 bg-warning text-dark">
+            {% trans "The event is scheduled on the : " %} {{ event.start_date }}
+            {% trans " from " %} {{ event.start_time }}
+            {% trans " to " %} {{ event.end_time }}
+        </div>
     {% endif %}
 
 {% endblock %}
 
+{% block page_aside %}
+
+    {% include 'aside.html' with HIDE_DISCIPLINES=True HIDE_TAGS=True %}
+
+    {% if event.owner == request.user or request.user.is_superuser or perms.live.delete_event %}
+        {% if not event.is_current %}
+            <div class="card mt-1" id="card-managevideo">
+                <h5 class="card-header card-title pl-2"><i data-feather="settings"></i>&nbsp;{% trans "Manage event" %}
+                </h5>
+                <div class="card-body card-text text-center">
+
+                    {% if event.owner == request.user or request.user.is_superuser %}
+                        <a href="{% url 'live:event_edit' slug=event.slug %}" title="{% trans "Edit the event" %}"
+                           class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
+                            <i data-feather="edit"></i>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'live:event_delete' slug=event.slug %}"
+                       class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1"
+                       title="{% trans "Delete the event." %}">
+                        <i data-feather="trash-2"></i>
+                    </a>
+
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+{% endblock page_aside %}
 
 {% block more_script %}
     <script>

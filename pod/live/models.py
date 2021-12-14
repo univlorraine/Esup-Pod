@@ -332,7 +332,15 @@ class Event(models.Model):
 
     @property
     def is_current(self):
-        return self.start_date==date.today() and (self.end_time >= datetime.now().time() >= self.start_time)
+        return self.start_date==date.today() and (self.start_time <= datetime.now().time() <= self.end_time)
+
+    @property
+    def is_past(self):
+        return self.start_date < date.today() or (self.start_date == date.today() and self.end_time < datetime.now().time())
+
+    @property
+    def is_coming(self):
+        return self.start_date > date.today() or (self.start_date == date.today() and datetime.now().time() < self.start_time )
 
 class CurrentRecord(models.Model):
 

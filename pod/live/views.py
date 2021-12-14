@@ -196,7 +196,7 @@ def events(request):  # affichage des events
     if not request.user.is_authenticated():
         queryset.filter(is_restricted=False)
 
-    events_list = queryset.all().order_by("start_date", "start_time", "end_time")
+    events_list = queryset.all().order_by("-start_date", "-start_time", "-end_time")
 
     page = request.GET.get("page", 1)
     full_path = ""
@@ -230,12 +230,12 @@ def events(request):  # affichage des events
 def my_events(request):
     queryset = request.user.event_set
 
-    previous_events = queryset.filter(
+    past_events = queryset.filter(
         Q(start_date__lt=date.today())
         |(Q(start_date=date.today()) & Q(end_time__lte=datetime.now()))
         ).all().order_by("-start_date", "-start_time", "-end_time")
 
-    next_events = queryset.filter(
+    coming_events = queryset.filter(
         Q(start_date__gt=date.today())
         |(Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
         ).all().order_by("start_date", "start_time", "end_time")
@@ -249,25 +249,25 @@ def my_events(request):
     full_path = re.sub("\?|\&"+PREVIOUS_EVENT_URL_NAME+"=\d+", "", full_path)
     full_path = re.sub("\?|\&"+NEXT_EVENT_URL_NAME+"=\d+", "", full_path)
 
-    paginatorNext = Paginator(next_events, 8)
-    paginatorPrevious = Paginator(previous_events, 8)
+    paginatorComing = Paginator(coming_events, 8)
+    paginatorPast = Paginator(past_events, 8)
 
     pageP = request.GET.get(PREVIOUS_EVENT_URL_NAME,1)
     pageN = request.GET.get(NEXT_EVENT_URL_NAME,1)
 
     try:
-        next_events = paginatorNext.page(pageN)
-        previous_events = paginatorPrevious.page(pageP)
+        coming_events = paginatorComing.page(pageN)
+        past_events = paginatorPast.page(pageP)
     except PageNotAnInteger:
         pageP = 1
         pageN = 1
-        next_events = paginatorNext.page(1)
-        previous_events = paginatorPrevious.page(1)
+        coming_events = paginatorComing.page(1)
+        past_events = paginatorPast.page(1)
     except EmptyPage:
         pageP = 1
         pageN = 1
-        next_events = paginatorNext.page(paginatorNext.num_pages)
-        previous_events = paginatorPrevious.page(paginatorPrevious.num_pages)
+        coming_events = paginatorComing.page(paginatorComing.num_pages)
+        past_events = paginatorPast.page(paginatorPast.num_pages)
 
     return render(
         request,
@@ -276,12 +276,12 @@ def my_events(request):
             "full_path": full_path,
             "types": request.GET.getlist("type"),
             "events_number": events_number,
-            "previous_events": previous_events,
-            "previous_events_url": PREVIOUS_EVENT_URL_NAME,
-            "previous_events_url_page": PREVIOUS_EVENT_URL_NAME+"="+str(pageP),
-            "next_events": next_events,
-            "next_events_url": NEXT_EVENT_URL_NAME,
-            "next_events_url_page": NEXT_EVENT_URL_NAME+"="+str(pageN),
+            "past_events": past_events,
+            "past_events_url": PREVIOUS_EVENT_URL_NAME,
+            "past_events_url_page": PREVIOUS_EVENT_URL_NAME+"="+str(pageP),
+            "coming_events": coming_events,
+            "coming_events_url": NEXT_EVENT_URL_NAME,
+            "coming_events_url_page": NEXT_EVENT_URL_NAME+"="+str(pageN),
         }
     )
 
