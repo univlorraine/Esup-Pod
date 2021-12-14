@@ -57,12 +57,16 @@
     {% else %}
         <p class="alert alert-info">{% trans "Please use the thumbnails toolbar which is located under the event on which you want to work with." %}</p>
 
-        <h4>{% trans "Next events" %}</h4>
-        {% include "live/events_list.html" with events=next_events urlpage=next_events_url urland=previous_events_url_page %}
+        <h4>{% trans "Coming events" %}</h4>
+        {% include "live/events_list.html" with events=coming_events urlpage=coming_events_url urland=past_events_url_page %}
 
-        <h4>{% trans "Previous events" %}</h4>
-        {% include "live/events_list.html" with events=previous_events urlpage=previous_events_url urland=next_events_url_page %}
+        <h4>{% trans "Past events" %}</h4>
+        {% include "live/events_list.html" with events=past_events urlpage=past_events_url urland=coming_events_url_page %}
 
     {% endif %}
 
 {% endblock page_content %}
+
+{% block page_aside %}
+    {# masque la barre laterale aside.html #}
+{% endblock page_aside %}
