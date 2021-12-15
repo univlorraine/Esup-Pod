@@ -341,31 +341,3 @@ class Event(models.Model):
     @property
     def is_coming(self):
         return self.start_date > date.today() or (self.start_date == date.today() and datetime.now().time() < self.start_time )
-
-class CurrentRecord(models.Model):
-
-    event =  models.ForeignKey(Event)
-
-    action = models.CharField(
-        null = True,
-        blank = False,
-        max_length=100,
-    )
-
-    owner = models.ForeignKey(
-        get_user_model(),
-        null=False,
-        blank=False,
-    )
-
-    start_time = models.DateTimeField(
-        default=timezone.now,
-        null=False,
-        blank=False,
-    )
-
-    filename = models.CharField(
-        null=False,
-        blank=False,
-        max_length=100,
-    )

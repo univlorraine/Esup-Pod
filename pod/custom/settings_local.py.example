@@ -1306,3 +1306,8 @@ DYSLEXIAMODE_ENABLED = False
 # On peut préciser un lien vers les mentions légales ou page dpo
 """
 COOKIE_LEARN_MORE = ""
+
+"""
+# Chemin racine du répertoire où sont déposés les évènements enregistrés
+"""
+DEFAULT_EVENT_PATH = ""

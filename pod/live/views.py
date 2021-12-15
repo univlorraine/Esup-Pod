@@ -36,6 +36,7 @@ HEARTBEAT_DELAY = getattr(settings, "HEARTBEAT_DELAY", 45)
 USE_BBB = getattr(settings, "USE_BBB", False)
 USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
+DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 
 def lives(request):  # affichage des directs
     site = get_current_site(request)
@@ -410,7 +411,7 @@ def event_startrecord(request):
                 "currentSize": 0,
                 "segmentSchedule": "",
                 "startOnKeyFrame": True,
-                "outputPath": "//data//partage//VideosUL//vod_live_sandbox//",
+                "outputPath": DEFAULT_EVENT_PATH,
                 "baseFile": "_pod_test_${RecordingStartTime}",
                 "currentFile": "",
                 "saveFieldList": [""],
