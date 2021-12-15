@@ -292,13 +292,14 @@ def my_events(request):
 def event_add(request):
     if request.POST:
         form = EventForm(
-            request.POST
+            request.POST,
+            user=request.user
         )
         if form.is_valid():
             form.save()
             return redirect("/live/events")
     else:
-        form = EventForm()
+        form = EventForm(user=request.user)
         form.fields['videos'].widget = forms.HiddenInput()
 
     return render(

@@ -5,6 +5,7 @@ from django.contrib.admin import widgets
 from pod.live.models import Broadcaster
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
+from django.contrib.auth.models import User
 
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
@@ -48,7 +49,9 @@ class BroadcasterAdminForm(forms.ModelForm):
 
 class EventAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super(EventAdminForm, self).__init__(*args, **kwargs)
+        self.fields['owner'].initial = self.request.user
 
     def clean(self):
         super(EventAdminForm, self).clean()
@@ -91,7 +94,9 @@ class EventForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(EventForm, self).__init__(*args, **kwargs)
+        self.fields['owner'].initial = self.user
 
         # gère la mise a jour dynamique de la liste
         if 'building' in self.data:

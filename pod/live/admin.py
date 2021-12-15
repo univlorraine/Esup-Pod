@@ -102,6 +102,16 @@ class BroadcasterAdmin(admin.ModelAdmin):
         )
 
 class EventAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        ModelForm = super(EventAdmin, self).get_form(request, obj, **kwargs)
+
+        class ModelFormMetaClass(ModelForm):
+            def __new__(cls, *args, **kwargs):
+                kwargs['request'] = request
+                return ModelForm(*args, **kwargs)
+
+        return ModelFormMetaClass
+
     form = EventAdminForm
     fields  = (
         "title",
