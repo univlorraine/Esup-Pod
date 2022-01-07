@@ -101,7 +101,9 @@
             </div>
             <!-- fin contenu page statique -->
             {% if request.path == "/" %}
-            {% include "live/events_last.html" %}
+                {% if USE_EVENT and "live" in THIRD_PARTY_APPS %}
+                    {% include "live/events_last.html" %}
+                {% endif %}
             {% include "videos/last_videos.html" %}
             {% endif %}
           </div>
