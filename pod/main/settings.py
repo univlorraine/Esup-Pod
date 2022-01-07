@@ -284,6 +284,8 @@ THUMBNAIL_PRESERVE_FORMAT = True
 
 # ie : USE_THEME = 'green'
 
+USE_EVENT = False
+DEFAULT_EVENT_PATH = ""
 """
 ##
 # Main menu settings:

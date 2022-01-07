@@ -1308,6 +1308,15 @@ DYSLEXIAMODE_ENABLED = False
 COOKIE_LEARN_MORE = ""
 
 """
-# Chemin racine du répertoire où sont déposés les évènements enregistrés
+# Utiliser la gestion des évènements sur les directs
+# Ce paramètre positionné à True désactivera l'accès aux directs
+# et activera la possibilité d'accéder à des évènements sur les directs
+"""
+USE_EVENT = False
+
+"""
+# Chemin racine du répertoire où sont déposés temporairement les
+# enregistrements des évènements éffectués depuis POD pour
+# converstion en ressource vidéo (VOD)
 """
 DEFAULT_EVENT_PATH = ""
