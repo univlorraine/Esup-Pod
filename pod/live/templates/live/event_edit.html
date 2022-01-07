@@ -9,7 +9,7 @@
 {% block page_content %}
 
     <div class="jumbotron">
-        <h3> {% trans "edit an event" %}</h3>
+        <h3> {% trans "Edit an event" %}</h3>
 
         <form id="event_form" action="{% url 'live:event_edit' slug=form.instance.slug %}" method="post" class='needs-validation' novalidate>
             {% csrf_token %}
