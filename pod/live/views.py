@@ -1,6 +1,7 @@
 import json
 import re
 from datetime import date, datetime
+from typing import Optional
 
 import requests
 from django import forms
@@ -27,7 +28,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from pod.bbb.models import Livestream
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from .models import Building, Broadcaster, HeartBeat, Event
-from django.contrib.auth.models import Group
+from .pilotingInterface import Wowza, PilotingInterface, BROADCASTER_IMPLEMENTATION
 from ..main.views import in_maintenance
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
@@ -388,192 +389,123 @@ def broadcasters_from_building(request):
 @csrf_protect
 @login_required(redirect_field_name="referrer")
 def event_startrecord(request):
-    idbroadcaster = request.POST.get("idbroadcaster", None)
-    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
-
-    if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
-        raise SuspiciousOperation("the broadcaster is not set for recording")
-
-    pilot_conf = json.loads(broadcaster.piloting_conf)
-
     if request.method == "POST" and request.is_ajax():
-        if event_isstreamrecording(idbroadcaster)==True :
-            raise SuspiciousOperation("the broadcaster is already recording")
-        else:
-            # if request.method == "POST" and request.is_ajax():
-            url_start_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}".format(
-                server=pilot_conf["server"],
-                port=pilot_conf["port"],
-                application=pilot_conf["application"],
-                livestream=pilot_conf["livestream"],
-            )
-            data = {
-                "instanceName": "",
-                "fileVersionDelegateName": "",
-                "serverName": "",
-                "recorderName": "",
-                "currentSize": 0,
-                "segmentSchedule": "",
-                "startOnKeyFrame": True,
-                "outputPath": DEFAULT_EVENT_PATH,
-                "baseFile": "_pod_test_${RecordingStartTime}",
-                "currentFile": "",
-                "saveFieldList": [""],
-                "recordData": False,
-                "applicationName": "",
-                "moveFirstVideoFrameToZero": False,
-                "recorderErrorString": "",
-                "segmentSize": 0,
-                "defaultRecorder": False,
-                "splitOnTcDiscontinuity": False,
-                "version": "",
-                "segmentDuration": 0,
-                "recordingStartTime": "",
-                "fileTemplate": "",
-                "backBufferTime": 0,
-                "segmentationType": "",
-                "currentDuration": 0,
-                "fileFormat": "",
-                "recorderState": "",
-                "option": ""
-            }
 
-            response = requests.post(url_start_record, json=data, headers={"Accept": "application/json","Content-Type": "application/json"})
-            response_dict = json.loads(response.text)
-            print(response_dict)
-            return JsonResponse(
-                {'state': 'début enregistrement'}
-            )
+        broadcaster_id = request.POST.get("idbroadcaster", None)
+        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+
+        if is_recording(broadcaster):
+            raise SuspiciousOperation("the broadcaster is not recording")
+
+        if start_record(broadcaster):
+            return JsonResponse({'state': 'début enregistrement'})
+        else:
+            return JsonResponse({"success": False}, status=400)
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
 def event_splitrecord(request):
     if request.method == "POST" and request.is_ajax():
-        idbroadcaster = request.POST.get("idbroadcaster", None)
-        broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+        broadcaster_id = request.POST.get("idbroadcaster", None)
+        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
-            raise SuspiciousOperation("the broadcaster is not set for recording")
-
-        pilot_conf = json.loads(broadcaster.piloting_conf)
-
-        if event_isstreamrecording(idbroadcaster) == False:
+        if not is_recording(broadcaster):
             raise SuspiciousOperation("the broadcaster is not recording")
+
+        if split_record(broadcaster):
+            return JsonResponse({'action': 'split enregistrement'})
         else:
-            url_split_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/splitRecording".format(
-                server=pilot_conf["server"],
-                port=pilot_conf["port"],
-                application=pilot_conf["application"],
-                livestream=pilot_conf["livestream"],
-            )
-            response = requests.put(url_split_record,
-                                    headers={"Accept": "application/json", "Content-Type": "application/json"})
-            response_dict = json.loads(response.text)
-            print(response_dict)
-            return JsonResponse(
-                {'action': 'split enregistrement'}
-            )
+            return JsonResponse({"success": False}, status=400)
 
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
 def event_stoprecord(request):
     if request.method == "POST" and request.is_ajax():
-        idbroadcaster = request.POST.get("idbroadcaster", None)
-        broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+        broadcaster_id = request.POST.get("idbroadcaster", None)
+        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
-            raise SuspiciousOperation("the broadcaster is not set for recording")
-
-        pilot_conf = json.loads(broadcaster.piloting_conf)
-
-        if event_isstreamrecording(idbroadcaster) == False:
+        if not is_recording(broadcaster):
             raise SuspiciousOperation("the broadcaster is not recording")
+
+        if stop_record(broadcaster):
+            return JsonResponse({'action': 'arrêt enregistrement'})
         else:
-            url_stop_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/stopRecording".format(
-                server=pilot_conf["server"],
-                port=pilot_conf["port"],
-                application=pilot_conf["application"],
-                livestream=pilot_conf["livestream"],
-            )
-        response = requests.put(url_stop_record,headers={"Accept": "application/json","Content-Type": "application/json"})
-        response_dict = json.loads(response.text)
-
-        return JsonResponse(
-            {'action': 'arrêt enregistrement'}
-        )
-
+            return JsonResponse({"success": False}, status=400)
 
 @csrf_exempt
-def event_isstreamrecording(idbroadcaster):
+def event_isstreamrecording(broadcaster_id):
 
-    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-    if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
-        return False
-
-    pilot_conf = json.loads(broadcaster.piloting_conf)
-
-    url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders".format(
-        server=pilot_conf["server"],
-        port=pilot_conf["port"],
-        application=pilot_conf["application"]
-    )
-    response = requests.get(url_state_live_stream_recording,verify=True,headers={"Accept": "application/json","Content-Type": "application/json"})
-
-    if response.json().get('streamrecorders')!=None:
-        streamrecorders = response.json().get("streamrecorder")
-        for streamrecorder in streamrecorders:
-            if streamrecorder.get("recorderName") == pilot_conf["livestream"]:
-                return True
-
-    return False
+    if is_recording(broadcaster):
+        return JsonResponse({"success": True}, status=200)
+    else:
+        return JsonResponse({"success": False}, status=400)
 
 
 @csrf_protect
-def event_isstreamavailabletorecord(idbroadcaster):
-    broadcaster = Broadcaster.objects.get(pk=idbroadcaster)
+def event_isstreamavailabletorecord(broadcaster_id):
+    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-    if not parseAndCheckPilotingConfJson(broadcaster.piloting_conf):
+    if is_available_to_record(broadcaster):
+        return JsonResponse({"success": True}, status=200)
+    else:
         return JsonResponse({"success": False}, status=400)
 
-    pilot_conf = json.loads(broadcaster.piloting_conf)
-    url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
-        server=pilot_conf["server"],
-        port=pilot_conf["port"],
-        application=pilot_conf["application"],
-	)
 
-    response = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
+def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
+    print("get_piloting_implementation")
+    piloting_impl = broadcaster.piloting_implementation
+    if not piloting_impl:
+        print("->piloting_implementation value is not set")
+        return None
 
-    livestream = pilot_conf["livestream"]
+    if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
+        print("->piloting_implementation : " + piloting_impl + " is not know ."
+              + " Available piloting_implementations are '" + "','".join(BROADCASTER_IMPLEMENTATION) + "'")
+        return None
 
-    if ".stream" not in livestream:
-        return JsonResponse({"success": False}, status=400)
+    if piloting_impl.lower() == "wowza":
+        print("->implementation found : "  + piloting_impl.lower())
+        return Wowza(broadcaster)
+    else:
+        print("->get_piloting_implementation - This should not happen")
+        return None
 
-    livestream_id = livestream[0:-7]
 
-    for stream in response.json().get('streamFiles'):
-        if stream.get("id")==livestream_id:
-            return JsonResponse({"success": True}, status=200)
-
-    return JsonResponse({"success": False}, status=400)
-
-def parseAndCheckPilotingConfJson(piloting_conf):
-
-     # TODO verifier aussi l'implementation
-    if not piloting_conf:
-        print("piloting_conf value is not set")
+def check_piloting_conf(broadcaster: Broadcaster) -> bool:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
         return False
+    return impl_class.check_piloting_conf()
 
-    try:
-        decoded = json.loads(piloting_conf)
-    except:
-        print("piloting_conf has not a valid Json format")
+def start_record(broadcaster: Broadcaster) -> bool:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
         return False
+    return impl_class.start()
 
-    if not {"server", "port", "application", "livestream"} <= decoded.keys():
-        print("piloting_conf format value must be like : {'server':'...','port':'...','application':'...','livestream':'...'}")
+def split_record(broadcaster: Broadcaster) -> bool:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
         return False
+    return impl_class.split()
 
-    return True
+def stop_record(broadcaster: Broadcaster) -> bool:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
+        return False
+    return impl_class.stop()
+
+def is_available_to_record(broadcaster: Broadcaster) -> bool:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
+        return False
+    return impl_class.is_available_to_record()
+
+def is_recording(broadcaster: Broadcaster) -> bool:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
+        return False
+    return impl_class.is_recording()
