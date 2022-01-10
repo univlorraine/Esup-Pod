@@ -27,6 +27,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from pod.bbb.models import Livestream
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from .models import Building, Broadcaster, HeartBeat, Event
+from django.contrib.auth.models import Group
 from ..main.views import in_maintenance
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
@@ -377,6 +378,8 @@ def broadcasters_from_building(request):
     building_name = request.GET.get('building')
     building = Building.objects.filter(name=building_name).first()
     broadcasters = Broadcaster.objects.filter(building=building)
+    #print(Broadcaster.objects.filter(Q(manage_groups__in = request.user.groups.all())|Q(manage_groups__isnull=True),building=building).count())
+    broadcasters = Broadcaster.objects.filter(Q(manage_groups__in = request.user.groups.all())|Q(manage_groups__isnull=True),status=True,building=building)
     response_data={}
     for broadcaster in broadcasters:
         response_data[broadcaster.id] = {'id':broadcaster.id, 'name':broadcaster.name}
@@ -517,12 +520,12 @@ def event_isstreamrecording(idbroadcaster):
         application=pilot_conf["application"]
     )
     response = requests.get(url_state_live_stream_recording,verify=True,headers={"Accept": "application/json","Content-Type": "application/json"})
-    response_dict = json.loads(response.text)
 
-    if response_dict["streamrecorder"]:
-         for streamrecorder in response_dict["streamrecorder"]:
-             if streamrecorder["recorderName"] == pilot_conf["livestream"]:
-                 return True
+    if response.json().get('streamrecorders')!=None:
+        streamrecorders = response.json().get("streamrecorder")
+        for streamrecorder in streamrecorders:
+            if streamrecorder.get("recorderName") == pilot_conf["livestream"]:
+                return True
 
     return False
 
@@ -543,8 +546,6 @@ def event_isstreamavailabletorecord(idbroadcaster):
 
     response = requests.get(url_state_live_stream_recording,headers={"Accept": "application/json","Content-Type": "application/json"})
 
-    response_dict = json.loads(response.text)
-
     livestream = pilot_conf["livestream"]
 
     if ".stream" not in livestream:
@@ -552,9 +553,9 @@ def event_isstreamavailabletorecord(idbroadcaster):
 
     livestream_id = livestream[0:-7]
 
-    for stream in response_dict["streamFiles"]:
-        if stream["id"]==livestream_id:
-            return JsonResponse({"success":True}, status=200)
+    for stream in response.json().get('streamFiles'):
+        if stream.get("id")==livestream_id:
+            return JsonResponse({"success": True}, status=200)
 
     return JsonResponse({"success": False}, status=400)
 

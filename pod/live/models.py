@@ -161,13 +161,6 @@ class Broadcaster(models.Model):
         related_name='managegroups'
     )
 
-    piloting_api_url = models.URLField(
-        _("Url API"),
-        null=True,
-        blank=True,
-        help_text=_("Url of API"),
-    )
-
     piloting_implementation = models.CharField(
         max_length=100,
         blank=True,
