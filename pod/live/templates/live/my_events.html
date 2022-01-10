@@ -12,7 +12,7 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "My events" %}</li>{% endblock %}
 
 {% block page_title %}
-    {% blocktrans count counter=events_number %}{{ events }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
+    {% blocktrans count counter=events_number %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}
 {% endblock %}
 
 
@@ -43,7 +43,7 @@
         {% if events.count == 0 %}
             <h3>{% trans "No event found" %}</h3>
         {% else %}
-            <h3>{% blocktrans count counter=events_number %}{{ events }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
+            <h3>{% blocktrans count counter=events_number %}{{ counter }} event found{% plural %}{{ counter }} events found{% endblocktrans %}</h3>
         {% endif %}
         <a class="ml-auto" href="{% url 'live:event_add' %}" title="add event">
             <button type="button" class="btn btn-primary">

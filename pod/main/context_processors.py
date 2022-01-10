@@ -97,6 +97,8 @@ USE_VIDEO_RECORD = getattr(django_settings, "USE_VIDEO_RECORD", False)
 
 COOKIE_LEARN_MORE = getattr(django_settings, "COOKIE_LEARN_MORE", "")
 
+USE_EVENT = getattr(django_settings, "USE_EVENT", False)
+
 
 def context_settings(request):
     """Return all context settings."""
@@ -157,6 +159,7 @@ def context_settings(request):
     new_settings["DYSLEXIAMODE_ENABLED"] = DYSLEXIAMODE_ENABLED
     new_settings["USE_VIDEO_RECORD"] = USE_VIDEO_RECORD
     new_settings["COOKIE_LEARN_MORE"] = COOKIE_LEARN_MORE
+    new_settings["USE_EVENT"] = USE_EVENT
 
     return new_settings
 

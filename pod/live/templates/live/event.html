@@ -47,9 +47,9 @@
         </div>
         <div id="control">
             <p>Flux en cours d'enregistrement : {{ isStreamRecording }}</p>
-            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == True %}d-none{% endif %}" id="startrecord">{% trans "Start Record"%}</button>
-            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="stoprecord">{% trans "Stop Record"%}</button>
-            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="splitrecord">{% trans "Split Record"%}</button>
+            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == True %}d-none{% endif %}" id="startrecord">{% trans "Start record"%}</button>
+            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="stoprecord">{% trans "Stop record"%}</button>
+            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="splitrecord">{% trans "Split record"%}</button>
         </div>
         <div id="info-video" style="display:none" class="jumbotron">
             <button type="button" class="close" aria-label="Close">
@@ -66,8 +66,7 @@
     {% else %}
         <div class="p-3 mb-2 bg-warning text-dark">
             {% trans "The event is scheduled on the : " %} {{ event.start_date }}
-            {% trans " from " %} {{ event.start_time }}
-            {% trans " to " %} {{ event.end_time }}
+            {% trans 'from' %} {{ event.start_time }} {% trans 'to' %} {{ event.end_time }}
         </div>
     {% endif %}
 
@@ -93,7 +92,7 @@
 
                     <a href="{% url 'live:event_delete' slug=event.slug %}"
                        class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1"
-                       title="{% trans "Delete the event." %}">
+                       title="{% trans "Delete the event" %}">
                         <i data-feather="trash-2"></i>
                     </a>
 

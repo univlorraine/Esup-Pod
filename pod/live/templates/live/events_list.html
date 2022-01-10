@@ -23,7 +23,7 @@
                 {% else %}
                     href="?{{ urlpage }}={{ events.previous_page_number }}&{{ urland }}"
                 {% endif %}>
-            {% trans "Previous" %}
+            {% trans "Previous page" %}
             </a>
         {% endif %}
         {% if events.has_next %}
@@ -33,7 +33,7 @@
                 {% else %}
                     href="?{{ urlpage }}={{ events.next_page_number }}&{{ urland }}"
                 {% endif %}>
-                {% trans "Next" %}
+                {% trans "Next page" %}
             </a>
         {% endif %}
     </div>

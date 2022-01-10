@@ -122,7 +122,7 @@ class EventForm(forms.ModelForm):
 class EventDeleteForm(forms.Form):
     agree = forms.BooleanField(
         label=_("I agree"),
-        help_text=_("Delete Event cannot be undo"),
+        help_text=_("Delete event cannot be undo"),
         widget=forms.CheckboxInput(),
     )
 
