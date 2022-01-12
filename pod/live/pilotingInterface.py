@@ -1,14 +1,15 @@
+import http
 import json
 from abc import ABC
 
 import requests
-from django.http import JsonResponse
+from django.conf import settings
 
 from .models import Broadcaster
-from django.conf import settings
 
 BROADCASTER_IMPLEMENTATION = ["Wowza"]
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
+
 
 class PilotingInterface(ABC):
     @classmethod
@@ -55,6 +56,7 @@ class PilotingInterface(ABC):
 class Wowza(PilotingInterface, ABC):
     def __init__(self, broadcaster: Broadcaster):
         self.broadcaster = broadcaster
+        self.url = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}"
 
     def check_piloting_conf(self) -> bool:
         print("Wowza - Check piloting conf")
@@ -79,24 +81,18 @@ class Wowza(PilotingInterface, ABC):
         print("Wowza - Check availability")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
-        url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/streamfiles".format(
+        url_state_live_stream_recording = (self.url + "/instances/_definst_/incomingstreams/{livestream}").format(
             server=conf["server"],
             port=conf["port"],
             application=conf["application"],
+            livestream=conf["livestream"],
         )
 
         response = requests.get(url_state_live_stream_recording,
                                 headers={"Accept": "application/json", "Content-Type": "application/json"})
 
-        livestream = conf["livestream"]
-
-        if ".stream" not in livestream:
-            return False
-
-        livestream_id = livestream[0:-7]
-
-        for stream in response.json().get('streamFiles'):
-            if stream.get("id") == livestream_id:
+        if response.status_code == http.HTTPStatus.OK:
+            if response.json().get('isConnected') == True and response.json().get('isRecordingSet') == False :
                 return True
 
         return False
@@ -105,29 +101,48 @@ class Wowza(PilotingInterface, ABC):
         print("Wowza - Check if is being recorded")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
-        url_state_live_stream_recording = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders".format(
+        url_state_live_stream_recording = (self.url + "/instances/_definst_/incomingstreams/{livestream}").format(
+            server=conf["server"],
+            port=conf["port"],
+            application=conf["application"],
+            livestream=conf["livestream"],
+        )
+
+        response = requests.get(url_state_live_stream_recording,
+                                headers={"Accept": "application/json", "Content-Type": "application/json"})
+
+        if response.status_code == http.HTTPStatus.OK:
+            return response.json().get('isConnected') and response.json().get('isRecordingSet')
+
+        return False
+
+    def get_current_record(self):
+        # TODO non utilisé et non déclaré mais peut être utile
+        json_conf = self.broadcaster.piloting_conf
+        conf = json.loads(json_conf)
+        url_state_live_stream_recording = (self.url + "/instances/_definst_/streamrecorders").format(
             server=conf["server"],
             port=conf["port"],
             application=conf["application"]
         )
+
         response = requests.get(url_state_live_stream_recording, verify=True, headers={
             "Accept": "application/json",
             "Content-Type": "application/json"
         })
 
-        if response.json().get('streamrecorders') != None:
-            streamrecorders = response.json().get("streamrecorder")
-            for streamrecorder in streamrecorders:
-                if streamrecorder.get("recorderName") == conf["livestream"]:
-                    return True
+        streamrecorder = response.json().get('streamrecorder')
+        for prop in streamrecorder:
+            if prop.get("recorderName") == conf["livestream"]:
+                return streamrecorder
 
-        return False
+        return None
 
     def start(self) -> bool:
         print("Wowza - Start record")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
-        url_start_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}".format(
+        url_start_record = (self.url + "/instances/_definst_/streamrecorders/{livestream}").format(
             server=conf["server"],
             port=conf["port"],
             application=conf["application"],
@@ -168,16 +183,15 @@ class Wowza(PilotingInterface, ABC):
             "Accept": "application/json",
             "Content-Type": "application/json"
         })
-        response_dict = json.loads(response.text)
-        #TODO on ne vérifie jamais la valeur du retour
 
-        return True
+        return response.status_code == http.HTTPStatus.CREATED
 
     def split(self) -> bool:
         print("Wowza - Split record")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
-        url_split_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/splitRecording".format(
+        url_split_record = (
+                    self.url + "/instances/_definst_/streamrecorders/{livestream}/actions/splitRecording").format(
             server=conf["server"],
             port=conf["port"],
             application=conf["application"],
@@ -188,16 +202,13 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
-        response_dict = json.loads(response.text)
-        print(response_dict)
-        #TODO on ne vérifie jamais la valeur du retour
-        return True
+        return response.status_code == http.HTTPStatus.OK
 
     def stop(self) -> bool:
         print("Wowza - Stop_record")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
-        url_stop_record = "http://{server}:{port}/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/{application}/instances/_definst_/streamrecorders/{livestream}/actions/stopRecording".format(
+        url_stop_record = (self.url + "/instances/_definst_/streamrecorders/{livestream}/actions/stopRecording").format(
             server=conf["server"],
             port=conf["port"],
             application=conf["application"],
@@ -208,8 +219,4 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
-        response_dict = json.loads(response.text)
-        print(response_dict)
-        #TODO on ne vérifie jamais la valeur du retour
-
-        return True
+        return response.status_code == http.HTTPStatus.OK

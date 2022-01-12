@@ -3,7 +3,6 @@ import re
 from datetime import date, datetime
 from typing import Optional
 
-import requests
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -11,18 +10,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
-from django.core.exceptions import SuspiciousOperation
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Prefetch
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from pod.bbb.models import Livestream
@@ -182,14 +179,12 @@ def heartbeat(request):
 
 def event(request, slug):  # affichage d'un event
     event = Event.objects.filter(slug=slug).first()
-    isstreamavailabletorecord = event_isstreamrecording(event.broadcaster.id)
 
     return render(
         request,
         "live/event.html",
         {
             "event":event,
-            "isStreamRecording": isstreamavailabletorecord
         }
     )
 
@@ -388,6 +383,23 @@ def broadcasters_from_building(request):
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
+def event_isstreamavailabletorecord(request):
+    if request.method == "GET" and request.is_ajax():
+        broadcaster_id = request.GET.get("idbroadcaster", None)
+        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+
+        available = is_available_to_record(broadcaster)
+        if not available:
+            return JsonResponse({"available": False, "recording": False})
+        if is_recording(broadcaster):
+            return JsonResponse({"available": True, "recording": True})
+        else:
+            return JsonResponse({"available": True, "recording": False})
+
+    return HttpResponseNotAllowed(["GET"])
+
+@csrf_protect
+@login_required(redirect_field_name="referrer")
 def event_startrecord(request):
     if request.method == "POST" and request.is_ajax():
 
@@ -395,12 +407,13 @@ def event_startrecord(request):
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
         if is_recording(broadcaster):
-            raise SuspiciousOperation("the broadcaster is not recording")
+            return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
 
         if start_record(broadcaster):
-            return JsonResponse({'state': 'début enregistrement'})
-        else:
-            return JsonResponse({"success": False}, status=400)
+            return JsonResponse({"success": True})
+        return JsonResponse({"success": False, "message": ""})
+
+    return HttpResponseNotAllowed(["POST"])
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
@@ -410,13 +423,13 @@ def event_splitrecord(request):
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
         if not is_recording(broadcaster):
-            raise SuspiciousOperation("the broadcaster is not recording")
+            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
 
         if split_record(broadcaster):
-            return JsonResponse({'action': 'split enregistrement'})
-        else:
-            return JsonResponse({"success": False}, status=400)
+            return JsonResponse({"success": True})
+        return JsonResponse({"success": False, "message": ""})
 
+    return HttpResponseNotAllowed(["POST"])
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
@@ -426,33 +439,13 @@ def event_stoprecord(request):
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
         if not is_recording(broadcaster):
-            raise SuspiciousOperation("the broadcaster is not recording")
+            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
 
         if stop_record(broadcaster):
-            return JsonResponse({'action': 'arrêt enregistrement'})
-        else:
-            return JsonResponse({"success": False}, status=400)
+            return JsonResponse({"success": True})
+        return JsonResponse({"success": False, "message": ""})
 
-@csrf_exempt
-def event_isstreamrecording(broadcaster_id):
-
-    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-
-    if is_recording(broadcaster):
-        return JsonResponse({"success": True}, status=200)
-    else:
-        return JsonResponse({"success": False}, status=400)
-
-
-@csrf_protect
-def event_isstreamavailabletorecord(broadcaster_id):
-    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-
-    if is_available_to_record(broadcaster):
-        return JsonResponse({"success": True}, status=200)
-    else:
-        return JsonResponse({"success": False}, status=400)
-
+    return HttpResponseNotAllowed(["POST"])
 
 def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
     print("get_piloting_implementation")
