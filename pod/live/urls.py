@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from .views import settings, broadcasters_from_building, building, event, events, event_add, event_edit, event_delete, heartbeat, \
-    lives, my_events, video_live,event_startrecord,event_stoprecord, event_splitrecord, event_isstreamrecording, event_isstreamavailabletorecord
+    lives, my_events, video_live,event_startrecord,event_stoprecord, event_splitrecord, event_isstreamrecording, event_isstreamavailabletorecord, event_video_transform
 
 app_name = "live"
 
@@ -30,5 +30,6 @@ else:
         url(r"^event_splitrecord/$", event_splitrecord, name="event_splitrecord"),
         url(r"^event_isstreamrecording/$", event_isstreamrecording, name="event_isstreamrecording"),
         url(r"^event_isstreamavailabletorecord/$", event_isstreamavailabletorecord,
-            name="event_isstreamavailabletorecord")
+            name="event_isstreamavailabletorecord"),
+        url(r"^event_video_transform/$", event_video_transform, name="event_video_transform"),
     ]

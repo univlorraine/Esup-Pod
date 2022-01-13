@@ -1,5 +1,7 @@
 import json
+import os.path
 import re
+from _xxsubinterpreters import destroy
 from datetime import date, datetime
 
 import requests
@@ -29,6 +31,8 @@ from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from .models import Building, Broadcaster, HeartBeat, Event
 from django.contrib.auth.models import Group
 from ..main.views import in_maintenance
+from ..video.models import Video, Type
+from django.template.defaultfilters import slugify
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
 
@@ -38,6 +42,8 @@ USE_BBB = getattr(settings, "USE_BBB", False)
 USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
+
+VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 def lives(request):  # affichage des directs
     site = get_current_site(request)
@@ -521,7 +527,7 @@ def event_isstreamrecording(idbroadcaster):
     )
     response = requests.get(url_state_live_stream_recording,verify=True,headers={"Accept": "application/json","Content-Type": "application/json"})
 
-    if response.json().get('streamrecorders')!=None:
+    if response.json().get('streamrecorder')!=None:
         streamrecorders = response.json().get("streamrecorder")
         for streamrecorder in streamrecorders:
             if streamrecorder.get("recorderName") == pilot_conf["livestream"]:
@@ -577,3 +583,46 @@ def parseAndCheckPilotingConfJson(piloting_conf):
         return False
 
     return True
+
+def event_video_transform(request):
+
+    event = Event.objects.get(pk=9)
+
+    filename="small-20.mp4"
+
+    dest_file = os.path.join(
+        settings.MEDIA_ROOT,
+        VIDEOS_DIR,
+        request.user.owner.hashkey,
+        filename,
+    )
+
+    dest_path = os.path.join(
+        VIDEOS_DIR,
+        request.user.owner.hashkey,
+        filename,
+    )
+
+    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+
+
+    os.rename(
+        os.path.join(DEFAULT_EVENT_PATH, filename),
+        dest_file,
+    )
+
+    video = Video.objects.create(
+        title="Video small 20",
+        owner=request.user,
+        video=dest_path,
+        is_draft=False,
+        type=Type.objects.get(id=1),
+    )
+    video.launch_encode = True
+    video.save()
+
+    event.videos.add(video)
+    event.save()
+
+	#Event.addVideo(video)
+    return HttpResponse("Fait")
