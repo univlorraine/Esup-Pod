@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-14 08:48+0100\n"
+"POT-Creation-Date: 2022-01-14 18:31+0100\n"
 "PO-Revision-Date: 2021-01-22 12:27+0100\n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: \n"
@@ -182,9 +182,8 @@ msgstr ""
 #: pod/completion/templates/video_caption_maker.html:106
 #: pod/enrichment/templates/enrichment/group_enrichment.html:51
 #: pod/interactive/templates/interactive/group_interactive.html:49
-#: pod/live/templates/live/event_add.html:53
 #: pod/live/templates/live/event_delete.html:59
-#: pod/live/templates/live/event_edit.html:31
+#: pod/live/templates/live/event_edit.html:54
 #: pod/live/templates/live/live-form.html:25
 #: pod/main/templates/contact_us.html:43
 #: pod/playlist/templates/playlist/playlist_video_list.html:72
@@ -2447,49 +2446,10 @@ msgstr ""
 msgid "Live not found, retry in 10 seconds"
 msgstr ""
 
-#: pod/live/templates/live/event_add.html:9
 #: pod/live/templates/live/event_delete.html:7
+#: pod/live/templates/live/event_edit.html:9
 #: pod/live/templates/live/my_events.html:12 pod/main/templates/navbar.html:104
 msgid "My events"
-msgstr ""
-
-#: pod/live/templates/live/event_add.html:12
-#: pod/live/templates/live/event_add.html:18
-msgid "Editing the event"
-msgstr ""
-
-#: pod/live/templates/live/event_add.html:14
-#: pod/live/templates/live/event_add.html:18
-#: pod/live/templates/live/event_add.html:22
-#: pod/live/templates/live/my_events.html:51
-msgid "Add an event"
-msgstr ""
-
-#: pod/live/templates/live/event_add.html:26
-msgid ""
-"Access to adding event has been restricted. If you want to add events on the "
-"platform, please"
-msgstr ""
-
-#: pod/live/templates/live/event_add.html:27
-#: pod/video/templates/videos/add_video.html:31
-#: pod/video/templates/videos/video_edit.html:48
-msgid "contact us"
-msgstr ""
-
-#: pod/live/templates/live/event_add.html:60
-#: pod/live/templates/live/event_edit.html:38
-#: pod/live/templates/live/filter_aside.html:13
-#: pod/live/templates/live/live-form.html:31
-#: pod/main/templates/contact_us.html:49
-#: pod/video/templates/videos/filter_aside.html:13
-#: pod/video/templates/videos/filter_aside.html:34
-#: pod/video/templates/videos/filter_aside.html:56
-#: pod/video/templates/videos/filter_aside.html:78
-#: pod/video/templates/videos/filter_aside.html:103
-#: pod/video/templates/videos/video-form.html:31
-#: pod/video_search/templates/search/search.html:64
-msgid "Send"
 msgstr ""
 
 #: pod/live/templates/live/event_delete.html:7
@@ -2522,7 +2482,42 @@ msgid "Agree required"
 msgstr ""
 
 #: pod/live/templates/live/event_edit.html:12
-msgid "Edit an event"
+#: pod/live/templates/live/event_edit.html:18
+#: pod/live/templates/live/event_edit.html:24
+msgid "Editing the event"
+msgstr ""
+
+#: pod/live/templates/live/event_edit.html:14
+#: pod/live/templates/live/event_edit.html:18
+#: pod/live/templates/live/event_edit.html:22
+#: pod/live/templates/live/my_events.html:51
+msgid "Plan an event"
+msgstr ""
+
+#: pod/live/templates/live/event_edit.html:29
+msgid ""
+"Access to adding event has been restricted. If you want to add events on the "
+"platform, please"
+msgstr ""
+
+#: pod/live/templates/live/event_edit.html:30
+#: pod/video/templates/videos/add_video.html:31
+#: pod/video/templates/videos/video_edit.html:48
+msgid "contact us"
+msgstr ""
+
+#: pod/live/templates/live/event_edit.html:61
+#: pod/live/templates/live/filter_aside.html:13
+#: pod/live/templates/live/live-form.html:31
+#: pod/main/templates/contact_us.html:49
+#: pod/video/templates/videos/filter_aside.html:13
+#: pod/video/templates/videos/filter_aside.html:34
+#: pod/video/templates/videos/filter_aside.html:56
+#: pod/video/templates/videos/filter_aside.html:78
+#: pod/video/templates/videos/filter_aside.html:103
+#: pod/video/templates/videos/video-form.html:31
+#: pod/video_search/templates/search/search.html:64
+msgid "Send"
 msgstr ""
 
 #: pod/live/templates/live/events.html:5
