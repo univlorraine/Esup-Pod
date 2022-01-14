@@ -297,7 +297,6 @@ def event_add(request):
             return redirect("/live/my_events")
     else:
         form = EventForm(user=request.user)
-        form.fields['videos'].widget = forms.HiddenInput()
 
     return render(
         request, "live/event_add.html", {"form": form}
@@ -320,7 +319,6 @@ def event_edit(request, slug=None):
         request.POST or None,
         instance=event,
     )
-    form.fields['videos'].widget = forms.HiddenInput()
 
     if request.POST:
         form = EventForm(
