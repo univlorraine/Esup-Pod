@@ -16,6 +16,11 @@
     {% endif %}
 {% endblock %}
 
+{% block breadcrumbs %}{{ block.super }}
+    <li class="breadcrumb-item"><a href="{% url 'live:my_events' %}">{% trans 'My events' %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'live:event' slug=event.slug %}"
+                                       title="{{ event.title }}">{{ event.title|title|truncatechars:45 }}</a></li>
+{% endblock %}
 
 {% block page_title %}{{ event.title|title|truncatechars:45 }}{% endblock %}
 

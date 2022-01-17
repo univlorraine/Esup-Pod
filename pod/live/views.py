@@ -1,5 +1,6 @@
 import json
 import re
+import logging
 from datetime import date, datetime
 from typing import Optional
 
@@ -291,6 +292,7 @@ def my_events(request):
 @ensure_csrf_cookie
 @login_required(redirect_field_name="referrer")
 def event_edit(request, slug=None):
+
     if in_maintenance():
         return redirect(reverse("maintenance"))
 

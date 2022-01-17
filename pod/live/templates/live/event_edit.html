@@ -89,13 +89,12 @@
                 </h5>
                 <div class="card-body card-text text-center">
                     {% if event.owner == request.user or request.user.is_superuser %}
-                        <a href="{% url 'live:event_edit' slug=event.slug %}" title="{% trans "Edit the event" %}"
+                        <a href="{% url 'live:event_edit' slug=form.instance.slug %}" title="{% trans "Edit the event" %}"
                            class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
                             <i data-feather="edit"></i>
                         </a>
                     {% endif %}
-
-                    <a href="{% url 'live:event_delete' slug=event.slug %}"
+                    <a href="{% url 'live:event_delete' slug=form.instance.slug %}"
                        class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1"
                        title="{% trans "Delete the event" %}">
                         <i data-feather="trash-2"></i>
