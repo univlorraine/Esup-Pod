@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-17 00:15+0100\n"
+"POT-Creation-Date: 2022-01-17 17:34+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -99,6 +99,7 @@ msgid "Picture"
 msgstr "Image"
 
 #: pod/authentication/models.py:189 pod/authentication/models.py:190
+#: pod/live/models.py:153
 msgid "Access Groups"
 msgstr "Groupes d'Accès"
 
@@ -156,8 +157,8 @@ msgstr "Changer votre image de profil"
 #: pod/enrichment/templates/enrichment/group_enrichment.html:29
 #: pod/interactive/templates/interactive/group_interactive.html:27
 #: pod/live/templates/live/event_delete.html:33
-#: pod/live/templates/live/live-form.html:10 pod/live/views.py:323
-#: pod/live/views.py:352 pod/main/templates/contact_us.html:20
+#: pod/live/templates/live/live-form.html:10 pod/live/views.py:355
+#: pod/live/views.py:384 pod/main/templates/contact_us.html:20
 #: pod/main/tests/test_views.py:99 pod/main/views.py:298
 #: pod/playlist/views.py:217
 #: pod/recorder/templates/recorder/add_recording.html:36
@@ -389,7 +390,7 @@ msgstr "Participants"
 msgid "Start date"
 msgstr "Date de début"
 
-#: pod/bbb/models.py:178 pod/live/models.py:258
+#: pod/bbb/models.py:178 pod/live/models.py:262
 msgid "Start date of the live."
 msgstr "Date de début du direct."
 
@@ -430,7 +431,7 @@ msgid "Username / User id, that want to perform the live."
 msgstr ""
 "Nom d'utilisateur / ID d'utilisateur, qui souhaite effectuer le direct."
 
-#: pod/bbb/models.py:214 pod/live/models.py:132 pod/live/models.py:293
+#: pod/bbb/models.py:214 pod/live/models.py:132 pod/live/models.py:297
 #: pod/recorder/models.py:165 pod/video/forms.py:282 pod/video/models.py:723
 msgid "Restricted access"
 msgstr "Accès restreint"
@@ -439,8 +440,8 @@ msgstr "Accès restreint"
 msgid "Is live only accessible to authenticated users?"
 msgstr "Le direct est-il uniquement accessible aux utilisateurs authentifiés ?"
 
-#: pod/bbb/models.py:222 pod/live/models.py:196 pod/live/models.py:209
-#: pod/live/models.py:273
+#: pod/bbb/models.py:222 pod/live/models.py:200 pod/live/models.py:213
+#: pod/live/models.py:277
 msgid "Broadcaster"
 msgstr "Diffuseur"
 
@@ -803,7 +804,7 @@ msgstr ""
 
 #: pod/chapter/models.py:28 pod/chapter/models.py:123
 #: pod/chapter/templates/chapter/list_chapter.html:11
-#: pod/completion/models.py:264 pod/live/models.py:261
+#: pod/completion/models.py:264 pod/live/models.py:265
 msgid "Start time"
 msgstr "Début"
 
@@ -892,7 +893,7 @@ msgstr "Liste des chapitres"
 #: pod/completion/models.py:251
 #: pod/completion/templates/overlay/list_overlay.html:10
 #: pod/enrichment/templates/enrichment/list_enrichment.html:10
-#: pod/live/models.py:228 pod/main/models.py:121 pod/main/views.py:188
+#: pod/live/models.py:232 pod/main/models.py:121 pod/main/views.py:188
 #: pod/playlist/models.py:12
 #: pod/playlist/templates/playlist/playlist_element_list.html:11
 #: pod/video/models.py:254 pod/video/models.py:396 pod/video/models.py:518
@@ -1241,7 +1242,7 @@ msgstr "bas à gauche"
 msgid "left"
 msgstr "gauche"
 
-#: pod/completion/models.py:253 pod/live/models.py:77 pod/live/models.py:221
+#: pod/completion/models.py:253 pod/live/models.py:77 pod/live/models.py:225
 #: pod/playlist/models.py:14 pod/video/models.py:264 pod/video/models.py:405
 #: pod/video/models.py:520 pod/video/models.py:608 pod/video/models.py:1905
 msgid "Slug"
@@ -1251,7 +1252,7 @@ msgstr "Titre court"
 msgid "Start time of the overlay, in seconds."
 msgstr "Début de la superposition, en secondes."
 
-#: pod/completion/models.py:269 pod/live/models.py:266
+#: pod/completion/models.py:269 pod/live/models.py:270
 msgid "End time"
 msgstr "Fin"
 
@@ -1780,8 +1781,8 @@ msgstr "Éditer l'enrichissement"
 
 #: pod/enrichment/forms.py:33 pod/enrichment/models.py:363
 #: pod/interactive/forms.py:12 pod/interactive/models.py:55
-#: pod/podfile/models.py:33 pod/recorder/models.py:175 pod/video/models.py:337
-#: pod/video/models.py:733
+#: pod/live/models.py:161 pod/podfile/models.py:33 pod/recorder/models.py:175
+#: pod/video/models.py:337 pod/video/models.py:733
 msgid "Groups"
 msgstr "Groupes"
 
@@ -1823,7 +1824,7 @@ msgstr "Temps de fin de l'affichage de l'enrichissement en secondes."
 
 #: pod/enrichment/models.py:141
 #: pod/enrichment/templates/enrichment/list_enrichment.html:11
-#: pod/live/models.py:281 pod/video/forms.py:115 pod/video/models.py:547
+#: pod/live/models.py:285 pod/video/forms.py:115 pod/video/models.py:547
 #: pod/video/models.py:619 pod/video/views.py:1660
 #: pod/video_search/templates/search/search.html:87
 msgid "Type"
@@ -2393,39 +2394,57 @@ msgstr "Voir ce direct n'est pas possible sans mot de passe."
 msgid "Number of viewers"
 msgstr "Nombre de spectateurs"
 
-#: pod/live/models.py:160
-msgid "Select one or more groups who can manage to this broadcaster"
-msgstr "Sélectionner un ou plusieurs groupes qui auront accès à ce diffuseur"
+#: pod/live/models.py:154
+msgid "Select one or more groups who can access to this broadcater."
+msgstr "Sélectionner un ou plusieurs groupes qui auront accès à ce diffuseur."
 
-#: pod/live/models.py:168
-msgid "Select one implementation to this broadcaster"
-msgstr "Sélectionner un ou plusieurs groupes qui auront accès à ce diffuseur"
+#: pod/live/models.py:162
+msgid "Select one or more groups who can manage event to this broadcaster."
+msgstr ""
+"Sélectionner un ou plusieurs groupes qui pourront gérer les évènements de ce "
+"diffuseur."
 
-#: pod/live/models.py:197
+#: pod/live/models.py:170
+msgid "Piloting implementation"
+msgstr "Implémentation de pilotage"
+
+#: pod/live/models.py:171
+msgid "Select the piloting implementation for to this broadcaster."
+msgstr "Sélectionner l'implémentation de pilotage des enregistrements pour ce diffuseur."
+
+#: pod/live/models.py:177
+msgid "Piloting configuration parameters"
+msgstr "Paramètres de configuration du pilotage"
+
+#: pod/live/models.py:178
+msgid "Add piloting configuration parameters in Json format."
+msgstr "Ajouter les paramètres de configuration nécessaires au pilotage des enregistrements de ce diffuseur au format JSON."
+
+#: pod/live/models.py:201
 msgid "Broadcasters"
 msgstr "Diffuseurs"
 
-#: pod/live/models.py:206
+#: pod/live/models.py:210
 msgid "Viewer"
 msgstr "Spectateur"
 
-#: pod/live/models.py:207
+#: pod/live/models.py:211
 msgid "Viewkey"
 msgstr "Clé de visionnage"
 
-#: pod/live/models.py:211
+#: pod/live/models.py:215
 msgid "Last heartbeat"
 msgstr "Dernier signal"
 
-#: pod/live/models.py:214
+#: pod/live/models.py:218
 msgid "Heartbeat"
 msgstr "Signal"
 
-#: pod/live/models.py:215
+#: pod/live/models.py:219
 msgid "Heartbeats"
 msgstr "Signaux"
 
-#: pod/live/models.py:231 pod/video/models.py:602
+#: pod/live/models.py:235 pod/video/models.py:602
 msgid ""
 "Please choose a title as short and accurate as possible, reflecting the main "
 "subject / context of the content.(max length: 250 characters)"
@@ -2434,14 +2453,14 @@ msgstr ""
 "sujet principal / le contexte de ce contenu (taille maximale : 250 "
 "caractères)."
 
-#: pod/live/models.py:238 pod/main/forms.py:62 pod/main/models.py:167
+#: pod/live/models.py:242 pod/main/forms.py:62 pod/main/models.py:167
 #: pod/playlist/models.py:26 pod/video/forms.py:135 pod/video/forms.py:352
 #: pod/video/forms.py:403 pod/video/models.py:274 pod/video/models.py:414
 #: pod/video/models.py:642 pod/video/templates/channel/list_theme.html:10
 msgid "Description"
 msgstr "Description"
 
-#: pod/live/models.py:242 pod/video/forms.py:138 pod/video/forms.py:355
+#: pod/live/models.py:246 pod/video/forms.py:138 pod/video/forms.py:355
 #: pod/video/forms.py:406 pod/video/models.py:278 pod/video/models.py:418
 #: pod/video/models.py:646
 msgid ""
@@ -2452,26 +2471,26 @@ msgstr ""
 "informations nécessaires, et mettre en forme le résultat en utilisant la "
 "barre d'outils."
 
-#: pod/live/models.py:250 pod/playlist/models.py:24
+#: pod/live/models.py:254 pod/playlist/models.py:24
 #: pod/playlist/templates/playlist/playlist_element_list.html:12
 #: pod/podfile/models.py:28 pod/video/admin.py:193 pod/video/models.py:623
 #: pod/video_search/templates/search/search.html:75
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: pod/live/models.py:256
+#: pod/live/models.py:260
 msgid "Date of Event"
 msgstr "Date de l'évènement"
 
-#: pod/live/models.py:263
+#: pod/live/models.py:267
 msgid "Start time of the live event."
 msgstr "Heure de début du direct."
 
-#: pod/live/models.py:268
+#: pod/live/models.py:272
 msgid "End time of the live event."
 msgstr "Heure de fin du direct."
 
-#: pod/live/models.py:275 pod/live/models.py:286 pod/recorder/models.py:158
+#: pod/live/models.py:279 pod/live/models.py:290 pod/recorder/models.py:158
 #: pod/video/models.py:716
 msgid ""
 "If this box is checked, the video will be visible and accessible only by you "
@@ -2480,12 +2499,12 @@ msgstr ""
 "Si la case est cochée, la vidéo sera visible et accessible uniquement par "
 "vous et les propriétaires additionnels."
 
-#: pod/live/models.py:284 pod/recorder/models.py:156 pod/video/forms.py:273
+#: pod/live/models.py:288 pod/recorder/models.py:156 pod/video/forms.py:273
 #: pod/video/models.py:714
 msgid "Draft"
 msgstr "Brouillon"
 
-#: pod/live/models.py:295 pod/recorder/models.py:167 pod/video/models.py:725
+#: pod/live/models.py:299 pod/recorder/models.py:167 pod/video/models.py:725
 msgid ""
 "If this box is checked, the video will only be accessible to authenticated "
 "users."
@@ -2505,62 +2524,69 @@ msgstr "Directs"
 msgid "Sorry, no lives found"
 msgstr "Désolé, aucun direct trouvé"
 
-#: pod/live/templates/live/event.html:49
+#: pod/live/templates/live/event.html:20
+#: pod/live/templates/live/event_delete.html:7
+#: pod/live/templates/live/event_edit.html:9
+#: pod/live/templates/live/my_events.html:12 pod/main/templates/navbar.html:104
+msgid "My events"
+msgstr "Mes évènements direct"
+
+#: pod/live/templates/live/event.html:55
 msgid "Start record"
 msgstr "Démarrer l’enregistrement"
 
-#: pod/live/templates/live/event.html:50
+#: pod/live/templates/live/event.html:56
 msgid "Stop record"
 msgstr "Stopper l’enregistrement"
 
-#: pod/live/templates/live/event.html:51
+#: pod/live/templates/live/event.html:57
 msgid "Split record"
 msgstr "Chapitrer l’enregistrement"
 
-#: pod/live/templates/live/event.html:61
+#: pod/live/templates/live/event.html:68
 msgid "Event is finished at : "
 msgstr "L'évènement s'est terminé à :"
 
-#: pod/live/templates/live/event.html:63
+#: pod/live/templates/live/event.html:70
 msgid "TODO : <br> <ul> <li> add the videos linked to the event </li> </ul>"
 msgstr ""
 "TODO : <br> <ul> <li> ajouter les vidéos liées à l'évènement </li> </ul>"
 
-#: pod/live/templates/live/event.html:67
+#: pod/live/templates/live/event.html:74
 msgid "The event is scheduled on the : "
 msgstr "L'évènement est programmé le : "
 
-#: pod/live/templates/live/event.html:68
+#: pod/live/templates/live/event.html:75
 #: pod/live/templates/live/event_card.html:46
 msgid "from"
 msgstr "de"
 
-#: pod/live/templates/live/event.html:68
+#: pod/live/templates/live/event.html:75
 #: pod/live/templates/live/event_card.html:46
 msgid "to"
 msgstr "à"
 
-#: pod/live/templates/live/event.html:81
+#: pod/live/templates/live/event.html:88
 #: pod/live/templates/live/event_edit.html:88
 msgid "Manage event"
 msgstr "Gérer l'évènement"
 
-#: pod/live/templates/live/event.html:86
+#: pod/live/templates/live/event.html:93
 #: pod/live/templates/live/event_edit.html:92
 msgid "Edit the event"
 msgstr "Éditer l'évènement"
 
-#: pod/live/templates/live/event.html:94
-#: pod/live/templates/live/event_edit.html:100
+#: pod/live/templates/live/event.html:101
+#: pod/live/templates/live/event_edit.html:99
 msgid "Delete the event"
 msgstr "Supprimer l'évènement"
 
-#: pod/live/templates/live/event.html:123 pod/live/templates/live/live.html:199
+#: pod/live/templates/live/event.html:130 pod/live/templates/live/live.html:199
 #: pod/video/templates/videos/video-script.html:27
 msgid "Please use different browser"
 msgstr "Utilisez un navigateur compatible"
 
-#: pod/live/templates/live/event.html:165 pod/live/templates/live/live.html:236
+#: pod/live/templates/live/event.html:172 pod/live/templates/live/live.html:236
 msgid ""
 "Thank you for watching this streaming live with us. The page will reload "
 "automatically within a few seconds to display the video on hold."
@@ -2569,23 +2595,17 @@ msgstr ""
 "rechargera automatiquement dans quelques secondes pour afficher la vidéo "
 "d’attente."
 
-#: pod/live/templates/live/event.html:189 pod/live/templates/live/live.html:253
+#: pod/live/templates/live/event.html:196 pod/live/templates/live/live.html:253
 msgid "Live not found, displaying the video on hold, retry every 10 seconds"
 msgstr ""
 "Le direct n’a pas encore commencé, affichage de la vidéo d’attente, nouvelle "
 "tentative de lecture dans 10 secondes"
 
-#: pod/live/templates/live/event.html:213 pod/live/templates/live/live.html:268
+#: pod/live/templates/live/event.html:220 pod/live/templates/live/live.html:268
 msgid "Live not found, retry in 10 seconds"
 msgstr ""
 "Le direct n’a pas encore commencé, nouvelle tentative de lecture dans 10 "
 "secondes"
-
-#: pod/live/templates/live/event_delete.html:7
-#: pod/live/templates/live/event_edit.html:9
-#: pod/live/templates/live/my_events.html:12 pod/main/templates/navbar.html:104
-msgid "My events"
-msgstr "Mes évènements direct"
 
 #: pod/live/templates/live/event_delete.html:7
 msgid "My event"
@@ -2657,28 +2677,33 @@ msgstr "contactez nous"
 msgid "Send"
 msgstr "Envoyer"
 
-#: pod/live/templates/live/event_edit.html:107
+#: pod/live/templates/live/event_edit.html:106
 msgid "Event plannification"
 msgstr "Planification d'un évènement"
 
-#: pod/live/templates/live/event_edit.html:109
+#: pod/live/templates/live/event_edit.html:108
 msgid ""
 "You can schedule a live event by selecting a building and a room or "
 "recording device."
-msgstr "Vous pouvez planifier un évènement en direct en sélectionnant un "
-"bâtiment et une salle ou un dispositif de captation."
+msgstr ""
+"Vous pouvez planifier un évènement en direct en sélectionnant un bâtiment et "
+"une salle ou un dispositif de captation."
+
+#: pod/live/templates/live/event_edit.html:109
+msgid "You will then need to specify a date, a start time and an end time."
+msgstr ""
+"Vous devrez ensuite préciser une date, une heure de début et une heure de "
+"fin. "
 
 #: pod/live/templates/live/event_edit.html:110
-msgid "You will then need to specify a date, a start time and an end time."
-msgstr "Vous devrez ensuite préciser une date, une heure de début et une heure de fin. "
-
-#: pod/live/templates/live/event_edit.html:111
 msgid ""
 "Please note that 2 events cannot be scheduled in the same room "
 "simultaneously."
-msgstr "Attention, 2 évènements ne peuvent pas être programmés dans la même salle simultanément."
+msgstr ""
+"Attention, 2 évènements ne peuvent pas être programmés dans la même salle "
+"simultanément."
 
-#: pod/live/templates/live/event_edit.html:115
+#: pod/live/templates/live/event_edit.html:114
 #: pod/main/templates/contact_us.html:66
 #: pod/video/templates/channel/channel_edit.html:91
 #: pod/video/templates/channel/theme_edit.html:66
@@ -2686,7 +2711,7 @@ msgstr "Attention, 2 évènements ne peuvent pas être programmés dans la même
 msgid "Mandatory fields"
 msgstr "Champs obligatoires"
 
-#: pod/live/templates/live/event_edit.html:117
+#: pod/live/templates/live/event_edit.html:116
 #: pod/main/templates/contact_us.html:68
 #: pod/video/templates/channel/channel_edit.html:93
 #: pod/video/templates/channel/theme_edit.html:68
@@ -2721,14 +2746,6 @@ msgstr ""
 "Veuillez utiliser la barre d'outils située en dessous de la vignette de "
 "l'évènement sur lequel vous voulez travailler."
 
-#: pod/live/templates/live/events_last.html:7
-msgid "Next events"
-msgstr "Prochains évènements"
-
-#: pod/live/templates/live/events_last.html:13
-msgid "Show all events"
-msgstr "Afficher tous les évènements"
-
 #: pod/live/templates/live/events_list.html:13
 #: pod/video/templates/videos/video_list.html:10
 msgid "Sorry, no video found."
@@ -2743,6 +2760,14 @@ msgstr "Page précédente"
 #: pod/video/templates/videos/category_modal.html:35
 msgid "Next page"
 msgstr "Page suivante"
+
+#: pod/live/templates/live/events_next.html:7
+msgid "Next events"
+msgstr "Prochains évènements"
+
+#: pod/live/templates/live/events_next.html:14
+msgid "Show all events"
+msgstr "Afficher tous les évènements"
 
 #: pod/live/templates/live/filter_aside.html:8
 #: pod/video/templates/videos/filter_aside.html:8
@@ -2849,25 +2874,25 @@ msgstr "Evènements à venir"
 msgid "Past events"
 msgstr "Evènements à passés"
 
-#: pod/live/views.py:71
+#: pod/live/views.py:70
 msgid "You cannot view this page."
 msgstr "Vous ne pouvez pas éditer cette image."
 
-#: pod/live/views.py:110
+#: pod/live/views.py:109
 #: pod/playlist/templates/playlist/playlist_video_list.html:73
 #: pod/video/views.py:856
 msgid "The password is incorrect."
 msgstr "Le mot de passe est incorrect."
 
-#: pod/live/views.py:316 pod/video/views.py:348 pod/video/views.py:932
+#: pod/live/views.py:348 pod/video/views.py:348 pod/video/views.py:932
 msgid "The changes have been saved."
 msgstr "Les modifications ont été sauvegardées."
 
-#: pod/live/views.py:337
+#: pod/live/views.py:369
 msgid "You cannot delete this event."
 msgstr "Vous ne pouvez pas supprimer cet évènement."
 
-#: pod/live/views.py:346
+#: pod/live/views.py:378
 msgid "The event has been deleted."
 msgstr "L'évènement a été supprimé."
 
@@ -6470,10 +6495,6 @@ msgstr "Désolé, la recherche de vidéos est limitée à 500 pages maximum."
 #~| msgid "Start date of the live."
 #~ msgid "Start date of the live event."
 #~ msgstr "Date de début du direct."
-
-#~ msgid "Select one or more groups who can access to this broadcater"
-#~ msgstr ""
-#~ "Sélectionner un ou plusieurs groupes qui auront accès à ce diffuseur"
 
 #~ msgid "Load Existing Caption File [optional]:"
 #~ msgstr "Charger un fichier de sous-titres existant [facultatif] :"

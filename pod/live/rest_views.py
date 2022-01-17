@@ -24,6 +24,10 @@ class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
             "url",
             "status",
             "is_restricted",
+            "manage_groups",
+            "restrict_access_to_groups",
+            "piloting_implementation",
+            "piloting_conf",
         )
         lookup_field = "slug"
 
