@@ -257,17 +257,17 @@ class Event(models.Model):
 
     start_date = models.DateField(
         _("Date of Event"),
-        default=timezone.now,
+        default=date.today,
         help_text=_("Start date of the live."),
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=timezone.now,
+        default=datetime.now(),
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
         _("End time"),
-        default=timezone.now() + timedelta(hours=1),
+        default=datetime.now() + timedelta(hours=1),
         help_text=_("End time of the live event."),
     )
 
