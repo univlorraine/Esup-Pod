@@ -8,18 +8,18 @@ from django.db.models import Q
 register = template.Library()
 
 @register.simple_tag(takes_context=True)
-def get_last_events(context: object):
+def get_next_events(context: object):
+
     request = context["request"]
-    events = Event.objects.filter(
+    queryset = Event.objects.filter(is_draft=False)
+
+    if not request.user.is_authenticated():
+        queryset = queryset.filter(is_restricted=False)
+
+    queryset = queryset.filter(
         Q(start_date__gt=date.today())
         |
         (Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
-    ).order_by('start_date','start_time')
-    count = 0
-    next_events = []
-    for event in events:
-        next_events.append(event)
-        count += 1
-        if count >= 4:
-            break
-    return next_events
+    )
+
+    return queryset.all().order_by('start_date','start_time')[:4]
