@@ -1,11 +1,9 @@
 import json
 import os.path
 import re
-import logging
 from datetime import date, datetime
 from typing import Optional
 
-from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -185,7 +183,36 @@ def heartbeat(request):
 
 
 def event(request, slug):  # affichage d'un event
-    event = Event.objects.filter(slug=slug).first()
+
+    event = get_object_or_404(Event, slug=slug)
+
+    # si draft :
+    # utilisateur doit être connecté et être le owner (ou super user)
+    if event.is_draft:
+        if not request.user.is_authenticated() or request.user != event.owner or not request.user.is_superuser:
+            raise PermissionDenied
+
+    # si restricted :
+    # utilisateur doit être connecté
+    if event.is_restricted:
+        if not request.user.is_authenticated() :
+            url = reverse("authentication_login")
+            url += "?referrer=" + request.get_full_path()
+            return redirect(url)
+
+
+    # droits sur le broadcaster : public, restricted , access en view
+    restricted_groups = event.broadcaster.restrict_access_to_groups.all()
+    if not event.broadcaster.public:
+        if event.broadcaster.is_restricted or restricted_groups.exists():
+            if not request.user.is_authenticated():
+                url = reverse("authentication_login")
+                url += "?referrer=" + request.get_full_path()
+                return redirect(url)
+        if restricted_groups.exists():
+            user_groups = request.user.groups.all()
+            if set(user_groups).isdisjoint(restricted_groups):
+                raise PermissionDenied
 
     return render(
         request,
@@ -200,7 +227,9 @@ def events(request):  # affichage des events
 
     queryset = Event.objects.filter(is_draft=False)
     if not request.user.is_authenticated():
-        queryset.filter(is_restricted=False)
+        queryset = queryset.filter(is_restricted=False)
+
+    # TODO faire les mêmes controles que pour event ?
 
     events_list = queryset.all().order_by("-start_date", "-start_time", "-end_time")
 
@@ -311,6 +340,7 @@ def event_edit(request, slug=None):
         request.POST or None,
         instance=event,
     )
+    # form.fields['videos'].widget = forms.HiddenInput()
 
     if request.POST:
         form = EventForm(
@@ -379,13 +409,11 @@ def event_isstreamavailabletorecord(request):
         broadcaster_id = request.GET.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        available = is_available_to_record(broadcaster)
-        if not available:
-            return JsonResponse({"available": False, "recording": False})
         if is_recording(broadcaster):
             return JsonResponse({"available": True, "recording": True})
-        else:
-            return JsonResponse({"available": True, "recording": False})
+
+        available = is_available_to_record(broadcaster)
+        return JsonResponse({"available": available, "recording": False})
 
     return HttpResponseNotAllowed(["GET"])
 
