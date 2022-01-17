@@ -147,12 +147,12 @@ class Broadcaster(models.Model):
     )
     viewcount = models.IntegerField(_("Number of viewers"), default=0, editable=False)
     viewers = models.ManyToManyField(User, editable=False)
-    restrict_access_to_groups = select2_fields.ManyToManyField(
-        Group,
-        blank=True,
-        help_text=_("Select one or more groups who can access to this broadcater"),
-        related_name='restrictaccesstogroups',
-    )
+    # restrict_access_to_groups = select2_fields.ManyToManyField(
+    #     Group,
+    #     blank=True,
+    #     help_text=_("Select one or more groups who can access to this broadcater"),
+    #     related_name='restrictaccesstogroups',
+    # )
 
     manage_groups = select2_fields.ManyToManyField(
         Group,
@@ -227,17 +227,22 @@ class Event(models.Model):
     title = models.CharField(
         _("Title"),
         max_length=250,
+        help_text=_(
+            "Please choose a title as short and accurate as "
+            "possible, reflecting the main subject / context "
+            "of the content.(max length: 250 characters)"
+        ),
     )
 
     description = RichTextField(
         _("Description"),
         config_name="complete",
         blank=True,
-        help_text=
+        help_text=_(
             "In this field you can describe your content, "
             "add all needed related information, and "
             "format the result using the toolbar."
-        ,
+        ),
     )
 
     owner = models.ForeignKey(
@@ -250,22 +255,28 @@ class Event(models.Model):
     start_date = models.DateField(
         _("Date of Event"),
         default=timezone.now,
-        help_text="Start date of the live.",
+        help_text=_("Start date of the live."),
     )
     start_time = models.TimeField(
         _("Start time"),
         default=timezone.now,
-        blank=True,
-        help_text="Start time of the live event.",
+        help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
         _("End time"),
         default=timezone.now() + timedelta(hours=1),
-        blank=True,
-        help_text="End time of the live event.",
+        help_text=_("End time of the live event."),
     )
 
-    broadcaster = models.ForeignKey(Broadcaster)
+    broadcaster = models.ForeignKey(
+        Broadcaster,
+        verbose_name=_("Broadcaster"),
+        help_text=_(
+            "If this box is checked, "
+            "the video will be visible and accessible only by you "
+            "and the additional owners."
+        ),
+    )
 
     type = models.ForeignKey(Type, verbose_name=_("Type"))
 
@@ -287,15 +298,18 @@ class Event(models.Model):
         default=False,
     )
 
-    password = models.CharField(
-        _("password"),
-        help_text=_("Viewing this video will not be possible without this password."),
-        max_length=50,
-        blank=True,
-        null=True,
-    )
+    # password = models.CharField(
+    #     _("password"),
+    #     help_text=_("Viewing this video will not be possible without this password."),
+    #     max_length=50,
+    #     blank=True,
+    #     null=True,
+    # )
 
-    videos = models.ManyToManyField(Video, blank=True)
+    videos = models.ManyToManyField(
+        Video,
+        editable=False,
+    )
 
     def save(self, *args, **kwargs):
         if not self.id:

@@ -82,12 +82,14 @@ class EventForm(forms.ModelForm):
         ).distinct()
 
     building = forms.ModelChoiceField(
+        label=_("Building"),
         queryset=buildingQueryset,
         to_field_name="name",
         empty_label=None,
     )
 
     broadcaster = CustomBroadcasterChoiceField(
+        label=_("Broadcaster device"),
         queryset=Broadcaster.objects.all(),
         # queryset=Broadcaster.objects.filter(building=buildingQueryset.first()),
         empty_label=None,
@@ -97,6 +99,8 @@ class EventForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super(EventForm, self).__init__(*args, **kwargs)
         self.fields['owner'].initial = self.user
+        # Manage required fields html
+        self.fields = add_placeholder_and_asterisk(self.fields)
 
         # gère la mise a jour dynamique de la liste
         if 'building' in self.data:
@@ -112,7 +116,7 @@ class EventForm(forms.ModelForm):
 
     class Meta(object):
         model = Event
-        fields = ["title" ,"description","owner","start_date","start_time","end_time","building","broadcaster","type","is_draft","is_restricted","password","videos"]
+        fields = ["title" ,"description","owner","start_date","start_time","end_time","building","broadcaster","type","is_draft","is_restricted"]
         widgets = {
             'start_date': widgets.AdminDateWidget,
             'start_time': forms.TimeInput(format='%H:%M'),

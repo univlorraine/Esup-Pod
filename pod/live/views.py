@@ -1,6 +1,7 @@
 import json
 import os.path
 import re
+import logging
 from datetime import date, datetime
 from typing import Optional
 
@@ -182,6 +183,7 @@ def heartbeat(request):
         )
     return HttpResponseBadRequest()
 
+
 def event(request, slug):  # affichage d'un event
     event = Event.objects.filter(slug=slug).first()
 
@@ -192,6 +194,7 @@ def event(request, slug):  # affichage d'un event
             "event":event,
         }
     )
+
 
 def events(request):  # affichage des events
 
@@ -226,6 +229,7 @@ def events(request):  # affichage des events
             "full_path": full_path,
         }
     )
+
 
 @csrf_protect
 @ensure_csrf_cookie
@@ -288,30 +292,12 @@ def my_events(request):
         }
     )
 
-@csrf_protect
-@ensure_csrf_cookie
-@login_required(redirect_field_name="referrer")
-def event_add(request):
-    if request.POST:
-        form = EventForm(
-            request.POST,
-            user=request.user
-        )
-        if form.is_valid():
-            form.save()
-            return redirect("/live/events")
-    else:
-        form = EventForm(user=request.user)
-        form.fields['videos'].widget = forms.HiddenInput()
-
-    return render(
-        request, "live/event_add.html", {"form": form}
-    )
 
 @csrf_protect
 @ensure_csrf_cookie
 @login_required(redirect_field_name="referrer")
 def event_edit(request, slug=None):
+
     if in_maintenance():
         return redirect(reverse("maintenance"))
 
@@ -325,7 +311,6 @@ def event_edit(request, slug=None):
         request.POST or None,
         instance=event,
     )
-    form.fields['videos'].widget = forms.HiddenInput()
 
     if request.POST:
         form = EventForm(
@@ -345,6 +330,7 @@ def event_edit(request, slug=None):
                 _(u"One or more errors have been found in the form."),
             )
     return render(request, "live/event_edit.html", {"form": form})
+
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
@@ -403,6 +389,7 @@ def event_isstreamavailabletorecord(request):
 
     return HttpResponseNotAllowed(["GET"])
 
+
 @csrf_protect
 @login_required(redirect_field_name="referrer")
 def event_startrecord(request):
@@ -420,6 +407,7 @@ def event_startrecord(request):
 
     return HttpResponseNotAllowed(["POST"])
 
+
 @csrf_protect
 @login_required(redirect_field_name="referrer")
 def event_splitrecord(request):
@@ -436,6 +424,7 @@ def event_splitrecord(request):
 
     return HttpResponseNotAllowed(["POST"])
 
+
 @csrf_protect
 @login_required(redirect_field_name="referrer")
 def event_stoprecord(request):
@@ -451,6 +440,7 @@ def event_stoprecord(request):
         return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
+
 
 def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
     print("get_piloting_implementation")
@@ -478,11 +468,13 @@ def check_piloting_conf(broadcaster: Broadcaster) -> bool:
         return False
     return impl_class.check_piloting_conf()
 
+
 def start_record(broadcaster: Broadcaster) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.start()
+
 
 def split_record(broadcaster: Broadcaster) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
@@ -490,17 +482,20 @@ def split_record(broadcaster: Broadcaster) -> bool:
         return False
     return impl_class.split()
 
+
 def stop_record(broadcaster: Broadcaster) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.stop()
 
+
 def is_available_to_record(broadcaster: Broadcaster) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.is_available_to_record()
+
 
 def is_recording(broadcaster: Broadcaster) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
