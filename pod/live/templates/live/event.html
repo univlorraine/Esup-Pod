@@ -45,11 +45,13 @@
             </div>
 
         </div>
-        <div id="control">
-            <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="startrecord">{% trans "Start record"%}</button>
-            <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="stoprecord">{% trans "Stop record"%}</button>
-            <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="splitrecord">{% trans "Split record"%}</button>
-        </div>
+        {% if event.owner == request.user or request.user.is_superuser %}
+            <div id="control">
+                <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="startrecord">{% trans "Start record"%}</button>
+                <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="stoprecord">{% trans "Stop record"%}</button>
+                <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="splitrecord">{% trans "Split record"%}</button>
+            </div>
+        {% endif %}
         <div id="info-video" style="display:none" class="jumbotron">
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
