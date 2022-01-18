@@ -308,4 +308,6 @@ HIDE_TAGS = False
 HIDE_SHARE = False
 # Hide disciplines
 HIDE_DISCIPLINES = False
+# Hide types filter on sidebar
+HIDE_TYPES = False
 """

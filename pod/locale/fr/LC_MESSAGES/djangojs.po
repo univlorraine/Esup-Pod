@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Esup-Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-07 16:02+0100\n"
+"POT-Creation-Date: 2022-01-18 15:40+0100\n"
 "PO-Revision-Date: 2021-03-26 17:58+0100\n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: \n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 2.4.2\n"
+"X-Generator: Poedit 3.0\n"
 
 #: pod/chapter/static/js/chapters.js:9 pod/chapter/static/js/chapters.js:14
 #: pod/enrichment/static/js/enrichment.js:9
@@ -99,7 +99,7 @@ msgstr ""
 #: pod/completion/static/js/caption_maker.js:48
 #: pod/completion/static/js/caption_maker.js:902
 msgid "Unrecognized caption file format."
-msgstr "Format de fichier de traduction non reconnu"
+msgstr "Format de fichier de traduction non reconnu."
 
 #: pod/completion/static/js/caption_maker.js:59
 msgid "There is no captions to save"
@@ -108,7 +108,7 @@ msgstr "Il n’y a aucun sous-titre à sauvegarder"
 #: pod/completion/static/js/caption_maker.js:94
 #: pod/completion/static/js/caption_maker.js:916
 msgid "Not a valid time track file."
-msgstr "Fichier de traduction invalide"
+msgstr "Fichier de traduction invalide."
 
 #: pod/completion/static/js/caption_maker.js:115
 msgid "error during exchange"
@@ -132,13 +132,13 @@ msgstr "Une exception a été levée durant la lecture du fichier. Code = "
 
 #: pod/completion/static/js/caption_maker.js:878
 msgid "Your browser does not support FileReader."
-msgstr "Votre navigateur ne supporte pas FileReader"
+msgstr "Votre navigateur ne supporte pas FileReader."
 
 #: pod/completion/static/js/caption_maker.js:885
 #, fuzzy
 #| msgid "Error during exchange"
 msgid "Error loading caption file: "
-msgstr "Erreur durant le téléversement"
+msgstr "Erreur durant le chargement du fichier de sous-titres : "
 
 #: pod/completion/static/js/completion.js:175
 #: pod/podfile/static/podfile/js/filewidget.js:277
@@ -438,9 +438,9 @@ msgstr ""
 
 #: pod/playlist/static/js/playlist.js:172
 msgid "The video can not be added from this page."
-msgstr "La vidéo ne peut être ajoutée depuis cette page"
+msgstr ""
 
-#: pod/playlist/static/js/playlist.js:179
+#: pod/playlist/static/js/playlist.js:178
 #, fuzzy
 #| msgid "videos found"
 msgid "The video slug not found."
@@ -559,6 +559,12 @@ msgstr "Afficher les réponses"
 #: pod/video/static/js/comment-script.js:602
 msgid "Comment has been deleted successfully."
 msgstr "Commentaire a été supprimé avec succès."
+
+#: pod/video/static/js/filter_aside_video_list_refresh.js:58
+#, fuzzy
+#| msgid "An error occurred during the change of owner"
+msgid "An Error occurred while processing "
+msgstr "Une erreur s'est produite lors du changement de propriétaire"
 
 #: pod/video/static/js/regroup_videos_by_theme.js:51
 #: pod/video/static/js/video_category.js:530

@@ -1,3 +1,4 @@
+"""Esup-Pod videos views."""
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404
@@ -83,6 +84,8 @@ TEMPLATE_VISIBLE_SETTINGS = getattr(
     "TEMPLATE_VISIBLE_SETTINGS",
     {
         "TITLE_SITE": "Pod",
+        "DESC_SITE": "The purpose of Esup-Pod is to facilitate the provision of video and\
+        thereby encourage its use in teaching and research.",
         "TITLE_ETB": "University name",
         "LOGO_SITE": "img/logoPod.svg",
         "LOGO_ETB": "img/logo_etb.svg",
@@ -101,6 +104,12 @@ TITLE_SITE = (
     TEMPLATE_VISIBLE_SETTINGS["TITLE_SITE"]
     if (TEMPLATE_VISIBLE_SETTINGS.get("TITLE_SITE"))
     else "Pod"
+)
+TEMPLATE_VISIBLE_SETTINGS["DESC_SITE"] = (
+    TEMPLATE_VISIBLE_SETTINGS["DESC_SITE"]
+    if (TEMPLATE_VISIBLE_SETTINGS.get("DESC_SITE"))
+    else "The purpose of Esup-Pod is to facilitate the provision of video and\
+ thereby encourage its use in teaching and research."
 )
 
 VIDEO_MAX_UPLOAD_SIZE = getattr(settings, "VIDEO_MAX_UPLOAD_SIZE", 1)
@@ -147,7 +156,7 @@ TRANSCRIPT = getattr(settings, "USE_TRANSCRIPTION", False)
 VIEW_STATS_AUTH = getattr(settings, "VIEW_STATS_AUTH", False)
 ACTIVE_VIDEO_COMMENT = getattr(settings, "ACTIVE_VIDEO_COMMENT", False)
 USE_CATEGORY = getattr(settings, "USER_VIDEO_CATEGORY", False)
-
+DEFAULT_TYPE_ID = getattr(settings, "DEFAULT_TYPE_ID", 1)
 DEFAULT_RECORDER_TYPE_ID = getattr(settings, "DEFAULT_RECORDER_TYPE_ID", 1)
 
 # ############################################################################
@@ -156,16 +165,16 @@ DEFAULT_RECORDER_TYPE_ID = getattr(settings, "DEFAULT_RECORDER_TYPE_ID", 1)
 
 
 def _regroup_videos_by_theme(request, videos, channel, theme=None):
-    """Regroup videos by theme.\n
+    """Regroup videos by theme.
 
-    Args:\n
-        request (Request): current HTTP Request\n
-        videos (List[Video]): list of vidéo filter by channel\n
-        channel (Channel): current channel\n
-        theme (Theme, optional): current theme. Defaults to None.\n
+    Args:
+        request (Request): current HTTP Request
+        videos (List[Video]): list of vidéo filter by channel
+        channel (Channel): current channel
+        theme (Theme, optional): current theme. Defaults to None.
 
-    Returns:\n
-        Dict[str, Any]: json data\n
+    Returns:
+        Dict[str, Any]: json data
     """
     target = request.GET.get("target", "").lower()
     limit = int(request.GET.get("limit", 8))
@@ -318,7 +327,11 @@ def my_channels(request):
         .filter(sites=site)
         .annotate(video_count=Count("video", distinct=True))
     )
-    return render(request, "channel/my_channels.html", {"channels": channels})
+    return render(
+        request,
+        "channel/my_channels.html",
+        {"channels": channels, "page_title": _("My channels")},
+    )
 
 
 @csrf_protect
@@ -518,6 +531,7 @@ def my_videos(request):
     data_context["use_category"] = USE_CATEGORY
     data_context["videos"] = videos
     data_context["full_path"] = full_path
+    data_context["page_title"] = _("My videos")
 
     return render(request, "videos/my_videos.html", data_context)
 
@@ -558,7 +572,9 @@ def get_owners_has_instances(owners):
 
 
 def videos(request):
+    """Render the main list of videos."""
     videos_list = get_videos_list(request)
+    count_videos = len(videos_list)
 
     page = request.GET.get("page", 1)
     full_path = ""
@@ -583,7 +599,7 @@ def videos(request):
         return render(
             request,
             "videos/video_list.html",
-            {"videos": videos, "full_path": full_path},
+            {"videos": videos, "full_path": full_path, "count_videos": count_videos},
         )
 
     return render(
@@ -591,6 +607,7 @@ def videos(request):
         "videos/videos.html",
         {
             "videos": videos,
+            "count_videos": count_videos,
             "types": request.GET.getlist("type"),
             "owners": request.GET.getlist("owner"),
             "disciplines": request.GET.getlist("discipline"),
@@ -612,6 +629,7 @@ def is_in_video_groups(user, video):
 
 
 def get_video_access(request, video, slug_private):
+    """Return True if access is granted to current user."""
     is_draft = video.is_draft
     is_restricted = video.is_restricted
     is_restricted_to_group = video.restrict_access_to_groups.all().exists()
@@ -644,7 +662,7 @@ def get_video_access(request, video, slug_private):
             or (request.user in video.additional_owners.all())
         )
 
-        show_page = (
+        return (
             access_granted_for_private
             or (is_draft and access_granted_for_draft)
             or (is_restricted and access_granted_for_restricted)
@@ -661,10 +679,7 @@ def get_video_access(request, video, slug_private):
             #     and request.POST.get('password') == video.password
             # )
         )
-        if show_page:
-            return True
-        else:
-            return False
+
     else:
         return True
 
@@ -2572,7 +2587,7 @@ class PodChunkedUploadCompleteView(ChunkedUploadCompleteView):
             video = Video.objects.create(
                 video=uploaded_file,
                 owner=request.user,
-                type=Type.objects.get(id=1),
+                type=Type.objects.get(id=DEFAULT_TYPE_ID),
                 title=uploaded_file.name,
                 transcript=(True if (transcript == "true") else False),
             )
@@ -2625,7 +2640,7 @@ def video_record(request):
                     "error": "Unexpected error: {0}".format(err),
                 }
             )
-    return render(request, "videos/video_record.html", {})
+    return render(request, "videos/video_record.html", {"page_title": _("Video record")})
 
 
 @csrf_protect
