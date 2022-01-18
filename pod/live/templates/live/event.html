@@ -16,6 +16,11 @@
     {% endif %}
 {% endblock %}
 
+{% block breadcrumbs %}{{ block.super }}
+    <li class="breadcrumb-item"><a href="{% url 'live:my_events' %}">{% trans 'My events' %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'live:event' slug=event.slug %}"
+                                       title="{{ event.title }}">{{ event.title|title|truncatechars:45 }}</a></li>
+{% endblock %}
 
 {% block page_title %}{{ event.title|title|truncatechars:45 }}{% endblock %}
 
@@ -45,12 +50,13 @@
             </div>
 
         </div>
-        <div id="control">
-            <p>Flux en cours d'enregistrement : {{ isStreamRecording }}</p>
-            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == True %}d-none{% endif %}" id="startrecord">{% trans "Start record"%}</button>
-            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="stoprecord">{% trans "Stop record"%}</button>
-            <button type="button" class="btn btn-primary btn-sm m-1 {% if isStreamRecording == False %}d-none{% endif %}" id="splitrecord">{% trans "Split record"%}</button>
-        </div>
+        {% if event.owner == request.user or request.user.is_superuser %}
+            <div id="control">
+                <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="startrecord">{% trans "Start record"%}</button>
+                <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="stoprecord">{% trans "Stop record"%}</button>
+                <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="splitrecord">{% trans "Split record"%}</button>
+            </div>
+        {% endif %}
         <div id="info-video" style="display:none" class="jumbotron">
             <button type="button" class="close" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -69,6 +75,14 @@
             {% trans 'from' %} {{ event.start_time }} {% trans 'to' %} {{ event.end_time }}
         </div>
     {% endif %}
+
+    <div class="list_videos_of_event">
+    {% if event.videos.all.count > 0 %}
+        {% for video in event.videos.all %}
+            <div><a class="link-center-pod" href="{{video.get_absolute_url}}" title="{{video.title}}">{{ video.title }}</a></div>
+        {% endfor %}
+    {% endif %}
+    </div>
 
 {% endblock %}
 
@@ -106,11 +120,11 @@
 {% block more_script %}
     <script>
         // Debug if necessary, depends on the settings_local
+        var debug = false;
         {% if debug %}
-            var debug = true;
-        {% else %}
-            var debug = false;
+            debug = true;
         {% endif %}
+
         // Live started
         var started = false;
         // Number of loop until we are sure the live is stopped
@@ -200,11 +214,13 @@
         {% if broadcaster.enable_viewer_count%}
             player.videoJsViewerCount();
         {% endif %}
+
         player.videoJsLogo({
             imgsrc: '{% static LOGO_PLAYER %}',
             linktitle: '{{TITLE_ETB}} - {{TITLE_SITE}}',
             link: '{{LINK_PLAYER}}'
         });
+
         player.on('error', function () {
             // Handle successives errors to avoid multiple reload
             if (typeof (errored) == 'undefined' || !errored) {
@@ -237,9 +253,8 @@
             }
         })
 
-
-        $(document).on('click',  '#startrecord', function(e){
-            console.log("dans js #startrecord");
+        // Recording actions on the stream
+        $(document).on('click', '#startrecord', function (e) {
             $.ajax({
                 url: "{% url 'live:event_startrecord' %}",
                 method: 'POST',
@@ -250,18 +265,23 @@
                 data: {
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
-                success: function(data) {
-                    console.log('Enregistrement commence');
-                    $("#startrecord").addClass("d-none");
-                    $("#stoprecord").removeClass("d-none");
-                    $("#splitrecord").removeClass("d-none")
+                success: function (data) {
+                    if (data.success) {
+                        console.log('Record started');
+                        $("#startrecord").addClass("d-none");
+                        $("#stoprecord").removeClass("d-none");
+                        $("#splitrecord").removeClass("d-none")
+                    } else {
+                        console.warning('Start not done : ' + data.message);
+                    }
+                },
+                error: function (data) {
+                    console.error('Error calling startrecord');
                 }
             })
         });
 
-
-        $(document).on('click',  '#stoprecord', function(e){
-            console.log("dans js #stoprecord");
+        $(document).on('click', '#stoprecord', function () {
             $.ajax({
                 url: "{% url 'live:event_stoprecord' %}",
                 method: 'POST',
@@ -271,17 +291,50 @@
                 data: {
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
-                success: function(data) {
-                    console.log('Enregistrement arrêt');
-                    $("#startrecord").removeClass("d-none");
-                    $("#stoprecord").addClass("d-none");
-                    $("#splitrecord").addClass("d-none")
-                }
+                success: function (data) {
+                    if (data.success) {
+                        console.log('Record stopped');
+                        $("#startrecord").removeClass("d-none");
+                        $("#stoprecord").addClass("d-none");
+                        $("#splitrecord").addClass("d-none");
+                        console.log(data);
+                        $.ajax({
+                            url: "{% url 'live:event_video_transform' %}",
+                            method: 'POST',
+                            headers: {
+                                "X-CSRFToken": '{{ csrf_token }}'
+                            },
+                            data:{
+                                "event": "{{ event.id }}",
+                                "currentFile": data.current_record_info.currentFile
+                            },
+                            success:function (data){
+                                if (data.success){
+                                    console.log("conversion done");
+                                    console.log(data.videos);
+                                    htmlContent = ""
+                                    for (video in data.videos){
+                                        htmlContent += "<li><a href='"+video["get_absolute_url"]+"'>"+video["title"]+"</a></li>";
+                                    }
+                                    $(".list_videos_of_event").html(str);
+
+                                }
+                            },
+                            error: function (data) {
+                                console.error('Error calling event_video_transform');
+                            },
+                        })
+                    } else {
+                        console.warning('Stop not done : ' + data.message);
+                    }
+                },
+                error: function (data) {
+                    console.error('Error calling stoprecord');
+                },
             })
         });
 
-        $(document).on('click',  '#splitrecord', function(e){
-            console.log("dans js #splitrecord");
+        $(document).on('click', '#splitrecord', function () {
             $.ajax({
                 url: "{% url 'live:event_splitrecord' %}",
                 method: 'POST',
@@ -291,13 +344,53 @@
                 data: {
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
-                success: function(data) {
-                    console.log("Enregistrement split")
-                    $("#startrecord").addClass("d-none");
-                    $("#stoprecord").removeClass("d-none");
-                    $("#splitrecord").removeClass("d-none")
-                }
+                success: function (data) {
+                    if (data.success) {
+                        console.log('Record split');
+                    } else {
+                        console.warning('Split not done : ' + data.message);
+                    }
+                },
+                error: function (data) {
+                    console.error('Error calling splitrecord');
+                },
             })
+        });
+
+        // Status of the stream
+        const updateStreamStatus = function () {
+            console.log("get stream status" + new Date());
+            $("#startrecord").addClass("d-none");
+            $("#stoprecord").addClass("d-none");
+            $("#splitrecord").addClass("d-none")
+            $.ajax({
+                url: "{% url 'live:event_isstreamavailabletorecord' %}",
+                method: 'GET',
+                dataType: 'json',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data: {
+                    "idbroadcaster": "{{ event.broadcaster.id }}",
+                },
+                success: function (data) {
+                    if (data.recording) {
+                        $("#stoprecord").removeClass("d-none");
+                        $("#splitrecord").removeClass("d-none")
+                    } else if (data.available) {
+                        $("#startrecord").removeClass("d-none");
+                    }
+                },
+                error: function (data) {
+                    console.error('error calling isstreamavailabletorecord');
+                },
+            });
+        };
+
+        // On load and every 60 sec
+        $(function () {
+            updateStreamStatus();
+            setInterval(updateStreamStatus, 60000);
         });
 
     </script>

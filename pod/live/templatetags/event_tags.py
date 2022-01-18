@@ -8,18 +8,23 @@ from django.db.models import Q
 register = template.Library()
 
 @register.simple_tag(takes_context=True)
-def get_last_events(context: object):
+def get_next_events(context: object):
+
     request = context["request"]
-    events = Event.objects.filter(
+    queryset = Event.objects.filter(
         Q(start_date__gt=date.today())
         |
         (Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
-    ).order_by('start_date','start_time')
-    count = 0
-    next_events = []
-    for event in events:
-        next_events.append(event)
-        count += 1
-        if count >= 4:
-            break
-    return next_events
+    )
+
+    if not request.user.is_authenticated():
+        queryset = queryset.filter(is_draft=False)
+        queryset = queryset.filter(broadcaster__is_restricted=False)
+        queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+    elif not request.user.is_superuser:
+        queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
+        queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
+                   Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
+
+    print(queryset.query)
+    return queryset.all().order_by('start_date','start_time')[:4]

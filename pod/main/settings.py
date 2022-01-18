@@ -286,6 +286,7 @@ THUMBNAIL_PRESERVE_FORMAT = True
 
 USE_EVENT = False
 DEFAULT_EVENT_PATH = ""
+DEFAULT_EVENT_THUMBNAIL = "/static/img/default-event.svg"
 """
 ##
 # Main menu settings:

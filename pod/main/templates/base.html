@@ -105,7 +105,7 @@
             <!-- fin contenu page statique -->
             {% if request.path == "/" %}
                 {% if USE_EVENT and "live" in THIRD_PARTY_APPS %}
-                    {% include "live/events_last.html" %}
+                    {% include "live/events_next.html" %}
                 {% endif %}
             {% include "videos/last_videos.html" %}
             {% endif %}
