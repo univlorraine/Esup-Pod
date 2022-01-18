@@ -38,6 +38,7 @@ USE_BBB = getattr(settings, "USE_BBB", False)
 USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
+DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg")
 
 VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
@@ -186,24 +187,11 @@ def event(request, slug):  # affichage d'un event
 
     event = get_object_or_404(Event, slug=slug)
 
-    # si draft :
-    # utilisateur doit être connecté et être le owner (ou super user)
-    if event.is_draft:
-        if not request.user.is_authenticated() or request.user != event.owner or not request.user.is_superuser:
-            raise PermissionDenied
-
-    # si restricted :
-    # utilisateur doit être connecté
-    if event.is_restricted:
-        if not request.user.is_authenticated() :
-            url = reverse("authentication_login")
-            url += "?referrer=" + request.get_full_path()
-            return redirect(url)
-
+    # draft ou non on l'affiche
 
     # droits sur le broadcaster : public, restricted , access en view
     restricted_groups = event.broadcaster.restrict_access_to_groups.all()
-    if not event.broadcaster.public:
+    if not event.broadcaster.public and not request.user.is_superuser:
         if event.broadcaster.is_restricted or restricted_groups.exists():
             if not request.user.is_authenticated():
                 url = reverse("authentication_login")
@@ -225,11 +213,16 @@ def event(request, slug):  # affichage d'un event
 
 def events(request):  # affichage des events
 
-    queryset = Event.objects.filter(is_draft=False)
-    if not request.user.is_authenticated():
-        queryset = queryset.filter(is_restricted=False)
+    queryset = Event.objects
 
-    # TODO faire les mêmes controles que pour event ?
+    if not request.user.is_authenticated():
+        queryset = queryset.filter(is_draft=False)
+        queryset = queryset.filter(broadcaster__is_restricted=False)
+        queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+    elif not request.user.is_superuser:
+        queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
+        queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
+                   Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
     events_list = queryset.all().order_by("-start_date", "-start_time", "-end_time")
 
@@ -256,6 +249,8 @@ def events(request):  # affichage des events
         {
             "events": events,
             "full_path": full_path,
+            "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
+            "test": "hey !!!",
         }
     )
 
@@ -318,6 +313,7 @@ def my_events(request):
             "coming_events": coming_events,
             "coming_events_url": NEXT_EVENT_URL_NAME,
             "coming_events_url_page": NEXT_EVENT_URL_NAME+"="+str(pageN),
+            "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
         }
     )
 

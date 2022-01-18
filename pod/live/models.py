@@ -29,7 +29,7 @@ else:
     from pod.main.models import CustomImageModel
 
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
-
+DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -150,14 +150,16 @@ class Broadcaster(models.Model):
     restrict_access_to_groups = select2_fields.ManyToManyField(
         Group,
         blank=True,
-        help_text=_("Select one or more groups who can access to this broadcater"),
+        verbose_name=_("Access Groups"),
+        help_text=_("Select one or more groups who can access to this broadcater."),
         related_name='restrictaccesstogroups',
     )
 
     manage_groups = select2_fields.ManyToManyField(
         Group,
         blank=True,
-        help_text=_("Select one or more groups who can manage to this broadcaster"),
+        verbose_name=_("Groups"),
+        help_text=_("Select one or more groups who can manage event to this broadcaster."),
         related_name='managegroups'
     )
 
@@ -165,15 +167,16 @@ class Broadcaster(models.Model):
         max_length=100,
         blank=True,
         null=True,
-        help_text=_("Select one implementation to this broadcaster"),
+        verbose_name=_("Piloting implementation"),
+        help_text=_("Select the piloting implementation for to this broadcaster."),
     )
 
     piloting_conf = models.TextField(
         null=True,
         blank=True,
-        help_text="must be in Json format"
+        verbose_name=_("Piloting configuration parameters"),
+        help_text=_("Add piloting configuration parameters in Json format."),
     )
-
 
     def get_absolute_url(self):
         return reverse("live:video_live", args=[str(self.slug)])
@@ -215,8 +218,8 @@ class HeartBeat(models.Model):
         verbose_name_plural = _("Heartbeats")
         ordering = ["broadcaster"]
 
-class Event(models.Model):
 
+class Event(models.Model):
     slug = models.SlugField(
         _("Slug"),
         unique=True,
@@ -254,17 +257,17 @@ class Event(models.Model):
 
     start_date = models.DateField(
         _("Date of Event"),
-        default=timezone.now,
+        default=date.today,
         help_text=_("Start date of the live."),
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=timezone.now,
+        default=datetime.now(),
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
         _("End time"),
-        default=timezone.now() + timedelta(hours=1),
+        default=datetime.now() + timedelta(hours=1),
         help_text=_("End time of the live event."),
     )
 
@@ -330,7 +333,7 @@ class Event(models.Model):
     def __str__(self):
         if self.id:
             return "%s - %s" % ("%04d" % self.id, self.title)
-#         return "%s (%s,  %s - %s, %s)" % (self.title, self.start_date.strftime("%d/%m/%Y"),self.start_time.strftime("%H:%M"),self.end_time.strftime("%H:%M"),self.owner.username)
+        #         return "%s (%s,  %s - %s, %s)" % (self.title, self.start_date.strftime("%d/%m/%Y"),self.start_time.strftime("%H:%M"),self.end_time.strftime("%H:%M"),self.owner.username)
         else:
             return "None"
 
@@ -339,12 +342,14 @@ class Event(models.Model):
 
     @property
     def is_current(self):
-        return self.start_date==date.today() and (self.start_time <= datetime.now().time() <= self.end_time)
+        return self.start_date == date.today() and (self.start_time <= datetime.now().time() <= self.end_time)
 
     @property
     def is_past(self):
-        return self.start_date < date.today() or (self.start_date == date.today() and self.end_time < datetime.now().time())
+        return self.start_date < date.today() or (
+                    self.start_date == date.today() and self.end_time < datetime.now().time())
 
     @property
     def is_coming(self):
-        return self.start_date > date.today() or (self.start_date == date.today() and datetime.now().time() < self.start_time )
+        return self.start_date > date.today() or (
+                    self.start_date == date.today() and datetime.now().time() < self.start_time)
