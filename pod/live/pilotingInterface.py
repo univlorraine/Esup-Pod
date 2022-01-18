@@ -25,7 +25,9 @@ class PilotingInterface(ABC):
                 hasattr(subclass, 'split') and
                 callable(subclass.split) and
                 hasattr(subclass, 'stop') and
-                callable(subclass.stop) or
+                callable(subclass.stop) and
+                hasattr(subclass, 'get_info_current_record') and
+                callable(subclass.get_info_current_record) or
                 NotImplemented)
 
     def check_piloting_conf(self) -> bool:
@@ -50,6 +52,10 @@ class PilotingInterface(ABC):
 
     def stop(self) -> bool:
         """Stop the recording"""
+        raise NotImplementedError
+
+    def get_info_current_record(self) -> dict:
+        """Get info of current record"""
         raise NotImplementedError
 
 
@@ -220,3 +226,31 @@ class Wowza(PilotingInterface, ABC):
         })
 
         return response.status_code == http.HTTPStatus.OK
+
+    def get_info_current_record(self):
+        json_conf = self.broadcaster.piloting_conf
+        conf = json.loads(json_conf)
+        url_state_live_stream_recording = (self.url + "/instances/_definst_/streamrecorders/{livestream}").format(
+            server=conf["server"],
+            port=conf["port"],
+            application=conf["application"],
+            livestream=conf["livestream"]
+        )
+
+        response = requests.get(url_state_live_stream_recording, verify=True, headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        })
+
+        if response.status_code == http.HTTPStatus.OK:
+            return {
+                'currentFile': response.json().get("currentFile"),
+                'outputPath': response.json().get("outputPath"),
+                'segmentDuration': response.json().get("segmentDuration"),
+            }
+
+        return {
+            'currentFile': '',
+            'outputPath': '',
+            'segmentDuration': '',
+        }
