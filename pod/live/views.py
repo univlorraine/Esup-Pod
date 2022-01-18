@@ -462,9 +462,10 @@ def event_stoprecord(request):
 
         if not is_recording(broadcaster):
             return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-
-        if stop_record(broadcaster):
-            return JsonResponse({"success": True})
+        else:
+            current_record_info = get_info_current_record(broadcaster)
+            if stop_record(broadcaster):
+                return JsonResponse({"success": True,"current_record_info":current_record_info})
         return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
@@ -517,6 +518,12 @@ def stop_record(broadcaster: Broadcaster) -> bool:
         return False
     return impl_class.stop()
 
+def get_info_current_record(broadcaster: Broadcaster) -> dict:
+    impl_class = get_piloting_implementation(broadcaster)
+    if not impl_class:
+        return False
+    return impl_class.get_info_current_record()
+
 
 def is_available_to_record(broadcaster: Broadcaster) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
@@ -533,9 +540,19 @@ def is_recording(broadcaster: Broadcaster) -> bool:
 
 def event_video_transform(request):
 
-    event = Event.objects.get(pk=9)
+    event_id = request.POST.get("event", None)
 
-    filename="small-21.mp4"
+    event = Event.objects.get(pk=event_id)
+
+    currentFile = request.POST.get("currentFile", None)
+
+    print(currentFile)
+
+    filename = os.path.basename(currentFile)
+
+    print(filename)
+
+    filename = "small-40.mp4"
 
     dest_file = os.path.join(
         settings.MEDIA_ROOT,
@@ -552,14 +569,13 @@ def event_video_transform(request):
 
     os.makedirs(os.path.dirname(dest_file), exist_ok=True)
 
-
     os.rename(
         os.path.join(DEFAULT_EVENT_PATH, filename),
         dest_file,
     )
 
     video = Video.objects.create(
-        title="Video small 20",
+        title="Video small 25",
         owner=request.user,
         video=dest_path,
         is_draft=False,
@@ -571,12 +587,11 @@ def event_video_transform(request):
     event.videos.add(video)
     event.save()
 
-    videos = event.videos
+    videos = event.videos.all()
 
-    response_data = {}
-    # for video in videos:
-    #     response_data[video.id] = {'id': video.id, 'slug': video.slug,'title':video.title,'get_absolute_url':video.get_absolute_url()}
+    video_list = {}
+    for video in videos:
+        video_list[video.id] = {'id': video.id, 'slug': video.slug, 'title': video.title,
+                                'get_absolute_url': video.get_absolute_url()}
 
-
-	#Event.addVideo(video)
-    return JsonResponse(response_data)
+    return JsonResponse({"success": True, "videos": video_list})

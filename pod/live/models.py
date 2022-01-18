@@ -147,12 +147,12 @@ class Broadcaster(models.Model):
     )
     viewcount = models.IntegerField(_("Number of viewers"), default=0, editable=False)
     viewers = models.ManyToManyField(User, editable=False)
-    # restrict_access_to_groups = select2_fields.ManyToManyField(
-    #     Group,
-    #     blank=True,
-    #     help_text=_("Select one or more groups who can access to this broadcater"),
-    #     related_name='restrictaccesstogroups',
-    # )
+    restrict_access_to_groups = select2_fields.ManyToManyField(
+        Group,
+        blank=True,
+        help_text=_("Select one or more groups who can access to this broadcater"),
+        related_name='restrictaccesstogroups',
+    )
 
     manage_groups = select2_fields.ManyToManyField(
         Group,
