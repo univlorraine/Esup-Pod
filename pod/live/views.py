@@ -35,6 +35,7 @@ USE_BBB = getattr(settings, "USE_BBB", False)
 USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
+DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg")
 
 def lives(request):  # affichage des directs
     site = get_current_site(request)
@@ -243,6 +244,8 @@ def events(request):  # affichage des events
         {
             "events": events,
             "full_path": full_path,
+            "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
+            "test": "hey !!!",
         }
     )
 
@@ -305,6 +308,7 @@ def my_events(request):
             "coming_events": coming_events,
             "coming_events_url": NEXT_EVENT_URL_NAME,
             "coming_events_url_page": NEXT_EVENT_URL_NAME+"="+str(pageN),
+            "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
         }
     )
 

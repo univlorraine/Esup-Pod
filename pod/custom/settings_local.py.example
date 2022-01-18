@@ -1327,3 +1327,10 @@ DEFAULT_EVENT_PATH = ""
 # Si vous utilisez une autre logiciel, il faut développer une interface
 """
 BROADCASTER_PILOTING_SOFTWARE = ('Wowza')
+
+"""
+# Image par défaut affichée comme poster ou vignette,
+#  utilisée pour présenter l'évènement'.
+# Cette image doit se situer dans le répertoire static.
+"""
+DEFAULT_EVENT_THUMBNAIL = "/static/img/default-event.svg"

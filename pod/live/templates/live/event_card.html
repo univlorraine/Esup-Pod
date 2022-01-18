@@ -35,16 +35,17 @@
                 </span>
             </div>
         </div>
-        <div class="card-thumbnail" style="background-color: darkgray">
+        <div class="card-thumbnail">
 {#            {{ video.get_thumbnail_card|safe }}#}
 
-            <a class="link-center-pod" style="text-decoration: none; color:inherit" href="{{ event.get_absolute_url }}" title="{{ event.title }}">
-                {{ event.title }}
-                </br>
-                {{ event.start_date }}
-                 </br>
-                {% trans 'from' %} {{ event.start_time }} {% trans 'to' %} {{ event.end_time }}
-                <div>&nbsp;</div>
+            <a class="link-center-pod" href="{{ event.get_absolute_url }}" title="{{ event.title }}">
+                <img class="card-img-top" src="{{ DEFAULT_EVENT_THUMBNAIL }}" alt="Default event image" loading="lazy"/>
+{#                {{ event.title }}#}
+{#                </br>#}
+{#                {{ event.start_date }}#}
+{#                 </br>#}
+{#                {% trans 'from' %} {{ event.start_time }} {% trans 'to' %} {{ event.end_time }}#}
+{#                <div>&nbsp;</div>#}
             </a>
         </div>
         <div class="card-body px-3 py-2">
@@ -70,6 +71,8 @@
                    title="{{event.title}}">
                     {{event.title|capfirst|truncatechars:43}}
                 </a>
+                </br>
+                 {% blocktrans with start_date=event.start_date start_time=event.start_time end_time=event.end_time %}The {{start_date}} from {{start_time}} to {{end_time}}{% endblocktrans %}
              </span>
         </div>
 

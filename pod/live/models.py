@@ -29,7 +29,7 @@ else:
     from pod.main.models import CustomImageModel
 
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
-
+DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
