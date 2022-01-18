@@ -25,7 +25,9 @@ class PilotingInterface(ABC):
                 hasattr(subclass, 'split') and
                 callable(subclass.split) and
                 hasattr(subclass, 'stop') and
-                callable(subclass.stop) or
+                callable(subclass.stop) and
+                hasattr(subclass, 'get_info_current_record') and
+                callable(subclass.get_info_current_record) or
                 NotImplemented)
 
     def check_piloting_conf(self) -> bool:
@@ -232,7 +234,7 @@ class Wowza(PilotingInterface, ABC):
             server=conf["server"],
             port=conf["port"],
             application=conf["application"],
-            livestream = conf["livestream"]
+            livestream=conf["livestream"]
         )
 
         response = requests.get(url_state_live_stream_recording, verify=True, headers={
@@ -240,8 +242,15 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
+        if response.status_code == http.HTTPStatus.OK:
+            return {
+                'currentFile': response.json().get("currentFile"),
+                'outputPath': response.json().get("outputPath"),
+                'segmentDuration': response.json().get("segmentDuration"),
+            }
+
         return {
-            'currentFile': response.json().get("currentFile"),
-            'outputPath':  response.json().get("outputPath"),
-            'segmentDuration': response.json().get("segmentDuration"),
+            'currentFile': '',
+            'outputPath': '',
+            'segmentDuration': '',
         }
