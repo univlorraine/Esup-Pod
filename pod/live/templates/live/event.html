@@ -311,19 +311,18 @@
                             success:function (data){
                                 if (data.success){
                                     console.log("conversion done");
-                                    console.log(data.videos);
                                     htmlContent = ""
                                     for (video in data.videos){
-                                        htmlContent += "<li><a href='"+video["get_absolute_url"]+"'>"+video["title"]+"</a></li>";
+                                        console.log(data.videos[video].get_absolute_url);
+                                        htmlContent += "<li><a href='"+data.videos[video].get_absolute_url+"'>"+data.videos[video].title+"</a></li>";
                                     }
-                                    $(".list_videos_of_event").html(str);
-
+                                    $(".list_videos_of_event").html(htmlContent);
                                 }
                             },
                             error: function (data) {
                                 console.error('Error calling event_video_transform');
                             },
-                        })
+                        });
                     } else {
                         console.warning('Stop not done : ' + data.message);
                     }
@@ -347,6 +346,31 @@
                 success: function (data) {
                     if (data.success) {
                         console.log('Record split');
+                        $.ajax({
+                            url: "{% url 'live:event_video_transform' %}",
+                            method: 'POST',
+                            headers: {
+                                "X-CSRFToken": '{{ csrf_token }}'
+                            },
+                            data:{
+                                "event": "{{ event.id }}",
+                                "currentFile": data.current_record_info.currentFile
+                            },
+                            success:function (data){
+                                if (data.success){
+                                    console.log("conversion done");
+                                    htmlContent = ""
+                                    for (video in data.videos){
+                                        console.log(data.videos[video].get_absolute_url);
+                                        htmlContent += "<li><a href='"+data.videos[video].get_absolute_url+"'>"+data.videos[video].title+"</a></li>";
+                                    }
+                                    $(".list_videos_of_event").html(htmlContent);
+                                }
+                            },
+                            error: function (data) {
+                                console.error('Error calling event_video_transform');
+                            },
+                        });
                     } else {
                         console.warning('Split not done : ' + data.message);
                     }
