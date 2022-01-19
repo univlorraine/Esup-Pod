@@ -2684,7 +2684,7 @@ msgid "Send"
 msgstr "Envoyer"
 
 #: pod/live/templates/live/event_edit.html:106
-msgid "Event plannification"
+msgid "Event planning"
 msgstr "Planification d'un évènement"
 
 #: pod/live/templates/live/event_edit.html:108
@@ -2869,7 +2869,7 @@ msgid ""
 "You have not planned any event yet, please use the \"Add a new event\" "
 "button to add one"
 msgstr ""
-"Vous n'avez pas encore plannifié d'évènement, veuillez utiliser le bouton "
+"Vous n'avez pas encore planifié d'évènement, veuillez utiliser le bouton "
 "\"Programmer un évènement\" pour en créer un"
 
 #: pod/live/templates/live/my_events.html:60
@@ -2878,7 +2878,7 @@ msgstr "Evènements à venir"
 
 #: pod/live/templates/live/my_events.html:63
 msgid "Past events"
-msgstr "Evènements à passés"
+msgstr "Evènements passés"
 
 #: pod/live/views.py:76
 msgid "You cannot view this page."
