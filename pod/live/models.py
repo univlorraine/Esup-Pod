@@ -70,6 +70,8 @@ def default_site_building(sender, instance, created, **kwargs):
     if len(instance.sites.all()) == 0:
         instance.sites.add(Site.objects.get_current())
 
+def one_hour_hence():
+    return timezone.now() + timezone.timedelta(hours=1)
 
 class Broadcaster(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -262,12 +264,12 @@ class Event(models.Model):
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=datetime.now(),
+        default=timezone.now,
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
         _("End time"),
-        default=datetime.now() + timedelta(hours=1),
+        default=one_hour_hence,
         help_text=_("End time of the live event."),
     )
 
