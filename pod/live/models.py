@@ -70,9 +70,6 @@ def default_site_building(sender, instance, created, **kwargs):
     if len(instance.sites.all()) == 0:
         instance.sites.add(Site.objects.get_current())
 
-def one_hour_hence():
-    return timezone.now() + timezone.timedelta(hours=1)
-
 class Broadcaster(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
     slug = models.SlugField(
@@ -221,6 +218,9 @@ class HeartBeat(models.Model):
         ordering = ["broadcaster"]
 
 
+def one_hour_hence():
+    return datetime.now() + timezone.timedelta(hours=1)
+
 class Event(models.Model):
     slug = models.SlugField(
         _("Slug"),
@@ -264,7 +264,7 @@ class Event(models.Model):
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=timezone.now,
+        default=datetime.now,
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
