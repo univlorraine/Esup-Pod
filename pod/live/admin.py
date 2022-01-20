@@ -69,7 +69,7 @@ class BroadcasterAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         kwargs['widgets'] = {
-            'piloting_conf': Textarea(attrs={'placeholder': "{\n 'server':'...',\n 'port':'...',\n 'application':'...',\n 'livestream':'...',\n}"})
+            'piloting_conf': Textarea(attrs={'placeholder': "{\n 'server_url':'...',\n 'application':'...',\n 'livestream':'...',\n}"})
         }
         return super().get_form(request, obj, **kwargs)
 
