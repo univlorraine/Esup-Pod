@@ -26,5 +26,4 @@ def get_next_events(context: object):
         queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
                    Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
-    print(queryset.query)
     return queryset.all().order_by('start_date','start_time')[:4]

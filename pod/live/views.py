@@ -444,9 +444,10 @@ def event_splitrecord(request):
         if check_piloting_conf(broadcaster):
             if not is_recording(broadcaster):
                 return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-
-            if split_record(broadcaster):
-                return JsonResponse({"success": True})
+            else:
+                current_record_info = get_info_current_record(broadcaster)
+                if split_record(broadcaster):
+                    return JsonResponse({"success": True,"current_record_info":current_record_info})
             return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
@@ -547,13 +548,7 @@ def event_video_transform(request):
 
     currentFile = request.POST.get("currentFile", None)
 
-    print(currentFile)
-
     filename = os.path.basename(currentFile)
-
-    print(filename)
-
-    filename = "small-40.mp4"
 
     dest_file = os.path.join(
         settings.MEDIA_ROOT,
