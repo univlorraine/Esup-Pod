@@ -1,6 +1,7 @@
 import json
 import os.path
 import re
+import logging
 from datetime import date, datetime
 from typing import Optional
 
@@ -405,11 +406,12 @@ def event_isstreamavailabletorecord(request):
         broadcaster_id = request.GET.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if is_recording(broadcaster):
-            return JsonResponse({"available": True, "recording": True})
+        if check_piloting_conf(broadcaster):
+            if is_recording(broadcaster):
+                return JsonResponse({"available": True, "recording": True})
 
-        available = is_available_to_record(broadcaster)
-        return JsonResponse({"available": available, "recording": False})
+            available = is_available_to_record(broadcaster)
+            return JsonResponse({"available": available, "recording": False})
 
     return HttpResponseNotAllowed(["GET"])
 
@@ -421,13 +423,13 @@ def event_startrecord(request):
 
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+        if check_piloting_conf(broadcaster):
+            if is_recording(broadcaster):
+                return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
 
-        if is_recording(broadcaster):
-            return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
-
-        if start_record(broadcaster):
-            return JsonResponse({"success": True})
-        return JsonResponse({"success": False, "message": ""})
+            if start_record(broadcaster):
+                return JsonResponse({"success": True})
+            return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -439,13 +441,14 @@ def event_splitrecord(request):
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if not is_recording(broadcaster):
-            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-        else:
-            current_record_info = get_info_current_record(broadcaster)
-            if split_record(broadcaster):
-                return JsonResponse({"success": True,"current_record_info":current_record_info})
-        return JsonResponse({"success": False, "message": ""})
+        if check_piloting_conf(broadcaster):
+            if not is_recording(broadcaster):
+                return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
+            else:
+                current_record_info = get_info_current_record(broadcaster)
+                if split_record(broadcaster):
+                    return JsonResponse({"success": True,"current_record_info":current_record_info})
+            return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -456,35 +459,37 @@ def event_stoprecord(request):
     if request.method == "POST" and request.is_ajax():
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-
-        if not is_recording(broadcaster):
-            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-        else:
-            current_record_info = get_info_current_record(broadcaster)
-            if stop_record(broadcaster):
-                return JsonResponse({"success": True,"current_record_info":current_record_info})
-        return JsonResponse({"success": False, "message": ""})
+        if check_piloting_conf(broadcaster):
+            if not is_recording(broadcaster):
+                return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
+            else:
+                current_record_info = get_info_current_record(broadcaster)
+                if stop_record(broadcaster):
+                    return JsonResponse({"success": True,"current_record_info":current_record_info})
+            return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
 
 def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
-    print("get_piloting_implementation")
+    logging.debug("get_piloting_implementation")
     piloting_impl = broadcaster.piloting_implementation
     if not piloting_impl:
-        print("->piloting_implementation value is not set")
+        logging.debug("'piloting_implementation' value is not set for '" + broadcaster.name + "' broadcaster.")
         return None
 
     if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
-        print("->piloting_implementation : " + piloting_impl + " is not know ."
-              + " Available piloting_implementations are '" + "','".join(BROADCASTER_IMPLEMENTATION) + "'")
+        logging.warning("'piloting_implementation' : " + piloting_impl + " is not know for '" + broadcaster.name
+                        + "' broadcaster. Available piloting_implementations are '"
+                        + "','".join(BROADCASTER_IMPLEMENTATION) + "'")
         return None
 
     if piloting_impl.lower() == "wowza":
-        print("->implementation found : "  + piloting_impl.lower())
+        logging.debug("'piloting_implementation' found : " + piloting_impl.lower() + " for '"
+                      + broadcaster.name + "' broadcaster.")
         return Wowza(broadcaster)
     else:
-        print("->get_piloting_implementation - This should not happen")
+        logging.debug("->get_piloting_implementation - This should not happen.")
         return None
 
 
