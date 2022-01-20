@@ -11,16 +11,7 @@ class Command(BaseCommand):
 
     help = 'Vérifie les lancements et arrêts d\'enregistrement'
 
-    def event_isstreamavailabletorecord(broadcaster_id):
-        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-
-        if is_recording(broadcaster):
-            return {"available": True, "recording": True}
-
-        available = is_available_to_record(broadcaster)
-        return {"available": available, "recording": False}
-
-    def event_startrecord(broadcaster_id):
+    def event_startrecord(self,broadcaster_id):
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
         if is_recording(broadcaster):
             return {"success": False, "message": "the broadcaster is already recording"}
@@ -37,20 +28,28 @@ class Command(BaseCommand):
         )
         broadcaster_recording=[]
 
+        self.stdout.write("--->Start record prepared")
         for event in events:
-            self.stdout.write(f"Event {event.title} ({event.start_date:%d-%m-%Y} de {event.start_time:%H:%M} à {event.end_time:%H:%M})")
-            if not is_recording(event.broadcaster.pk):
+            if not is_recording(event.broadcaster):
+                self.stdout.write(f"Broadcaster {event.broadcaster.name} -> not recording")
                 sr = self.event_startrecord(event.broadcaster.pk)
-                if sr.get("success")=="success" or sr.get("message")=="the broadcaster is already recording":
-                    broadcaster_recording.append(event.broadcaster.p)
+                if sr.get("success")==True or sr.get("message")=="the broadcaster is already recording":
+                    broadcaster_recording.append(event.broadcaster.pk)
+                    self.stdout.write(f"Broadcaster {event.broadcaster.name} -> recording")
+                else:
+                    self.stdout.write(f"Broadcaster {event.broadcaster.name} -> problem when start recording")
             else:
+                self.stdout.write(f"Broadcaster {event.broadcaster.name} -> already recording")
                 broadcaster_recording.append(event.broadcaster.pk)
 
         broadcasters = Broadcaster.objects.all()
-        broadcaster_to_stop = []
-        for broadcaster in broadcasters:
-            if is_recording(broadcaster.pk) & broadcaster.pk not in broadcaster_recording:
-                broadcaster_to_stop.append(broadcaster.pk)
 
-        for broadcaster in broadcaster_to_stop:
-            stop_record(broadcaster)
+        self.stdout.write("--->Stop record prepared")
+        for broadcaster in broadcasters:
+            if is_recording(broadcaster) != False and broadcaster.pk not in broadcaster_recording:
+                if stop_record(broadcaster):
+                    self.stdout.write(f"Broadcaster {broadcaster.name} -> stop recording")
+                else:
+                    self.stdout.write(f"Broadcaster {broadcaster.name} -> problem when stop recording")
+
+        self.stdout.write("Fin de vérification des events en enregistrement")
