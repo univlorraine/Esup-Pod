@@ -31,6 +31,7 @@ else:
 
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
 DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
+DEFAULT_EVENT_TYPE_ID = getattr(settings, "DEFAULT_EVENT_TYPE_ID", 1)
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -245,6 +246,9 @@ class HeartBeat(models.Model):
 def one_hour_hence():
     return datetime.now() + timezone.timedelta(hours=1)
 
+def get_default_event_type():
+    return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID)
+
 class Event(models.Model):
     slug = models.SlugField(
         _("Slug"),
@@ -307,7 +311,11 @@ class Event(models.Model):
         ),
     )
 
-    type = models.ForeignKey(Type, verbose_name=_("Type"))
+    type = models.ForeignKey(
+        Type,
+        default=get_default_event_type,
+        verbose_name=_("Type")
+    )
 
     is_draft = models.BooleanField(
         verbose_name=_("Draft"),
