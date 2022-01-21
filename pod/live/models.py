@@ -32,6 +32,9 @@ else:
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
 DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
 DEFAULT_EVENT_TYPE_ID = getattr(settings, "DEFAULT_EVENT_TYPE_ID", 1)
+RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY = getattr(
+    settings, "RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY", False
+)
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -249,6 +252,16 @@ def one_hour_hence():
 def get_default_event_type():
     return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID)
 
+def select_event_owner():
+    if RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY:
+        return lambda q: (
+            Q(is_staff=True) & (Q(first_name__icontains=q) | Q(last_name__icontains=q))
+        ) & Q(owner__sites=Site.objects.get_current())
+    else:
+        return lambda q: (Q(first_name__icontains=q) | Q(last_name__icontains=q)) & Q(
+            owner__sites=Site.objects.get_current()
+        )
+
 class Event(models.Model):
     slug = models.SlugField(
         _("Slug"),
@@ -278,13 +291,19 @@ class Event(models.Model):
         ),
     )
 
-    owner = models.ForeignKey(
-        get_user_model(),
+    # owner = models.ForeignKey(
+    #     get_user_model(),
+    #     verbose_name=_("Owner"),
+    #     on_delete=models.CASCADE,
+    #     null=True,
+    # )
+    owner = select2_fields.ForeignKey(
+        User,
+        ajax=True,
         verbose_name=_("Owner"),
+        search_field=select_event_owner(),
         on_delete=models.CASCADE,
-        null=True,
     )
-
     start_date = models.DateField(
         _("Date of Event"),
         default=date.today,
