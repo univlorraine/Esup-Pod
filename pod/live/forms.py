@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib.admin import widgets
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
 from pod.live.models import Broadcaster, getBuildingHavingAvailableBroadcaster, \
@@ -119,6 +120,33 @@ class EventForm(forms.ModelForm):
                 self.fields['building'].queryset = query_buildings.all()
                 self.initial['building'] = query_buildings.first().name
                 self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, query_buildings.first())
+
+    def clean(self):
+        if not {'start_time', 'start_time', 'end_time'} <= self.cleaned_data.keys():
+            return
+
+        d_deb = self.cleaned_data['start_date']
+        h_deb = self.cleaned_data['start_time']
+        h_fin = self.cleaned_data['end_time']
+
+        if h_deb >= h_fin:
+            self.add_error("start_time", _("Start should not be after end"))
+            self.add_error("end_time", "Start should not be after end")
+            raise forms.ValidationError("Date error.")
+
+        events = Event.objects.filter(
+            Q(start_date=d_deb)
+            & (
+            (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
+            |(Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
+            |(Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
+            |(Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+            )
+        )
+
+        if events.exists():
+            self.add_error("start_date", _("An event is already planned at these dates"))
+            raise forms.ValidationError("Date error.")
 
 
     class Meta(object):
