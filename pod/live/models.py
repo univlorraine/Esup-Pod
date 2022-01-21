@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
@@ -69,6 +70,28 @@ class Building(models.Model):
 def default_site_building(sender, instance, created, **kwargs):
     if len(instance.sites.all()) == 0:
         instance.sites.add(Site.objects.get_current())
+
+
+def getAvailableBroadcastersOfBuilding(user, building_id):
+    return Broadcaster.objects.filter(
+        Q(status=True)&
+        Q(building_id=building_id)&
+        (Q(manage_groups__isnull=True) |
+        Q(manage_groups__in=user.groups.all()))
+    ).distinct().order_by('name')
+
+def getBuildingHavingAvailableBroadcaster(user):
+    return Building.objects.filter(
+        Q(broadcaster__status=True)&
+        (Q(broadcaster__manage_groups__isnull=True) | Q(broadcaster__manage_groups__in=user.groups.all()))
+    ).distinct().order_by('name')
+
+def getBuildingHavingAvailableBroadcasterAnd(user, building_id):
+    return Building.objects.filter(
+        Q(id=building_id) |
+         Q(broadcaster__status=True) &
+         (Q(broadcaster__manage_groups__isnull=True) | Q(broadcaster__manage_groups__in=user.groups.all()))
+    ).distinct().order_by('name')
 
 
 class Broadcaster(models.Model):

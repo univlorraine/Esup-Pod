@@ -1,11 +1,12 @@
 from django import forms
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.admin import widgets
-from pod.live.models import Broadcaster
+from django.utils.translation import ugettext_lazy as _
+
+from pod.live.models import Broadcaster, getBuildingHavingAvailableBroadcaster, \
+    getBuildingHavingAvailableBroadcasterAnd, getAvailableBroadcastersOfBuilding
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
-from django.contrib.auth.models import User
 
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
@@ -77,13 +78,9 @@ class CustomBroadcasterChoiceField(forms.ModelChoiceField):
 
 class EventForm(forms.ModelForm):
 
-    buildingQueryset=Building.objects.filter(
-            broadcaster__is_restricted=False # TODO modifier ça selon les regles d'acces du Broadcaster
-        ).distinct()
-
     building = forms.ModelChoiceField(
         label=_("Building"),
-        queryset=buildingQueryset,
+        queryset=Building.objects.all(),
         to_field_name="name",
         empty_label=None,
     )
@@ -91,7 +88,6 @@ class EventForm(forms.ModelForm):
     broadcaster = CustomBroadcasterChoiceField(
         label=_("Broadcaster device"),
         queryset=Broadcaster.objects.all(),
-        # queryset=Broadcaster.objects.filter(building=buildingQueryset.first()),
         empty_label=None,
     )
 
@@ -102,17 +98,28 @@ class EventForm(forms.ModelForm):
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
 
-        # gère la mise a jour dynamique de la liste
+        # mise a jour dynamique de la liste
         if 'building' in self.data:
+            # à la sauvegarde
             try:
-                building_name = self.data.get('building')
-                self.fields['broadcaster'].queryset = Broadcaster.objects.filter(building__name=building_name).order_by('name')
+                build = Building.objects.filter(name=self.data.get('building')).first()
+                self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, build.id)
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
-        elif self.instance.pk:
-            building_name = self.instance.broadcaster.building.name
-            self.fields['broadcaster'].queryset = Broadcaster.objects.filter(building__name=building_name).order_by('name')
-            self.initial['building'] = building_name
+        else:
+            if self.instance.pk:
+                # à l'édition
+                broadcaster = self.instance.broadcaster
+                self.fields['broadcaster'].queryset = Broadcaster.objects.filter(building_id=broadcaster.building_id).order_by('name')
+                self.fields['building'].queryset = getBuildingHavingAvailableBroadcasterAnd(self.user, broadcaster.building.id)
+                self.initial['building'] = broadcaster.building.name
+            else:
+                # à la création
+                query_buildings = getBuildingHavingAvailableBroadcaster(self.user)
+                self.fields['building'].queryset = query_buildings.all()
+                self.initial['building'] = query_buildings.first().name
+                self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, query_buildings.first())
+
 
     class Meta(object):
         model = Event
