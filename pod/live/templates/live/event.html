@@ -76,6 +76,14 @@
         </div>
     {% endif %}
 
+    <div class="list_videos_of_event">
+    {% if event.videos.all.count > 0 %}
+        {% for video in event.videos.all %}
+            <div><a class="link-center-pod" href="{{video.get_absolute_url}}" title="{{video.title}}">{{ video.title }}</a></div>
+        {% endfor %}
+    {% endif %}
+    </div>
+
 {% endblock %}
 
 {% block page_aside %}
@@ -288,7 +296,33 @@
                         console.log('Record stopped');
                         $("#startrecord").removeClass("d-none");
                         $("#stoprecord").addClass("d-none");
-                        $("#splitrecord").addClass("d-none")
+                        $("#splitrecord").addClass("d-none");
+                        console.log(data);
+                        $.ajax({
+                            url: "{% url 'live:event_video_transform' %}",
+                            method: 'POST',
+                            headers: {
+                                "X-CSRFToken": '{{ csrf_token }}'
+                            },
+                            data:{
+                                "event": "{{ event.id }}",
+                                "currentFile": data.current_record_info.currentFile
+                            },
+                            success:function (data){
+                                if (data.success){
+                                    console.log("conversion done");
+                                    htmlContent = ""
+                                    for (video in data.videos){
+                                        console.log(data.videos[video].get_absolute_url);
+                                        htmlContent += "<li><a href='"+data.videos[video].get_absolute_url+"'>"+data.videos[video].title+"</a></li>";
+                                    }
+                                    $(".list_videos_of_event").html(htmlContent);
+                                }
+                            },
+                            error: function (data) {
+                                console.error('Error calling event_video_transform');
+                            },
+                        });
                     } else {
                         console.warning('Stop not done : ' + data.message);
                     }
@@ -312,6 +346,31 @@
                 success: function (data) {
                     if (data.success) {
                         console.log('Record split');
+                        $.ajax({
+                            url: "{% url 'live:event_video_transform' %}",
+                            method: 'POST',
+                            headers: {
+                                "X-CSRFToken": '{{ csrf_token }}'
+                            },
+                            data:{
+                                "event": "{{ event.id }}",
+                                "currentFile": data.current_record_info.currentFile
+                            },
+                            success:function (data){
+                                if (data.success){
+                                    console.log("conversion done");
+                                    htmlContent = ""
+                                    for (video in data.videos){
+                                        console.log(data.videos[video].get_absolute_url);
+                                        htmlContent += "<li><a href='"+data.videos[video].get_absolute_url+"'>"+data.videos[video].title+"</a></li>";
+                                    }
+                                    $(".list_videos_of_event").html(htmlContent);
+                                }
+                            },
+                            error: function (data) {
+                                console.error('Error calling event_video_transform');
+                            },
+                        });
                     } else {
                         console.warning('Split not done : ' + data.message);
                     }

@@ -242,6 +242,9 @@ class HeartBeat(models.Model):
         ordering = ["broadcaster"]
 
 
+def one_hour_hence():
+    return datetime.now() + timezone.timedelta(hours=1)
+
 class Event(models.Model):
     slug = models.SlugField(
         _("Slug"),
@@ -285,12 +288,12 @@ class Event(models.Model):
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=datetime.now(),
+        default=datetime.now,
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
         _("End time"),
-        default=datetime.now() + timedelta(hours=1),
+        default=one_hour_hence,
         help_text=_("End time of the live event."),
     )
 
