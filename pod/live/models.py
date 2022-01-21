@@ -250,7 +250,7 @@ def one_hour_hence():
     return datetime.now() + timezone.timedelta(hours=1)
 
 def get_default_event_type():
-    return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID)
+    return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID).id
 
 def get_default_user():
     return User.objects.first().id
