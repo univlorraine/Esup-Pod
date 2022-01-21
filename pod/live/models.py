@@ -252,6 +252,9 @@ def one_hour_hence():
 def get_default_event_type():
     return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID)
 
+def get_default_user():
+    return User.objects.first().id
+
 def select_event_owner():
     if RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY:
         return lambda q: (
@@ -303,6 +306,7 @@ class Event(models.Model):
         verbose_name=_("Owner"),
         search_field=select_event_owner(),
         on_delete=models.CASCADE,
+        default=get_default_user(),
     )
     start_date = models.DateField(
         _("Date of Event"),
