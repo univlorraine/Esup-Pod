@@ -1,37 +1,22 @@
+{% load l10n %}
 {% load i18n %}
 {% spaceless %}
     <div class="card mb-4 box-shadow border-secondary video-card">
         <!-- card.html -->
         <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted small">
-
-                    <span> -Todo add necessary icons- </span>
-{#                    <i data-feather="film"></i>#}
-{#                    {% if video.password or video.is_restricted %}#}
-{#                        <span title="{% trans 'This content is password protected.' %}">#}
-{#                            <i data-feather="lock"></i>#}
-{#                        </span>#}
-{#                    {% endif %}#}
-{#                    {% if video.is_draft %}#}
-{#                        <span title="{% trans 'This content is in draft.' %}">#}
-{#                            <i data-feather="x-circle"></i>#}
-{#                        </span>#}
-{#                    {% endif %}#}
-{#                    {% if video.chapter_set.all %}#}
-{#                        <span title="{% trans 'This content is chaptered.' %}">#}
-{#                            <i data-feather="list"></i>#}
-{#                        </span>#}
-{#                    {% endif %}#}
-{#                    {% if video.is_video %}#}
-{#                        <span title="{% trans 'Video content.' %}">#}
-{#                            <i data-feather="film"></i>#}
-{#                        </span>#}
-{#                    {% else %}#}
-{#                        <span title="{% trans 'Audio content.' %}">#}
-{#                            <i data-feather="radio"></i>#}
-{#                        </span>#}
-{#                    {% endif %}#}
+            <div class="d-flex justify-content-end align-items-center">
+            <span class="text-muted small">
+                    <span>
+                        <i data-feather="tv"></i>
+                    </span>
+                    <span title="add infos here">
+                        <i data-feather="info"></i>
+                    </span>
+                    {% if event.is_draft %}
+                        <span title="{% trans 'This content is in draft.' %}">
+                            <i data-feather="x-circle"></i>
+                        </span>
+                    {% endif %}
                 </span>
             </div>
         </div>
@@ -40,12 +25,6 @@
 
             <a class="link-center-pod" href="{{ event.get_absolute_url }}" title="{{ event.title }}">
                 <img class="card-img-top" src="{{ DEFAULT_EVENT_THUMBNAIL }}" alt="Default event image" loading="lazy"/>
-{#                {{ event.title }}#}
-{#                </br>#}
-{#                {{ event.start_date }}#}
-{#                 </br>#}
-{#                {% trans 'from' %} {{ event.start_time }} {% trans 'to' %} {{ event.end_time }}#}
-{#                <div>&nbsp;</div>#}
             </a>
         </div>
         <div class="card-body px-3 py-2">
@@ -72,7 +51,7 @@
                     {{event.title|capfirst|truncatechars:43}}
                 </a>
                 </br>
-                 {% blocktrans with start_date=event.start_date start_time=event.start_time end_time=event.end_time %}The {{start_date}} from {{start_time}} to {{end_time}}{% endblocktrans %}
+                 {% blocktrans with start_date=event.start_date|date:"SHORT_DATE_FORMAT" start_time=event.start_time end_time=event.end_time %}The {{start_date}} from {{start_time}} to {{end_time}}{% endblocktrans %}
              </span>
         </div>
 
