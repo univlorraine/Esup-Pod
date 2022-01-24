@@ -263,6 +263,7 @@
                     "X-CSRFToken": '{{ csrf_token }}'
                 },
                 data: {
+                    "idevent": "{{ event.id }}",
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
                 success: function (data) {

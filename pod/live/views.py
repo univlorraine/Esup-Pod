@@ -429,14 +429,14 @@ def event_isstreamavailabletorecord(request):
 @login_required(redirect_field_name="referrer")
 def event_startrecord(request):
     if request.method == "POST" and request.is_ajax():
-
+        event_id = request.POST.get("idevent", None)
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
         if check_piloting_conf(broadcaster):
             if is_recording(broadcaster):
                 return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
 
-            if start_record(broadcaster):
+            if start_record(broadcaster,event_id):
                 return JsonResponse({"success": True})
             return JsonResponse({"success": False, "message": ""})
 
@@ -509,11 +509,11 @@ def check_piloting_conf(broadcaster: Broadcaster) -> bool:
     return impl_class.check_piloting_conf()
 
 
-def start_record(broadcaster: Broadcaster) -> bool:
+def start_record(broadcaster: Broadcaster, event_id) -> bool:
     impl_class = get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
-    return impl_class.start()
+    return impl_class.start(event_id)
 
 
 def split_record(broadcaster: Broadcaster) -> bool:

@@ -42,7 +42,7 @@ class PilotingInterface(ABC):
         """Checks if the broadcaster is being recorded"""
         raise NotImplementedError
 
-    def start(self) -> bool:
+    def start(self, event_id, login) -> bool:
         """Start the recording"""
         raise NotImplementedError
 
@@ -138,11 +138,16 @@ class Wowza(PilotingInterface, ABC):
 
         return None
 
-    def start(self) -> bool:
+    def start(self, event_id=None, login=None) -> bool:
         logging.debug("Wowza - Start record")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_start_record = self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"]
+        filename = self.broadcaster.slug
+        if event_id is not None:
+            filename = event_id + "_" + filename
+        elif login is not None:
+            filename = login + "_" + filename
         data = {
             "instanceName": "",
             "fileVersionDelegateName": "",
@@ -152,7 +157,7 @@ class Wowza(PilotingInterface, ABC):
             "segmentSchedule": "",
             "startOnKeyFrame": True,
             "outputPath": DEFAULT_EVENT_PATH,
-            "baseFile": "_pod_test_${RecordingStartTime}",
+            "baseFile": filename + "_${RecordingStartTime}",
             "currentFile": "",
             "saveFieldList": [""],
             "recordData": False,
