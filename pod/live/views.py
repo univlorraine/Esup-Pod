@@ -216,17 +216,16 @@ def event(request, slug):  # affichage d'un event
 def events(request):  # affichage des events
 
     queryset = Event.objects
-
+    queryset = queryset.filter(is_draft=False)
     if not request.user.is_authenticated():
-        queryset = queryset.filter(is_draft=False)
         queryset = queryset.filter(broadcaster__is_restricted=False)
        # queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
-    elif not request.user.is_superuser:
-        queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
+    #elif not request.user.is_superuser:
+     #   queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
      #   queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
       #             Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
-    events_list = queryset.all().order_by("-start_date", "-start_time", "-end_time")
+    events_list = queryset.all().order_by("start_date", "start_time", "end_time")
 
     page = request.GET.get("page", 1)
     full_path = ""
