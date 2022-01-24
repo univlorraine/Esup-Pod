@@ -1,55 +1,82 @@
+import datetime
 from datetime import date, datetime
 
 from django.core.management.base import BaseCommand
 from django.db.models import Q
-from pod.live.models import Event, Broadcaster
-from pod.live.views import  is_recording, is_available_to_record,start_record,stop_record
 
+from pod.live.models import Event, Broadcaster
+from pod.live.views import is_recording, start_record, stop_record, check_piloting_conf
 
 
 class Command(BaseCommand):
 
-    help = 'Vérifie les lancements et arrêts d\'enregistrement'
+    help = 'Check events to start or stop'
 
-    def event_startrecord(self,broadcaster_id):
-        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-        if is_recording(broadcaster):
-            return {"success": False, "message": "the broadcaster is already recording"}
-        if start_record(broadcaster):
-            return {"success": True}
-        return {"success": False, "message": ""}
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '-p',
+            '--prod',
+            action='store_true',
+            help='Start and stop broadcasters FOR REAL',
+        )
 
     def handle(self,*args,**options):
-        self.stdout.write("Vérification des events en enregistrement")
+
+        is_prod = options['prod']
+
+        if is_prod:
+            self.stderr.write(" RUN FOR REAL ")
+        else:
+            self.stderr.write(" RUN ONLY FOR DEBUGGING PURPOSE ")
+
         events = Event.objects.filter(
             Q(start_date=date.today())
             & Q(start_time__lte=datetime.now())
             & Q(end_time__gte=datetime.now())
         )
-        broadcaster_recording=[]
+        rec_bro_ids=[]
 
-        self.stdout.write("--->Start record prepared")
+        self.stdout.write("-- Starting new events")
         for event in events:
+            rec_bro_ids.append(event.broadcaster.id)
+
             if not is_recording(event.broadcaster):
-                self.stdout.write(f"Broadcaster {event.broadcaster.name} -> not recording")
-                sr = self.event_startrecord(event.broadcaster.pk)
-                if sr.get("success")==True or sr.get("message")=="the broadcaster is already recording":
-                    broadcaster_recording.append(event.broadcaster.pk)
-                    self.stdout.write(f"Broadcaster {event.broadcaster.name} -> recording")
+
+                self.stdout.write(f"Broadcaster {event.broadcaster.name} should be started : " + event.broadcaster.name, ending="")
+
+                if not check_piloting_conf(event.broadcaster):
+                    self.stderr.write("Config error")
+                    continue
+
+                if is_prod:
+                    if start_record(event.broadcaster):
+                        self.stdout.write(" ... successfully started")
+                    else:
+                        self.stderr.write(" ... fail to start")
+                    continue
                 else:
-                    self.stdout.write(f"Broadcaster {event.broadcaster.name} -> problem when start recording")
+                    self.stderr.write(" but not tried (debug mode) ")
             else:
-                self.stdout.write(f"Broadcaster {event.broadcaster.name} -> already recording")
-                broadcaster_recording.append(event.broadcaster.pk)
+                self.stdout.write(f"Broadcaster {event.broadcaster.name} is recording")
 
-        broadcasters = Broadcaster.objects.all()
+        broadcasters = Broadcaster.objects.order_by("name").all()
 
-        self.stdout.write("--->Stop record prepared")
+        self.stdout.write("-- Stopping finished events")
         for broadcaster in broadcasters:
-            if is_recording(broadcaster) != False and broadcaster.pk not in broadcaster_recording:
-                if stop_record(broadcaster):
-                    self.stdout.write(f"Broadcaster {broadcaster.name} -> stop recording")
-                else:
-                    self.stdout.write(f"Broadcaster {broadcaster.name} -> problem when stop recording")
+            if broadcaster.id not in rec_bro_ids:
+                if not check_piloting_conf(broadcaster):
+                    self.stderr.write(f"Config error for Broadcaster {broadcaster.name}")
+                    continue
 
-        self.stdout.write("Fin de vérification des events en enregistrement")
+                if is_recording(broadcaster):
+                    self.stdout.write(f"Broadcaster {broadcaster.name} should be stopped : " + broadcaster.name, ending="")
+
+                    if is_prod:
+                        if stop_record(broadcaster):
+                            self.stdout.write(" ...  stopped ")
+                        else:
+                            self.stderr.write(" ... fail to stop recording")
+                    else:
+                        self.stdout.write(" but not tried (debug mode) ")
+
+        self.stdout.write("- Done -")
