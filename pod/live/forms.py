@@ -135,20 +135,21 @@ class EventForm(forms.ModelForm):
             self.add_error("end_time", "Start should not be after end")
             raise forms.ValidationError("Date error.")
 
-        events = Event.objects.filter(
-            Q(broadcaster_id=brd.id)
-            & Q(start_date=d_deb)
-            & (
-            (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
-            |(Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
-            |(Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
-            |(Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+        if not self.instance.id:
+            events = Event.objects.filter(
+                Q(broadcaster_id=brd.id)
+                & Q(start_date=d_deb)
+                & (
+                (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
+                |(Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
+                |(Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
+                |(Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+                )
             )
-        )
 
-        if events.exists():
-            self.add_error("start_date", _("An event is already planned at these dates"))
-            raise forms.ValidationError("Date error.")
+            if events.exists() :
+                self.add_error("start_date", _("An event is already planned at these dates"))
+                raise forms.ValidationError("Date error.")
 
 
     class Meta(object):
