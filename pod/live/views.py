@@ -256,6 +256,7 @@ def events(request):  # affichage des events
             "events": events,
             "full_path": full_path,
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
+            "test": "hey !!!",
         }
     )
 
@@ -415,12 +416,14 @@ def event_isstreamavailabletorecord(request):
         broadcaster_id = request.GET.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if check_piloting_conf(broadcaster):
-            if is_recording(broadcaster):
-                return JsonResponse({"available": True, "recording": True})
+        if not check_piloting_conf(broadcaster):
+            return JsonResponse({"available": False, "recording": False, "message": "implementation error"})
 
-            available = is_available_to_record(broadcaster)
-            return JsonResponse({"available": available, "recording": False})
+        if is_recording(broadcaster):
+            return JsonResponse({"available": True, "recording": True})
+
+        available = is_available_to_record(broadcaster)
+        return JsonResponse({"available": available, "recording": False})
 
     return HttpResponseNotAllowed(["GET"])
 
@@ -432,13 +435,15 @@ def event_startrecord(request):
 
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-        if check_piloting_conf(broadcaster):
-            if is_recording(broadcaster):
-                return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
+        if not check_piloting_conf(broadcaster):
+            return JsonResponse({"success": False, "message": "implementation error"})
 
-            if start_record(broadcaster):
-                return JsonResponse({"success": True})
-            return JsonResponse({"success": False, "message": ""})
+        if is_recording(broadcaster):
+            return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
+
+        if start_record(broadcaster):
+            return JsonResponse({"success": True})
+        return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -450,14 +455,16 @@ def event_splitrecord(request):
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if check_piloting_conf(broadcaster):
-            if not is_recording(broadcaster):
-                return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-            else:
-                current_record_info = get_info_current_record(broadcaster)
-                if split_record(broadcaster):
-                    return JsonResponse({"success": True,"current_record_info":current_record_info})
-            return JsonResponse({"success": False, "message": ""})
+        if not check_piloting_conf(broadcaster):
+            return JsonResponse({"success": False, "message": "implementation error"})
+
+        if not is_recording(broadcaster):
+            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
+        else:
+            current_record_info = get_info_current_record(broadcaster)
+            if split_record(broadcaster):
+                return JsonResponse({"success": True,"current_record_info":current_record_info})
+        return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -468,17 +475,72 @@ def event_stoprecord(request):
     if request.method == "POST" and request.is_ajax():
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-        if check_piloting_conf(broadcaster):
-            if not is_recording(broadcaster):
-                return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-            else:
-                current_record_info = get_info_current_record(broadcaster)
-                if stop_record(broadcaster):
-                    return JsonResponse({"success": True,"current_record_info":current_record_info})
-            return JsonResponse({"success": False, "message": ""})
+
+        if not check_piloting_conf(broadcaster):
+            return JsonResponse({"success": False, "message": "implementation error"})
+
+        if not is_recording(broadcaster):
+            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
+        else:
+            current_record_info = get_info_current_record(broadcaster)
+            if stop_record(broadcaster):
+                return JsonResponse({"success": True,"current_record_info":current_record_info})
+        return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
+
+def event_video_transform(request):
+
+    event_id = request.POST.get("event", None)
+
+    event = Event.objects.get(pk=event_id)
+
+    currentFile = request.POST.get("currentFile", None)
+
+    filename = os.path.basename(currentFile)
+
+    dest_file = os.path.join(
+        settings.MEDIA_ROOT,
+        VIDEOS_DIR,
+        request.user.owner.hashkey,
+        filename,
+    )
+
+    dest_path = os.path.join(
+        VIDEOS_DIR,
+        request.user.owner.hashkey,
+        filename,
+    )
+
+    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+
+    os.rename(
+        os.path.join(DEFAULT_EVENT_PATH, filename),
+        dest_file,
+    )
+
+    video = Video.objects.create(
+        title="Video small 25",
+        owner=request.user,
+        video=dest_path,
+        is_draft=False,
+        type=Type.objects.get(id=1),
+    )
+    video.launch_encode = True
+    video.save()
+
+    event.videos.add(video)
+    event.save()
+
+    videos = event.videos.all()
+
+    video_list = {}
+    for video in videos:
+        video_list[video.id] = {'id': video.id, 'slug': video.slug, 'title': video.title,
+                                'get_absolute_url': video.get_absolute_url()}
+
+    return JsonResponse({"success": True, "videos": video_list})
 
 def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
     logging.debug("get_piloting_implementation")
@@ -532,7 +594,11 @@ def stop_record(broadcaster: Broadcaster) -> bool:
 def get_info_current_record(broadcaster: Broadcaster) -> dict:
     impl_class = get_piloting_implementation(broadcaster)
     if not impl_class:
-        return False
+        return {
+            'currentFile': '',
+            'outputPath': '',
+            'segmentDuration': '',
+        }
     return impl_class.get_info_current_record()
 
 
@@ -548,55 +614,3 @@ def is_recording(broadcaster: Broadcaster) -> bool:
     if not impl_class:
         return False
     return impl_class.is_recording()
-
-def event_video_transform(request):
-
-    event_id = request.POST.get("event", None)
-
-    event = Event.objects.get(pk=event_id)
-
-    currentFile = request.POST.get("currentFile", None)
-
-    filename = os.path.basename(currentFile)
-
-    dest_file = os.path.join(
-        settings.MEDIA_ROOT,
-        VIDEOS_DIR,
-        request.user.owner.hashkey,
-        filename,
-    )
-
-    dest_path = os.path.join(
-        VIDEOS_DIR,
-        request.user.owner.hashkey,
-        filename,
-    )
-
-    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
-
-    os.rename(
-        os.path.join(DEFAULT_EVENT_PATH, filename),
-        dest_file,
-    )
-
-    video = Video.objects.create(
-        title="Video small 25",
-        owner=request.user,
-        video=dest_path,
-        is_draft=False,
-        type=Type.objects.get(id=1),
-    )
-    video.launch_encode = True
-    video.save()
-
-    event.videos.add(video)
-    event.save()
-
-    videos = event.videos.all()
-
-    video_list = {}
-    for video in videos:
-        video_list[video.id] = {'id': video.id, 'slug': video.slug, 'title': video.title,
-                                'get_absolute_url': video.get_absolute_url()}
-
-    return JsonResponse({"success": True, "videos": video_list})
