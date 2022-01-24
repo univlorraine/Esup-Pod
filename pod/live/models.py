@@ -36,6 +36,7 @@ RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY = getattr(
     settings, "RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY", False
 )
 
+
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
     headband = models.ForeignKey(
@@ -78,22 +79,24 @@ def default_site_building(sender, instance, created, **kwargs):
 
 def getAvailableBroadcastersOfBuilding(user, building_id):
     return Broadcaster.objects.filter(
-        Q(status=True)&
-        Q(building_id=building_id)&
+        Q(status=True) &
+        Q(building_id=building_id) &
         (Q(manage_groups__isnull=True) |
-        Q(manage_groups__in=user.groups.all()))
+            Q(manage_groups__in=user.groups.all()))
     ).distinct().order_by('name')
+
 
 def getBuildingHavingAvailableBroadcaster(user):
     return Building.objects.filter(
-        Q(broadcaster__status=True)&
+        Q(broadcaster__status=True) &
         (Q(broadcaster__manage_groups__isnull=True) | Q(broadcaster__manage_groups__in=user.groups.all()))
     ).distinct().order_by('name')
+
 
 def getBuildingHavingAvailableBroadcasterAnd(user, building_id):
     return Building.objects.filter(
         Q(id=building_id) |
-         Q(broadcaster__status=True) &
+        Q(broadcaster__status=True) &
          (Q(broadcaster__manage_groups__isnull=True) | Q(broadcaster__manage_groups__in=user.groups.all()))
     ).distinct().order_by('name')
 
@@ -174,13 +177,13 @@ class Broadcaster(models.Model):
     )
     viewcount = models.IntegerField(_("Number of viewers"), default=0, editable=False)
     viewers = models.ManyToManyField(User, editable=False)
-    restrict_access_to_groups = select2_fields.ManyToManyField(
-        Group,
-        blank=True,
-        verbose_name=_("Access Groups"),
-        help_text=_("Select one or more groups who can access to this broadcater."),
-        related_name='restrictaccesstogroups',
-    )
+    # restrict_access_to_groups = select2_fields.ManyToManyField(
+    #     AccessGroup,
+    #     blank=True,
+    #     verbose_name=_("Access Groups"),
+    #     help_text=_("Select one or more groups who can access to this broadcater."),
+    #     related_name='restrictaccesstogroups',
+    # )
 
     manage_groups = select2_fields.ManyToManyField(
         Group,
@@ -249,8 +252,10 @@ class HeartBeat(models.Model):
 def one_hour_hence():
     return datetime.now() + timezone.timedelta(hours=1)
 
+
 def get_default_event_type():
     return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID).id
+
 
 def select_event_owner():
     if RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY:
@@ -261,6 +266,7 @@ def select_event_owner():
         return lambda q: (Q(first_name__icontains=q) | Q(last_name__icontains=q)) & Q(
             owner__sites=Site.objects.get_current()
         )
+
 
 class Event(models.Model):
     slug = models.SlugField(
@@ -291,12 +297,6 @@ class Event(models.Model):
         ),
     )
 
-    # owner = models.ForeignKey(
-    #     get_user_model(),
-    #     verbose_name=_("Owner"),
-    #     on_delete=models.CASCADE,
-    #     null=True,
-    # )
     owner = select2_fields.ForeignKey(
         User,
         ajax=True,
@@ -367,6 +367,11 @@ class Event(models.Model):
         editable=False,
     )
 
+    class Meta:
+        verbose_name = _("Event")
+        verbose_name_plural = _("Events")
+        ordering = ["start_date", "start_time"]
+
     def save(self, *args, **kwargs):
         if not self.id:
             try:
@@ -386,7 +391,6 @@ class Event(models.Model):
     def __str__(self):
         if self.id:
             return "%s - %s" % ("%04d" % self.id, self.title)
-        #         return "%s (%s,  %s - %s, %s)" % (self.title, self.start_date.strftime("%d/%m/%Y"),self.start_time.strftime("%H:%M"),self.end_time.strftime("%H:%M"),self.owner.username)
         else:
             return "None"
 

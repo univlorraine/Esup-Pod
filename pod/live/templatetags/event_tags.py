@@ -20,10 +20,10 @@ def get_next_events(context: object):
     if not request.user.is_authenticated():
         queryset = queryset.filter(is_draft=False)
         queryset = queryset.filter(broadcaster__is_restricted=False)
-        queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+      #  queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
     elif not request.user.is_superuser:
         queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
-        queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
-                   Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
+       # queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
+       #            Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
     return queryset.all().order_by('start_date','start_time')[:4]

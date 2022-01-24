@@ -192,23 +192,23 @@ def event(request, slug):  # affichage d'un event
     # draft ou non on l'affiche
 
     # droits sur le broadcaster : public, restricted , access en view
-    restricted_groups = event.broadcaster.restrict_access_to_groups.all()
+    # restricted_groups = event.broadcaster.restrict_access_to_groups.all()
     if not event.broadcaster.public and not request.user.is_superuser:
         if event.broadcaster.is_restricted or restricted_groups.exists():
             if not request.user.is_authenticated():
                 url = reverse("authentication_login")
                 url += "?referrer=" + request.get_full_path()
                 return redirect(url)
-        if restricted_groups.exists():
-            user_groups = request.user.groups.all()
-            if set(user_groups).isdisjoint(restricted_groups):
-                raise PermissionDenied
+        # if restricted_groups.exists():
+        #     user_groups = request.user.groups.all()
+        #     if set(user_groups).isdisjoint(restricted_groups):
+        #         raise PermissionDenied
 
     return render(
         request,
         "live/event.html",
         {
-            "event":event,
+            "event" : event,
         }
     )
 
@@ -220,11 +220,11 @@ def events(request):  # affichage des events
     if not request.user.is_authenticated():
         queryset = queryset.filter(is_draft=False)
         queryset = queryset.filter(broadcaster__is_restricted=False)
-        queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+       # queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
     elif not request.user.is_superuser:
         queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
-        queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
-                   Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
+     #   queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
+      #             Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
     events_list = queryset.all().order_by("-start_date", "-start_time", "-end_time")
 

@@ -113,7 +113,16 @@ class EventAdmin(admin.ModelAdmin):
         return ModelFormMetaClass
 
     form = EventAdminForm
-    fields  = (
+    list_display = (
+        "title",
+        "owner",
+        "start_date",
+        "start_time",
+        "end_time",
+        "broadcaster",
+        "is_draft",
+    )
+    fields = (
         "title",
         "description",
         "owner",
@@ -122,6 +131,7 @@ class EventAdmin(admin.ModelAdmin):
         "end_time",
         "type",
         "broadcaster",
+        "is_draft"
     )
 
 admin.site.register(Building, BuildingAdmin)

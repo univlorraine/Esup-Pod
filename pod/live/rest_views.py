@@ -25,7 +25,6 @@ class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
             "status",
             "is_restricted",
             "manage_groups",
-            "restrict_access_to_groups",
             "piloting_implementation",
             "piloting_conf",
         )
