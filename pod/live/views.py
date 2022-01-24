@@ -44,6 +44,7 @@ DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "/img/def
 
 VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
+
 def lives(request):  # affichage des directs
     site = get_current_site(request)
     buildings = (
@@ -208,22 +209,26 @@ def event(request, slug):  # affichage d'un event
         request,
         "live/event.html",
         {
-            "event" : event,
+            "event": event,
         }
     )
 
 
 def events(request):  # affichage des events
 
-    queryset = Event.objects
+    queryset = Event.objects.filter(
+        Q(start_date__gt=date.today())
+        |
+        (Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
+    )
     queryset = queryset.filter(is_draft=False)
     if not request.user.is_authenticated():
         queryset = queryset.filter(broadcaster__is_restricted=False)
-       # queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
-    #elif not request.user.is_superuser:
-     #   queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
-     #   queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
-      #             Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
+    #     queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+    # elif not request.user.is_superuser:
+    #     queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
+    #     queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
+    #              Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
     events_list = queryset.all().order_by("start_date", "start_time", "end_time")
 
@@ -251,7 +256,6 @@ def events(request):  # affichage des events
             "events": events,
             "full_path": full_path,
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
-            "test": "hey !!!",
         }
     )
 
