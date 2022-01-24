@@ -122,12 +122,13 @@ class EventForm(forms.ModelForm):
                 self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, query_buildings.first())
 
     def clean(self):
-        if not {'start_time', 'start_time', 'end_time'} <= self.cleaned_data.keys():
+        if not {'start_time', 'start_time', 'end_time', 'broadcaster'} <= self.cleaned_data.keys():
             return
 
         d_deb = self.cleaned_data['start_date']
         h_deb = self.cleaned_data['start_time']
         h_fin = self.cleaned_data['end_time']
+        brd = self.cleaned_data['broadcaster']
 
         if h_deb >= h_fin:
             self.add_error("start_time", _("Start should not be after end"))
@@ -135,7 +136,8 @@ class EventForm(forms.ModelForm):
             raise forms.ValidationError("Date error.")
 
         events = Event.objects.filter(
-            Q(start_date=d_deb)
+            Q(broadcaster_id=brd.id)
+            & Q(start_date=d_deb)
             & (
             (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
             |(Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))

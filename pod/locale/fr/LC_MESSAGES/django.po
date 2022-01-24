@@ -2286,7 +2286,7 @@ msgstr "L'heure de début doit être avant l'heure de fin"
 
 #: pod/live/forms.py:148
 msgid "An event is already planned at these dates"
-msgstr "Un évenement est déjà planifié à ce moment"
+msgstr "Un évenement est déjà planifié à cette date"
 
 #: pod/live/forms.py:163 pod/recorder/forms.py:75 pod/video/forms.py:864
 msgid "I agree"
