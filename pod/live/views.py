@@ -531,10 +531,10 @@ def event_video_transform(request):
     )
 
     video = Video.objects.create(
-        title="Video small 25",
+        title=event.title,
         owner=request.user,
         video=dest_path,
-        is_draft=False,
+        is_draft=True,
         type=Type.objects.get(id=1),
     )
     video.launch_encode = True
