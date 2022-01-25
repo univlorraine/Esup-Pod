@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-25 21:31+0100\n"
+"POT-Creation-Date: 2022-01-26 00:12+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -150,9 +150,9 @@ msgstr "Changer votre image de profil"
 #: pod/bbb/views.py:254 pod/completion/templates/video_caption_maker.html:98
 #: pod/enrichment/templates/enrichment/group_enrichment.html:29
 #: pod/interactive/templates/interactive/group_interactive.html:27
-#: pod/live/templates/live/event_delete.html:33
-#: pod/live/templates/live/live-form.html:10 pod/live/views.py:376
-#: pod/live/views.py:405 pod/main/templates/contact_us.html:17
+#: pod/live/templates/live/event_delete.html:39
+#: pod/live/templates/live/live-form.html:10 pod/live/views.py:377
+#: pod/live/views.py:406 pod/main/templates/contact_us.html:17
 #: pod/main/tests/test_views.py:99 pod/main/views.py:300
 #: pod/playlist/views.py:217
 #: pod/recorder/templates/recorder/add_recording.html:34
@@ -179,8 +179,8 @@ msgstr "Une ou plusieurs erreurs ont été trouvées dans le formulaire."
 #: pod/completion/templates/video_caption_maker.html:106
 #: pod/enrichment/templates/enrichment/group_enrichment.html:51
 #: pod/interactive/templates/interactive/group_interactive.html:49
-#: pod/live/templates/live/event_delete.html:59
-#: pod/live/templates/live/event_edit.html:76
+#: pod/live/templates/live/event_delete.html:65
+#: pod/live/templates/live/event_edit.html:82
 #: pod/live/templates/live/live-form.html:25
 #: pod/main/templates/contact_us.html:40
 #: pod/playlist/templates/playlist/playlist_video_list.html:72
@@ -930,7 +930,7 @@ msgstr "Supprimer le chapitre"
 #: pod/chapter/templates/chapter/list_chapter.html:32
 #: pod/enrichment/templates/enrichment/list_enrichment.html:35
 #: pod/live/templates/live/event_delete.html:9
-#: pod/live/templates/live/event_delete.html:65
+#: pod/live/templates/live/event_delete.html:71
 #: pod/playlist/templates/playlist.html:70
 #: pod/podfile/templates/podfile/list_folder_files.html:101
 #: pod/podfile/templates/podfile/list_folder_files.html:296
@@ -2267,31 +2267,31 @@ msgstr "Vous regardez cette vidéo en tant qu'utilisateur anonyme"
 msgid "You cannot add interactivity to this video."
 msgstr "Vous ne pouvez éditer cette vidéo interactive."
 
-#: pod/live/forms.py:70 pod/video/forms.py:291 pod/video/forms.py:855
+#: pod/live/forms.py:71 pod/video/forms.py:291 pod/video/forms.py:855
 msgid "Password"
 msgstr "Mot de passe"
 
-#: pod/live/forms.py:83 pod/live/models.py:63 pod/live/models.py:117
+#: pod/live/forms.py:84 pod/live/models.py:63 pod/live/models.py:117
 msgid "Building"
 msgstr "Bâtiment"
 
-#: pod/live/forms.py:90
+#: pod/live/forms.py:91
 msgid "Broadcaster device"
 msgstr "Matériel de captation"
 
-#: pod/live/forms.py:134
+#: pod/live/forms.py:144 pod/live/forms.py:145
 msgid "Start should not be after end"
 msgstr "L'heure de début doit être avant l'heure de fin"
 
-#: pod/live/forms.py:152
+#: pod/live/forms.py:162
 msgid "An event is already planned at these dates"
 msgstr "Un évenement est déjà planifié à cette date"
 
-#: pod/live/forms.py:167 pod/recorder/forms.py:75 pod/video/forms.py:864
+#: pod/live/forms.py:177 pod/recorder/forms.py:75 pod/video/forms.py:864
 msgid "I agree"
 msgstr "J'accepte"
 
-#: pod/live/forms.py:168
+#: pod/live/forms.py:178
 msgid "Delete event cannot be undo"
 msgstr "La suppression d'évènement est définitive"
 
@@ -2453,6 +2453,10 @@ msgstr "Signal"
 msgid "Heartbeats"
 msgstr "Signaux"
 
+#: pod/live/models.py:262
+msgid "An event cannot be planned in the past"
+msgstr "Un évènement ne peut pas être planifié dans le passé."
+
 #: pod/live/models.py:289
 #, fuzzy
 #| msgid ""
@@ -2532,11 +2536,6 @@ msgstr "Evènement"
 msgid "Events"
 msgstr "Evènements"
 
-#: pod/live/models.py:409
-msgid "An event cannot be planned in the past"
-msgstr ""
-"Un évènement ne peut pas être planifié dans le passé."
-
 #: pod/live/templates/live/building.html:11
 #: pod/live/templates/live/live.html:22 pod/live/templates/live/live.html:26
 #: pod/live/templates/live/lives.html:15 pod/live/templates/live/lives.html:18
@@ -2585,17 +2584,17 @@ msgid "to"
 msgstr "à"
 
 #: pod/live/templates/live/event.html:101
-#: pod/live/templates/live/event_edit.html:95
+#: pod/live/templates/live/event_edit.html:102
 msgid "Manage event"
 msgstr "Gérer l'évènement"
 
 #: pod/live/templates/live/event.html:106
-#: pod/live/templates/live/event_edit.html:99
+#: pod/live/templates/live/event_edit.html:106
 msgid "Edit the event"
 msgstr "Éditer l'évènement"
 
 #: pod/live/templates/live/event.html:114
-#: pod/live/templates/live/event_edit.html:106
+#: pod/live/templates/live/event_edit.html:113
 msgid "Delete the event"
 msgstr "Supprimer l'évènement"
 
@@ -2651,15 +2650,20 @@ msgid "View the event"
 msgstr "Voir l'évènement"
 
 #: pod/live/templates/live/event_delete.html:21
-#: pod/live/templates/live/event_delete.html:66
+#: pod/live/templates/live/event_delete.html:72
 msgid "Back to the event"
 msgstr "Retour à l'évènement"
 
-#: pod/live/templates/live/event_delete.html:26
+#: pod/live/templates/live/event_delete.html:28
+msgid "The event is currently in progress. Deletion is not possible."
+msgstr ""
+"L'évènement est actuellement en cours. La supression est impossible."
+
+#: pod/live/templates/live/event_delete.html:32
 msgid "To delete the event, please checked in and click send."
 msgstr "Pour supprimer l'évènement, veuillez cocher et cliquer sur envoyer."
 
-#: pod/live/templates/live/event_delete.html:31
+#: pod/live/templates/live/event_delete.html:37
 #: pod/recorder/templates/recorder/record_delete.html:29
 #: pod/video/templates/videos/video_delete.html:30
 msgid "Agree required"
@@ -2692,7 +2696,12 @@ msgstr ""
 msgid "contact us"
 msgstr "contactez nous"
 
-#: pod/live/templates/live/event_edit.html:83
+#: pod/live/templates/live/event_edit.html:56
+msgid "The event is currently in progress. Editing options are limited."
+msgstr ""
+"L'évènement est actuellement en cours. Les options d'édition sont limitées."
+
+#: pod/live/templates/live/event_edit.html:90
 #: pod/live/templates/live/filter_aside.html:13
 #: pod/live/templates/live/live-form.html:31
 #: pod/main/templates/contact_us.html:46
@@ -2701,11 +2710,11 @@ msgstr "contactez nous"
 msgid "Send"
 msgstr "Envoyer"
 
-#: pod/live/templates/live/event_edit.html:113
+#: pod/live/templates/live/event_edit.html:120
 msgid "Event planning"
 msgstr "Planification d'un évènement"
 
-#: pod/live/templates/live/event_edit.html:115
+#: pod/live/templates/live/event_edit.html:122
 msgid ""
 "You can schedule a live event by selecting a building and a room or "
 "recording device."
@@ -2713,13 +2722,13 @@ msgstr ""
 "Vous pouvez planifier un évènement en direct en sélectionnant un bâtiment et "
 "une salle ou un dispositif de captation."
 
-#: pod/live/templates/live/event_edit.html:116
+#: pod/live/templates/live/event_edit.html:123
 msgid "You will then need to specify a date, a start time and an end time."
 msgstr ""
 "Vous devrez ensuite préciser une date, une heure de début et une heure de "
 "fin. "
 
-#: pod/live/templates/live/event_edit.html:117
+#: pod/live/templates/live/event_edit.html:124
 msgid ""
 "Please note that 2 events cannot be scheduled in the same room "
 "simultaneously."
@@ -2727,7 +2736,7 @@ msgstr ""
 "Attention, 2 évènements ne peuvent pas être programmés dans la même salle "
 "simultanément."
 
-#: pod/live/templates/live/event_edit.html:121
+#: pod/live/templates/live/event_edit.html:128
 #: pod/main/templates/contact_us.html:63
 #: pod/video/templates/channel/channel_edit.html:90
 #: pod/video/templates/channel/theme_edit.html:66
@@ -2735,7 +2744,7 @@ msgstr ""
 msgid "Mandatory fields"
 msgstr "Champs obligatoires"
 
-#: pod/live/templates/live/event_edit.html:123
+#: pod/live/templates/live/event_edit.html:130
 #: pod/main/templates/contact_us.html:65
 #: pod/video/templates/channel/channel_edit.html:92
 #: pod/video/templates/channel/theme_edit.html:68
@@ -2875,12 +2884,8 @@ msgid "Sorry, no buildings found"
 msgstr "Désolé, aucun bâtiment trouvé"
 
 #: pod/live/templates/live/my_events.html:56
-#, fuzzy
-#| msgid ""
-#| "You have not planned any event yet, please use the \"Plan en event\" "
-#| "button to add one"
 msgid ""
-"You have not planned any event yet, please use the \"Add a new event\" "
+"You have not planned any event yet, please use the \"Plan en event\" "
 "button to add one"
 msgstr ""
 "Vous n'avez pas encore planifié d'évènement, veuillez utiliser le bouton "
@@ -2904,15 +2909,15 @@ msgstr "Vous ne pouvez pas éditer cette image."
 msgid "The password is incorrect."
 msgstr "Le mot de passe est incorrect."
 
-#: pod/live/views.py:369 pod/video/views.py:361 pod/video/views.py:947
+#: pod/live/views.py:370 pod/video/views.py:361 pod/video/views.py:947
 msgid "The changes have been saved."
 msgstr "Les modifications ont été sauvegardées."
 
-#: pod/live/views.py:390
+#: pod/live/views.py:391
 msgid "You cannot delete this event."
 msgstr "Vous ne pouvez pas supprimer cet évènement."
 
-#: pod/live/views.py:399
+#: pod/live/views.py:400
 msgid "The event has been deleted."
 msgstr "L'évènement a été supprimé."
 

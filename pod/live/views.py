@@ -338,7 +338,6 @@ def my_events(request):
 @ensure_csrf_cookie
 @login_required(redirect_field_name="referrer")
 def event_edit(request, slug=None):
-
     if in_maintenance():
         return redirect(reverse("maintenance"))
 
@@ -347,21 +346,23 @@ def event_edit(request, slug=None):
         if slug
         else None
     )
+
     if RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff is False:
         return render(request, "live/event_edit.html", {"access_not_allowed": True})
 
     form = EventForm(
         request.POST or None,
         instance=event,
-        user=request.user
+        user=request.user,
+        is_current_event=event.is_current if slug else None
     )
-    # form.fields['videos'].widget = forms.HiddenInput()
 
     if request.POST:
         form = EventForm(
             request.POST,
-            instance= event,
-            user=request.user
+            instance=event,
+            user=request.user,
+            is_current_event=event.is_current if slug else None
         )
         if form.is_valid():
             event = form.save()
@@ -397,7 +398,7 @@ def event_delete(request, slug=None):
         if form.is_valid():
             event.delete()
             messages.add_message(request, messages.INFO, _("The event has been deleted."))
-            return redirect(reverse("live:events"))
+            return redirect(reverse("live:my_events"))
         else:
             messages.add_message(
                 request,
