@@ -190,8 +190,7 @@ class Wowza(PilotingInterface, ABC):
         logging.debug("Wowza - Split record")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
-        url_split_record = self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"] + "/actions" \
-                                                                                                     "/splitRecording "
+        url_split_record = self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"] + "/actions/splitRecording"
         response = requests.put(url_split_record, headers={
             "Accept": "application/json",
             "Content-Type": "application/json"
