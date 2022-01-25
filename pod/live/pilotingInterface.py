@@ -157,7 +157,7 @@ class Wowza(PilotingInterface, ABC):
             "segmentSchedule": "",
             "startOnKeyFrame": True,
             "outputPath": DEFAULT_EVENT_PATH,
-            "baseFile": filename + "_${RecordingStartTime}",
+            "baseFile": filename + "_${RecordingStartTime}_${SegmentNumber}",
             "currentFile": "",
             "saveFieldList": [""],
             "recordData": False,
