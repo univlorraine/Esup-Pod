@@ -1327,6 +1327,7 @@ USE_VIDEO_EVENT_TRACKING = False
 # et activera la possibilité d'accéder à des évènements sur les directs
 """
 USE_EVENT = False
+
 """
 # Si True, seule les personnes "Staff" peuvent programmer des évènements
 """

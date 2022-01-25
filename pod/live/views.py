@@ -207,12 +207,17 @@ def event(request, slug):  # affichage d'un event
         #     user_groups = request.user.groups.all()
         #     if set(user_groups).isdisjoint(restricted_groups):
         #         raise PermissionDenied
-
+    need_piloting_buttons = False
+    if (event.owner == request.user and (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY or
+                                         (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff))) \
+            or request.user.is_superuser:
+        need_piloting_buttons = True
     return render(
         request,
         "live/event.html",
         {
             "event": event,
+            "need_piloting_buttons": need_piloting_buttons,
         }
     )
 

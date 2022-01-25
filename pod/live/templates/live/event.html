@@ -50,7 +50,7 @@
             </div>
 
         </div>
-        {% if event.owner == request.user or request.user.is_superuser %}
+        {% if need_piloting_buttons %}
             <div id="control">
                 <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="startrecord">{% trans "Start record"%}</button>
                 <button type="button" class="btn btn-primary btn-sm m-1 d-none" id="stoprecord">{% trans "Stop record"%}</button>
