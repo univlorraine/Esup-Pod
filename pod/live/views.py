@@ -190,6 +190,9 @@ def heartbeat(request):
 
 def event(request, slug):  # affichage d'un event
 
+    # modif de l'url d'appel pour compatibilité avec le template link_video.html (variable : urleditapp)
+    request.resolver_match.namespace = ""
+
     event = get_object_or_404(Event, slug=slug)
 
     # draft ou non on l'affiche
