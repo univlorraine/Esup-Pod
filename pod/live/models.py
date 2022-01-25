@@ -32,8 +32,8 @@ else:
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
 DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
 DEFAULT_EVENT_TYPE_ID = getattr(settings, "DEFAULT_EVENT_TYPE_ID", 1)
-RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY = getattr(
-    settings, "RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY", False
+RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
+    settings, "RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY", True
 )
 
 
@@ -258,7 +258,7 @@ def get_default_event_type():
 
 
 def select_event_owner():
-    if RESTRICT_EDIT_VIDEO_ACCESS_TO_STAFF_ONLY:
+    if RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY:
         return lambda q: (
             Q(is_staff=True) & (Q(first_name__icontains=q) | Q(last_name__icontains=q))
         ) & Q(owner__sites=Site.objects.get_current())

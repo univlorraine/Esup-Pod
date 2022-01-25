@@ -41,7 +41,9 @@ USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg")
-
+RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
+    settings, "RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY", True
+)
 VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 
@@ -337,6 +339,8 @@ def event_edit(request, slug=None):
         if slug
         else None
     )
+    if RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff is False:
+        return render(request, "live/event_edit.html", {"access_not_allowed": True})
 
     form = EventForm(
         request.POST or None,
