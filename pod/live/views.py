@@ -195,7 +195,8 @@ def event(request, slug):  # affichage d'un event
     # droits sur le broadcaster : public, restricted , access en view
     # restricted_groups = event.broadcaster.restrict_access_to_groups.all()
     if not event.broadcaster.public and not request.user.is_superuser:
-        if event.broadcaster.is_restricted or restricted_groups.exists():
+        # if event.broadcaster.is_restricted or restricted_groups.exists():
+        if event.broadcaster.is_restricted:
             if not request.user.is_authenticated():
                 url = reverse("authentication_login")
                 url += "?referrer=" + request.get_full_path()
@@ -440,9 +441,10 @@ def event_startrecord(request):
         if is_recording(broadcaster):
             return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
 
-            if start_record(broadcaster,event_id):
-                return JsonResponse({"success": True})
-            return JsonResponse({"success": False, "message": ""})
+        if start_record(broadcaster,event_id):
+            return JsonResponse({"success": True})
+
+        return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -459,10 +461,11 @@ def event_splitrecord(request):
 
         if not is_recording(broadcaster):
             return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-        else:
-            current_record_info = get_info_current_record(broadcaster)
-            if split_record(broadcaster):
-                return JsonResponse({"success": True,"current_record_info":current_record_info})
+
+        current_record_info = get_info_current_record(broadcaster)
+        if split_record(broadcaster):
+            return JsonResponse({"success": True,"current_record_info":current_record_info})
+
         return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
@@ -480,10 +483,11 @@ def event_stoprecord(request):
 
         if not is_recording(broadcaster):
             return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
-        else:
-            current_record_info = get_info_current_record(broadcaster)
-            if stop_record(broadcaster):
-                return JsonResponse({"success": True,"current_record_info":current_record_info})
+
+        current_record_info = get_info_current_record(broadcaster)
+        if stop_record(broadcaster):
+            return JsonResponse({"success": True,"current_record_info":current_record_info})
+
         return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
@@ -558,9 +562,9 @@ def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
         logging.debug("'piloting_implementation' found : " + piloting_impl.lower() + " for '"
                       + broadcaster.name + "' broadcaster.")
         return Wowza(broadcaster)
-    else:
-        logging.debug("->get_piloting_implementation - This should not happen.")
-        return None
+
+    logging.debug("->get_piloting_implementation - This should not happen.")
+    return None
 
 
 def check_piloting_conf(broadcaster: Broadcaster) -> bool:
