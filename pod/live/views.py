@@ -19,6 +19,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, Http
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -506,6 +507,22 @@ def event_stoprecord(request):
         return JsonResponse({"success": False, "message": ""})
 
     return HttpResponseNotAllowed(["POST"])
+
+
+@csrf_protect
+@login_required(redirect_field_name="referrer")
+def event_get_video_cards(request):
+    if request.is_ajax():
+        event_id = request.GET.get("idevent", None)
+        event = Event.objects.get(pk=event_id)
+
+        html = ""
+        if event.videos.count() > 0:
+            request.resolver_match.namespace = ""
+            html = render_to_string('live/event_videos.html', {'event': event}, request=request)
+        return JsonResponse({"content": html})
+
+    return HttpResponseBadRequest
 
 
 def event_video_transform(request):

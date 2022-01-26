@@ -75,19 +75,14 @@
         </div>
     {% endif %}
 
-    <div class="list_videos_of_event">
-        {% if event.videos.count > 0 %}
-            <div class="row infinite-container" id="videos_list">
-                {% for video in event.videos.all %}
-                    <div class="infinite-item col-12 col-md-6 col-lg-3 mb-2 card-group"
-                         style="min-width: 12rem; min-height: 11rem;"
-                         {% if categories %}data-slug={{ video.slug }}{% endif %}> <!-- min-width: 15rem; -->
-                        {% include "videos/card.html" %}
-                    </div>
-                {% endfor %}
+
+        <div id="list_videos_of_event" {% if event.videos.count == 0 %} class="d-none" {% endif %}>
+            <div class="jumbotron pl-0" id="event_videos">
+                <h4>{% trans "Current event videos" %}</h4>
+                    <div id="event_videos_list"></div>
             </div>
-        {% endif %}
-    </div>
+        </div>
+
 
 {% endblock %}
 
@@ -317,12 +312,7 @@
                             success:function (data){
                                 if (data.success){
                                     console.log("conversion done");
-                                    htmlContent = ""
-                                    for (video in data.videos){
-                                        console.log(data.videos[video].get_absolute_url);
-                                        htmlContent += "<li><a href='"+data.videos[video].get_absolute_url+"'>"+data.videos[video].title+"</a></li>";
-                                    }
-                                    $(".list_videos_of_event").html(htmlContent);
+                                    getEventVideos();
                                 }
                             },
                             error: function (data) {
@@ -365,12 +355,7 @@
                             success:function (data){
                                 if (data.success){
                                     console.log("conversion done");
-                                    htmlContent = ""
-                                    for (video in data.videos){
-                                        console.log(data.videos[video].get_absolute_url);
-                                        htmlContent += "<li><a href='"+data.videos[video].get_absolute_url+"'>"+data.videos[video].title+"</a></li>";
-                                    }
-                                    $(".list_videos_of_event").html("<ul>"+htmlContent+"</ul>");
+                                    getEventVideos();
                                 }
                             },
                             error: function (data) {
@@ -386,6 +371,31 @@
                 },
             })
         });
+
+        // display the event's videos
+        const getEventVideos = function () {
+            $.ajax({
+                url: "{% url 'live:event_get_video_cards' %}",
+                method: 'GET',
+                dataType: 'json',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data: {
+                    "idevent": "{{ event.id }}",
+                },
+                success: function (data) {
+                    if (data.content !== "") {
+                        $("#list_videos_of_event").removeClass('d-none')
+                        $("#event_videos_list").html(data.content)
+                    }
+                },
+                error: function () {
+                    $("#list_videos_of_event").addClass('d-none')
+                    console.error('error calling event_get_video_cards')
+                },
+            })
+        }
 
         // Status of the stream
         const updateStreamStatus = function () {
@@ -417,10 +427,11 @@
             });
         };
 
-        // On load and every 60 sec
+        // On load
         $(function () {
+            getEventVideos();
             updateStreamStatus();
-            setInterval(updateStreamStatus, 60000);
+            setInterval(updateStreamStatus, 60000); // every 60 sec
         });
 
     </script>

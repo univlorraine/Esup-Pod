@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-26 01:00+0100\n"
+"POT-Creation-Date: 2022-01-26 11:59+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -151,8 +151,8 @@ msgstr "Changer votre image de profil"
 #: pod/enrichment/templates/enrichment/group_enrichment.html:29
 #: pod/interactive/templates/interactive/group_interactive.html:27
 #: pod/live/templates/live/event_delete.html:39
-#: pod/live/templates/live/live-form.html:10 pod/live/views.py:377
-#: pod/live/views.py:406 pod/main/templates/contact_us.html:17
+#: pod/live/templates/live/live-form.html:10 pod/live/views.py:380
+#: pod/live/views.py:409 pod/main/templates/contact_us.html:17
 #: pod/main/tests/test_views.py:99 pod/main/views.py:300
 #: pod/playlist/views.py:217
 #: pod/recorder/templates/recorder/add_recording.html:34
@@ -2583,27 +2583,31 @@ msgstr "de"
 msgid "to"
 msgstr "à"
 
-#: pod/live/templates/live/event.html:101
+#: pod/live/templates/live/event.html:81
+msgid "Current event videos"
+msgstr "Vidéos de l'évenement"
+
+#: pod/live/templates/live/event.html:96
 #: pod/live/templates/live/event_edit.html:102
 msgid "Manage event"
 msgstr "Gérer l'évènement"
 
-#: pod/live/templates/live/event.html:106
+#: pod/live/templates/live/event.html:101
 #: pod/live/templates/live/event_edit.html:106
 msgid "Edit the event"
 msgstr "Éditer l'évènement"
 
-#: pod/live/templates/live/event.html:114
+#: pod/live/templates/live/event.html:109
 #: pod/live/templates/live/event_edit.html:113
 msgid "Delete the event"
 msgstr "Supprimer l'évènement"
 
-#: pod/live/templates/live/event.html:143 pod/live/templates/live/live.html:199
+#: pod/live/templates/live/event.html:138 pod/live/templates/live/live.html:199
 #: pod/video/templates/videos/video-script.html:28
 msgid "Please use different browser"
 msgstr "Utilisez un navigateur compatible"
 
-#: pod/live/templates/live/event.html:185 pod/live/templates/live/live.html:236
+#: pod/live/templates/live/event.html:180 pod/live/templates/live/live.html:236
 msgid ""
 "Thank you for watching this streaming live with us. The page will reload "
 "automatically within a few seconds to display the video on hold."
@@ -2612,28 +2616,28 @@ msgstr ""
 "rechargera automatiquement dans quelques secondes pour afficher la vidéo "
 "d’attente."
 
-#: pod/live/templates/live/event.html:209 pod/live/templates/live/live.html:253
+#: pod/live/templates/live/event.html:204 pod/live/templates/live/live.html:253
 msgid "Live not found, displaying the video on hold, retry every 10 seconds"
 msgstr ""
 "Le direct n’a pas encore commencé, affichage de la vidéo d’attente, nouvelle "
 "tentative de lecture dans 10 secondes"
 
-#: pod/live/templates/live/event.html:233 pod/live/templates/live/live.html:268
+#: pod/live/templates/live/event.html:228 pod/live/templates/live/live.html:268
 msgid "Live not found, retry in 10 seconds"
 msgstr ""
 "Le direct n’a pas encore commencé, nouvelle tentative de lecture dans 10 "
 "secondes"
-
-#: pod/live/templates/live/event_card.html:8
-#, python-format
-msgid "The %(start_date)s from %(start_time)s to %(end_time)s"
-msgstr "Le %(start_date)s de %(start_time)s à %(end_time)s"
 
 #: pod/live/templates/live/event_card.html:17
 #: pod/playlist/templates/playlist/playlist_video_card.html:19
 #: pod/video/templates/videos/card.html:16
 msgid "This content is in draft."
 msgstr "Ce contenu est en mode brouillon."
+
+#: pod/live/templates/live/event_card.html:55
+#, python-format
+msgid "The %(start_date)s from %(start_time)s to %(end_time)s"
+msgstr "Le %(start_date)s de %(start_time)s à %(end_time)s"
 
 #: pod/live/templates/live/event_delete.html:13
 #: pod/live/templates/live/event_delete.html:17
@@ -2898,25 +2902,25 @@ msgstr "Evènements à venir"
 msgid "Past events"
 msgstr "Evènements passés"
 
-#: pod/live/views.py:81
+#: pod/live/views.py:82
 msgid "You cannot view this page."
 msgstr "Vous ne pouvez pas éditer cette image."
 
-#: pod/live/views.py:120
+#: pod/live/views.py:121
 #: pod/playlist/templates/playlist/playlist_video_list.html:73
 #: pod/video/views.py:871
 msgid "The password is incorrect."
 msgstr "Le mot de passe est incorrect."
 
-#: pod/live/views.py:370 pod/video/views.py:361 pod/video/views.py:947
+#: pod/live/views.py:373 pod/video/views.py:361 pod/video/views.py:947
 msgid "The changes have been saved."
 msgstr "Les modifications ont été sauvegardées."
 
-#: pod/live/views.py:391
+#: pod/live/views.py:394
 msgid "You cannot delete this event."
 msgstr "Vous ne pouvez pas supprimer cet évènement."
 
-#: pod/live/views.py:400
+#: pod/live/views.py:403
 msgid "The event has been deleted."
 msgstr "L'évènement a été supprimé."
 
