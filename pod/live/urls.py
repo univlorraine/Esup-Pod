@@ -1,8 +1,8 @@
 from django.conf.urls import url
 
 from .views import settings, broadcasters_from_building, building, event, events, event_edit, event_delete, heartbeat, \
-    lives, my_events, video_live,event_startrecord,event_stoprecord, event_splitrecord, event_isstreamavailabletorecord, event_video_transform
-
+    lives, my_events, video_live, event_startrecord, event_stoprecord, event_splitrecord, \
+    event_isstreamavailabletorecord, event_video_transform, event_get_video_cards
 
 app_name = "live"
 
@@ -20,6 +20,7 @@ if not USE_EVENT:
 else:
     urlpatterns += [
         url(r"^ajax_calls/getbroadcastersfrombuiding/$", broadcasters_from_building, name="broadcasters_from_building"),
+        url(r"^ajax_calls/geteventvideocards/$", event_get_video_cards, name="event_get_video_cards"),
         url(r"^event/(?P<slug>[\-\d\w]+)/$", event, name="event"),
         url(r"^event_edit/$", event_edit, name="event_edit"),
         url(r"^event_edit/(?P<slug>[\-\d\w]+)/$", event_edit, name="event_edit"),
