@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-26 00:13+0100\n"
+"POT-Creation-Date: 2022-01-26 00:57+0100\n"
 "PO-Revision-Date: 2021-01-22 12:27+0100\n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: \n"
@@ -2484,19 +2484,15 @@ msgstr ""
 msgid "Live not found, retry in 10 seconds"
 msgstr ""
 
-#: pod/live/templates/live/event_card.html:16
-#: pod/playlist/templates/playlist/playlist_video_card.html:19
-#: pod/video/templates/videos/card.html:16
-msgid "This content is in draft."
-msgstr ""
-
-#: pod/live/templates/live/event_card.html:54
+#: pod/live/templates/live/event_card.html:8
 #, python-format
 msgid "The %(start_date)s from %(start_time)s to %(end_time)s"
 msgstr ""
 
-#: pod/live/templates/live/event_delete.html:7
-msgid "My event"
+#: pod/live/templates/live/event_card.html:17
+#: pod/playlist/templates/playlist/playlist_video_card.html:19
+#: pod/video/templates/videos/card.html:16
+msgid "This content is in draft."
 msgstr ""
 
 #: pod/live/templates/live/event_delete.html:13
@@ -2586,7 +2582,11 @@ msgid ""
 "simultaneously."
 msgstr ""
 
-#: pod/live/templates/live/event_edit.html:128
+#: pod/live/templates/live/event_edit.html:125
+msgid "Finally, remember to provide as precise a description as possible."
+msgstr ""
+
+#: pod/live/templates/live/event_edit.html:129
 #: pod/main/templates/contact_us.html:63
 #: pod/video/templates/channel/channel_edit.html:90
 #: pod/video/templates/channel/theme_edit.html:66
@@ -2594,7 +2594,7 @@ msgstr ""
 msgid "Mandatory fields"
 msgstr ""
 
-#: pod/live/templates/live/event_edit.html:130
+#: pod/live/templates/live/event_edit.html:131
 #: pod/main/templates/contact_us.html:65
 #: pod/video/templates/channel/channel_edit.html:92
 #: pod/video/templates/channel/theme_edit.html:68

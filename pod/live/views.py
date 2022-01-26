@@ -267,6 +267,7 @@ def events(request):  # affichage des events
             "events": events,
             "full_path": full_path,
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
+            "display_broadcaster_name": False,
         }
     )
 
@@ -330,6 +331,7 @@ def my_events(request):
             "coming_events_url": NEXT_EVENT_URL_NAME,
             "coming_events_url_page": NEXT_EVENT_URL_NAME+"="+str(pageN),
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
+            "display_broadcaster_name": True,
         }
     )
 

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-26 00:12+0100\n"
+"POT-Creation-Date: 2022-01-26 01:00+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -2624,20 +2624,16 @@ msgstr ""
 "Le direct n’a pas encore commencé, nouvelle tentative de lecture dans 10 "
 "secondes"
 
-#: pod/live/templates/live/event_card.html:16
-#: pod/playlist/templates/playlist/playlist_video_card.html:19
-#: pod/video/templates/videos/card.html:16
-msgid "This content is in draft."
-msgstr "Ce contenu est en mode brouillon."
-
-#: pod/live/templates/live/event_card.html:54
+#: pod/live/templates/live/event_card.html:8
 #, python-format
 msgid "The %(start_date)s from %(start_time)s to %(end_time)s"
 msgstr "Le %(start_date)s de %(start_time)s à %(end_time)s"
 
-#: pod/live/templates/live/event_delete.html:7
-msgid "My event"
-msgstr "Mon évènement direct"
+#: pod/live/templates/live/event_card.html:17
+#: pod/playlist/templates/playlist/playlist_video_card.html:19
+#: pod/video/templates/videos/card.html:16
+msgid "This content is in draft."
+msgstr "Ce contenu est en mode brouillon."
 
 #: pod/live/templates/live/event_delete.html:13
 #: pod/live/templates/live/event_delete.html:17
@@ -2656,8 +2652,7 @@ msgstr "Retour à l'évènement"
 
 #: pod/live/templates/live/event_delete.html:28
 msgid "The event is currently in progress. Deletion is not possible."
-msgstr ""
-"L'évènement est actuellement en cours. La supression est impossible."
+msgstr "L'évènement est actuellement en cours. La supression est impossible."
 
 #: pod/live/templates/live/event_delete.html:32
 msgid "To delete the event, please checked in and click send."
@@ -2736,7 +2731,11 @@ msgstr ""
 "Attention, 2 évènements ne peuvent pas être programmés dans la même salle "
 "simultanément."
 
-#: pod/live/templates/live/event_edit.html:128
+#: pod/live/templates/live/event_edit.html:125
+msgid "Finally, remember to provide as precise a description as possible."
+msgstr "Enfin, pensez à renseigner une description la plus précise possible."
+
+#: pod/live/templates/live/event_edit.html:129
 #: pod/main/templates/contact_us.html:63
 #: pod/video/templates/channel/channel_edit.html:90
 #: pod/video/templates/channel/theme_edit.html:66
@@ -2744,7 +2743,7 @@ msgstr ""
 msgid "Mandatory fields"
 msgstr "Champs obligatoires"
 
-#: pod/live/templates/live/event_edit.html:130
+#: pod/live/templates/live/event_edit.html:131
 #: pod/main/templates/contact_us.html:65
 #: pod/video/templates/channel/channel_edit.html:92
 #: pod/video/templates/channel/theme_edit.html:68
@@ -2885,8 +2884,8 @@ msgstr "Désolé, aucun bâtiment trouvé"
 
 #: pod/live/templates/live/my_events.html:56
 msgid ""
-"You have not planned any event yet, please use the \"Plan en event\" "
-"button to add one"
+"You have not planned any event yet, please use the \"Plan an event\" button "
+"to add one"
 msgstr ""
 "Vous n'avez pas encore planifié d'évènement, veuillez utiliser le bouton "
 "\"Programmer un évènement\" pour en créer un"
@@ -6527,6 +6526,9 @@ msgstr "Désolé, la recherche de vidéos est limitée à 500 pages maximum."
 #: pod/video_search/views.py:261
 msgid "Search results"
 msgstr "Résultats de la recherche"
+
+#~ msgid "My event"
+#~ msgstr "Mon évènement direct"
 
 #~ msgid "Select one or more groups who can access to this broadcater."
 #~ msgstr ""
