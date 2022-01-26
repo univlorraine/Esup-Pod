@@ -4,7 +4,7 @@
 
 {% block breadcrumbs %}
     {{ block.super }}
-    <li class="breadcrumb-item"><a href="{% url 'live:events' %}" title="{% trans 'My events' %}">{% trans 'My event' %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'live:my_events' %}">{% trans 'My events' %}</a></li>
     <li class="breadcrumb-item"><a href="{% url 'live:event' slug=event.slug %}" title="{{ event.title }}">{{ event.title }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Delete" %}</li>
 {% endblock %}
@@ -22,6 +22,12 @@
           </a>
         </span>
     </h3>
+
+    {% if event.is_current %}
+        <div class="alert alert-warning" role="alert">
+            {% trans "The event is currently in progress. Deletion is not possible." %}
+        </div>
+    {% else %}
 
     <p>{% trans 'To delete the event, please checked in and click send.' %}</p>
     <form method="post" action="{{ request.get_full_path }}" id="event_delete_form" class='needs-validation' novalidate>
@@ -68,4 +74,5 @@
             </fieldset>
         </div>
     </form>
+    {% endif %}
 {% endblock page_content %}

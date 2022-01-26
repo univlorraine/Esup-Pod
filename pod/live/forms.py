@@ -8,6 +8,7 @@ from pod.live.models import Broadcaster, getBuildingHavingAvailableBroadcaster, 
     getBuildingHavingAvailableBroadcasterAnd, getAvailableBroadcastersOfBuilding
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
+from django.forms.widgets import HiddenInput
 
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
@@ -94,10 +95,19 @@ class EventForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        is_current_event = kwargs.pop('is_current_event', None)
         super(EventForm, self).__init__(*args, **kwargs)
         self.fields['owner'].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
+
+        if is_current_event:
+            self.fields['start_date'].widget = HiddenInput()
+            self.fields['start_time'].widget = HiddenInput()
+            self.fields['is_draft'].widget = HiddenInput()
+            self.fields['building'].widget = HiddenInput()
+            self.fields['broadcaster'].widget = HiddenInput()
+            self.fields['owner'].widget = HiddenInput()
 
         # mise a jour dynamique de la liste
         if 'building' in self.data:
@@ -132,7 +142,7 @@ class EventForm(forms.ModelForm):
 
         if h_deb >= h_fin:
             self.add_error("start_time", _("Start should not be after end"))
-            self.add_error("end_time", "Start should not be after end")
+            self.add_error("end_time", _("Start should not be after end"))
             raise forms.ValidationError("Date error.")
 
         events = Event.objects.filter(

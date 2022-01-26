@@ -1,6 +1,6 @@
 """Esup-Pod "live" models."""
 from datetime import timedelta, date, datetime
-
+from django.core.exceptions import ValidationError
 from ckeditor.fields import RichTextField
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -257,6 +257,12 @@ def get_default_event_type():
     return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID).id
 
 
+def present_or_future_date(value):
+    if value < date.today():
+        raise ValidationError(_("An event cannot be planned in the past"))
+    return value
+
+
 def select_event_owner():
     if RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY:
         return lambda q: (
@@ -308,6 +314,7 @@ class Event(models.Model):
         _("Date of Event"),
         default=date.today,
         help_text=_("Start date of the live."),
+        validators=[present_or_future_date],
     )
     start_time = models.TimeField(
         _("Start time"),
@@ -396,6 +403,10 @@ class Event(models.Model):
 
     def get_absolute_url(self):
         return reverse("live:event", args=[str(self.slug)])
+
+ #   def clean(self):
+ #       if self.start_date < date.today():
+ #           raise ValidationError({'start_date': _("An event cannot be planned in the past")})
 
     @property
     def is_current(self):
