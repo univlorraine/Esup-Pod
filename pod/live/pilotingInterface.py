@@ -79,7 +79,7 @@ class Wowza(PilotingInterface, ABC):
             return False
         try:
             decoded = json.loads(conf)
-        except e:
+        except:
             logging.error("'piloting_conf' has not a valid Json format for '"+self.broadcaster.name +"' broadcaster.")
             return False
         if not {"server_url", "application", "livestream"} <= decoded.keys():

@@ -299,26 +299,7 @@
                         $("#stoprecord").addClass("d-none");
                         $("#splitrecord").addClass("d-none");
                         console.log(data);
-                        $.ajax({
-                            url: "{% url 'live:event_video_transform' %}",
-                            method: 'POST',
-                            headers: {
-                                "X-CSRFToken": '{{ csrf_token }}'
-                            },
-                            data:{
-                                "event": "{{ event.id }}",
-                                "currentFile": data.current_record_info.currentFile
-                            },
-                            success:function (data){
-                                if (data.success){
-                                    console.log("conversion done");
-                                    getEventVideos();
-                                }
-                            },
-                            error: function (data) {
-                                console.error('Error calling event_video_transform');
-                            },
-                        });
+                        transformVideo(data.current_record_info);
                     } else {
                         console.warning('Stop not done : ' + data.message);
                     }
@@ -342,26 +323,7 @@
                 success: function (data) {
                     if (data.success) {
                         console.log('Record split');
-                        $.ajax({
-                            url: "{% url 'live:event_video_transform' %}",
-                            method: 'POST',
-                            headers: {
-                                "X-CSRFToken": '{{ csrf_token }}'
-                            },
-                            data:{
-                                "event": "{{ event.id }}",
-                                "currentFile": data.current_record_info.currentFile
-                            },
-                            success:function (data){
-                                if (data.success){
-                                    console.log("conversion done");
-                                    getEventVideos();
-                                }
-                            },
-                            error: function (data) {
-                                console.error('Error calling event_video_transform');
-                            },
-                        });
+                        transformVideo(data.current_record_info);
                     } else {
                         console.warning('Split not done : ' + data.message);
                     }
@@ -371,6 +333,30 @@
                 },
             })
         });
+
+        // display the event's videos
+        const transformVideo = function (record_infos) {
+            $.ajax({
+                url: "{% url 'live:event_video_transform' %}",
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data:{
+                    "event": "{{ event.id }}",
+                    "currentFile": record_infos.currentFile
+                },
+                success:function (data){
+                    if (data.success){
+                        console.log("conversion done");
+                        getEventVideos();
+                    }
+                },
+                error: function () {
+                    console.error('Error calling event_video_transform');
+                },
+            });
+        }
 
         // display the event's videos
         const getEventVideos = function () {
