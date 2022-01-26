@@ -100,7 +100,9 @@ class EventForm(forms.ModelForm):
         self.fields['owner'].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
-
+        if not self.user.is_superuser:
+            self.remove_field("owner")
+            self.instance.owner = self.user
         if is_current_event:
             self.fields['start_date'].widget = HiddenInput()
             self.fields['start_time'].widget = HiddenInput()
@@ -130,6 +132,10 @@ class EventForm(forms.ModelForm):
                 self.fields['building'].queryset = query_buildings.all()
                 self.initial['building'] = query_buildings.first().name
                 self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, query_buildings.first())
+
+    def remove_field(self, field):
+        if self.fields.get(field):
+            del self.fields[field]
 
     def clean(self):
         if not {'start_time', 'start_time', 'end_time', 'broadcaster'} <= self.cleaned_data.keys():
@@ -165,7 +171,7 @@ class EventForm(forms.ModelForm):
 
     class Meta(object):
         model = Event
-        fields = ["title" ,"description","owner","start_date","start_time","end_time","building","broadcaster","type","is_draft"]
+        fields = ["title", "description", "owner", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft"]
         widgets = {
             'start_date': widgets.AdminDateWidget,
             'start_time': forms.TimeInput(format='%H:%M'),
