@@ -4,8 +4,8 @@ from django.contrib.admin import widgets
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
-from pod.live.models import Broadcaster, getBuildingHavingAvailableBroadcaster, \
-    getBuildingHavingAvailableBroadcasterAnd, getAvailableBroadcastersOfBuilding
+from pod.live.models import Broadcaster, get_building_having_available_broadcaster, \
+    get_available_broadcasters_of_building
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
 from django.forms.widgets import HiddenInput
@@ -78,18 +78,19 @@ class CustomBroadcasterChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
          return obj.name
 
+
 class EventForm(forms.ModelForm):
 
     building = forms.ModelChoiceField(
         label=_("Building"),
-        queryset=Building.objects.all(),
+        queryset=Building.objects.none(),
         to_field_name="name",
         empty_label=None,
     )
 
     broadcaster = CustomBroadcasterChoiceField(
         label=_("Broadcaster device"),
-        queryset=Broadcaster.objects.all(),
+        queryset=Broadcaster.objects.none(),
         empty_label=None,
     )
 
@@ -104,34 +105,35 @@ class EventForm(forms.ModelForm):
             self.remove_field("owner")
             self.instance.owner = self.user
         if is_current_event:
-            self.fields['start_date'].widget = HiddenInput()
-            self.fields['start_time'].widget = HiddenInput()
-            self.fields['is_draft'].widget = HiddenInput()
-            self.fields['building'].widget = HiddenInput()
-            self.fields['broadcaster'].widget = HiddenInput()
-            self.fields['owner'].widget = HiddenInput()
+            self.remove_field("start_date")
+            self.remove_field("start_time")
+            self.remove_field("is_draft")
+            self.remove_field("building")
+            self.remove_field("broadcaster")
+            self.remove_field("owner")
 
         # mise a jour dynamique de la liste
         if 'building' in self.data:
             # à la sauvegarde
             try:
                 build = Building.objects.filter(name=self.data.get('building')).first()
-                self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, build.id)
+                self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, build.id)
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
         else:
-            if self.instance.pk:
+            if self.instance.pk and not self.instance.is_current:
                 # à l'édition
                 broadcaster = self.instance.broadcaster
-                self.fields['broadcaster'].queryset = Broadcaster.objects.filter(building_id=broadcaster.building_id).order_by('name')
-                self.fields['building'].queryset = getBuildingHavingAvailableBroadcasterAnd(self.user, broadcaster.building.id)
+                self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, broadcaster.building.id, broadcaster.id)
+                self.fields['building'].queryset = get_building_having_available_broadcaster(self.user, broadcaster.building.id)
                 self.initial['building'] = broadcaster.building.name
-            else:
+            elif not self.instance.pk:
                 # à la création
-                query_buildings = getBuildingHavingAvailableBroadcaster(self.user)
-                self.fields['building'].queryset = query_buildings.all()
-                self.initial['building'] = query_buildings.first().name
-                self.fields['broadcaster'].queryset = getAvailableBroadcastersOfBuilding(self.user, query_buildings.first())
+                query_buildings = get_building_having_available_broadcaster(self.user)
+                if query_buildings:
+                    self.fields['building'].queryset = query_buildings.all()
+                    self.initial['building'] = query_buildings.first().name
+                    self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, query_buildings.first())
 
     def remove_field(self, field):
         if self.fields.get(field):

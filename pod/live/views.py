@@ -27,7 +27,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from pod.bbb.models import Livestream
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
-from .models import Building, Broadcaster, HeartBeat, Event, getAvailableBroadcastersOfBuilding
+from .models import Building, Broadcaster, HeartBeat, Event, get_available_broadcasters_of_building
 from .pilotingInterface import Wowza, PilotingInterface, BROADCASTER_IMPLEMENTATION
 from ..main.views import in_maintenance
 from ..video.models import Video, Type
@@ -418,7 +418,7 @@ def broadcasters_from_building(request):
     build = Building.objects.filter(name=building_name).first()
     if not build:
         return HttpResponseNotFound()
-    broadcasters = getAvailableBroadcastersOfBuilding(request.user, build.id)
+    broadcasters = get_available_broadcasters_of_building(request.user, build.id)
 
     response_data={}
     for broadcaster in broadcasters:
