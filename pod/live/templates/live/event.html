@@ -298,7 +298,6 @@
                         $("#startrecord").removeClass("d-none");
                         $("#stoprecord").addClass("d-none");
                         $("#splitrecord").addClass("d-none");
-                        console.log(data);
                         transformVideo(data.current_record_info);
                     } else {
                         console.warning('Stop not done : ' + data.message);
@@ -344,7 +343,8 @@
                 },
                 data: {
                     "event": "{{ event.id }}",
-                    "currentFile": record_infos.currentFile
+                    "currentFile": record_infos.currentFile,
+                    "segmentNumber": record_infos.segmentNumber,
                 },
                 success: function (data) {
                     if (data.success) {

@@ -256,8 +256,8 @@ class Wowza(PilotingInterface, ABC):
             if re.match(r'\d+\.', ending):
                 number = ending.split(".")[0]
                 if int(number) > 0:
-                    segment_number = int(number) + 1
-                    segment_number = "(" + str(segment_number) + ")"
+                    # segment_number = int(number) + 1
+                    segment_number = "(" + number + ")"
         except :
             pass
 
