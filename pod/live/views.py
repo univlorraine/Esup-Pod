@@ -560,7 +560,10 @@ def event_video_transform(request):
         video=dest_path,
         title=event.title + segment_number,
         owner=event.owner,
-        description=event.description,
+        description=event.description + "<br/>" + _("Record the %(start_date)s from %(start_time)s to %(end_time)s")
+                    % {'start_date': event.start_date.strftime("%d/%m/%Y"),
+                       'start_time': event.start_time.strftime("%H:%M"),
+                       'end_time': event.end_time.strftime("%H:%M")},
         is_draft=event.is_draft,
         type=event.type,
     )
