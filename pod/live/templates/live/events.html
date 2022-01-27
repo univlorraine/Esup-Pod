@@ -2,6 +2,10 @@
 {% load i18n %}
 {% load staticfiles %}
 
+{% block more_style %}
+    <link href="{% static 'css/event.css' %}?ver={{ VERSION }}" rel="stylesheet"/>
+{% endblock more_style %}
+
 {% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{% trans "Events" %}</li>{% endblock %}
 
 {% block page_title %}
