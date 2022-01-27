@@ -160,7 +160,7 @@ class Wowza(PilotingInterface, ABC):
             "segmentSchedule": "",
             "startOnKeyFrame": True,
             "outputPath": DEFAULT_EVENT_PATH,
-            "baseFile": "",
+            "baseFile": filename + "_${RecordingStartTime}_${SegmentNumber}",
             "currentFile": "",
             "saveFieldList": [""],
             "recordData": False,
@@ -173,7 +173,7 @@ class Wowza(PilotingInterface, ABC):
             "version": "",
             "segmentDuration": 0,
             "recordingStartTime": "",
-            "fileTemplate": filename + "_${RecordingStartTime}_${SegmentNumber}",
+            "fileTemplate": "",
             "backBufferTime": 0,
             "segmentationType": "",
             "currentDuration": 0,
@@ -255,8 +255,9 @@ class Wowza(PilotingInterface, ABC):
             ending = current_file.split("_")[-1]
             if re.match(r'\d+\.', ending):
                 number = ending.split(".")[0]
-                segment_number = int(number) + 1
-                segment_number = "(" + str(segment_number) + ")"
+                if int(number) > 0:
+                    segment_number = int(number) + 1
+                    segment_number = "(" + str(segment_number) + ")"
         except :
             pass
 
