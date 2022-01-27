@@ -1,6 +1,7 @@
 import http
 import json
 import logging
+import re
 from abc import ABC
 
 import requests
@@ -157,7 +158,7 @@ class Wowza(PilotingInterface, ABC):
             "segmentSchedule": "",
             "startOnKeyFrame": True,
             "outputPath": DEFAULT_EVENT_PATH,
-            "baseFile": filename + "_${RecordingStartTime}_${SegmentNumber}",
+            "baseFile": "",
             "currentFile": "",
             "saveFieldList": [""],
             "recordData": False,
@@ -170,7 +171,7 @@ class Wowza(PilotingInterface, ABC):
             "version": "",
             "segmentDuration": 0,
             "recordingStartTime": "",
-            "fileTemplate": "",
+            "fileTemplate": filename + "_${RecordingStartTime}_${SegmentNumber}",
             "backBufferTime": 0,
             "segmentationType": "",
             "currentDuration": 0,
@@ -222,15 +223,30 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
-        if response.status_code == http.HTTPStatus.OK:
+        if response.status_code != http.HTTPStatus.OK:
             return {
-                'currentFile': response.json().get("currentFile"),
-                'outputPath': response.json().get("outputPath"),
-                'segmentDuration': response.json().get("segmentDuration"),
+                'currentFile': '',
+                'segmentNumber': '',
+                'outputPath': '',
+                'segmentDuration': '',
             }
 
+        segment_number = ""
+        current_file = response.json().get("currentFile")
+
+        try:
+            ending = current_file.split("_")[-1]
+            if re.match(r'\d+\.', ending):
+                number = ending.split(".")[0]
+                segment_number = int(number) + 1
+                segment_number = "(" + str(segment_number) + ")"
+        except :
+            pass
+
         return {
-            'currentFile': '',
-            'outputPath': '',
-            'segmentDuration': '',
+            'currentFile': current_file,
+            'segmentNumber': segment_number,
+            'outputPath': response.json().get("outputPath"),
+            'segmentDuration': response.json().get("segmentDuration"),
         }
+

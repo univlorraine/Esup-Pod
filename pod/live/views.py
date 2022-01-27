@@ -531,9 +531,10 @@ def event_video_transform(request):
 
     event = Event.objects.get(pk=event_id)
 
-    currentFile = request.POST.get("currentFile", None)
+    current_file = request.POST.get("currentFile", None)
+    segment_number = request.POST.get("segmentNumber", "")
 
-    filename = os.path.basename(currentFile)
+    filename = os.path.basename(current_file)
 
     dest_file = os.path.join(
         settings.MEDIA_ROOT,
@@ -556,11 +557,12 @@ def event_video_transform(request):
     )
 
     video = Video.objects.create(
-        title=event.title,
-        owner=request.user,
         video=dest_path,
-        is_draft=True,
-        type=Type.objects.get(id=1),
+        title=event.title + segment_number,
+        owner=event.owner,
+        description=event.description,
+        is_draft=event.is_draft,
+        type=event.type,
     )
     video.launch_encode = True
     video.save()
@@ -572,8 +574,12 @@ def event_video_transform(request):
 
     video_list = {}
     for video in videos:
-        video_list[video.id] = {'id': video.id, 'slug': video.slug, 'title': video.title,
-                                'get_absolute_url': video.get_absolute_url()}
+        video_list[video.id] = {
+            'id': video.id,
+            'slug': video.slug,
+            'title': video.title,
+            'get_absolute_url': video.get_absolute_url(),
+        }
 
     return JsonResponse({"success": True, "videos": video_list})
 
@@ -631,6 +637,7 @@ def get_info_current_record(broadcaster: Broadcaster) -> dict:
     if not impl_class:
         return {
             'currentFile': '',
+            'segmentNumber': '',
             'outputPath': '',
             'segmentDuration': '',
         }
