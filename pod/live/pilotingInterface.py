@@ -105,6 +105,7 @@ class Wowza(PilotingInterface, ABC):
             if response.json().get('isConnected') is True and response.json().get('isRecordingSet') is False:
                 return True
 
+        logging.error(response.json().get("message"))
         return False
 
     def is_recording(self) -> bool:
@@ -119,6 +120,7 @@ class Wowza(PilotingInterface, ABC):
         if response.status_code == http.HTTPStatus.OK:
             return response.json().get('isConnected') and response.json().get('isRecordingSet')
 
+        logging.error(response.json().get("message"))
         return False
 
     def get_current_record(self):
@@ -185,7 +187,12 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
-        return response.status_code == http.HTTPStatus.CREATED
+        if response.status_code == http.HTTPStatus.CREATED:
+            if response.json().get("success"):
+                return True
+
+        logging.error(response.json().get("message"))
+        return False
 
     def split(self) -> bool:
         logging.debug("Wowza - Split record")
@@ -197,7 +204,12 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
-        return response.status_code == http.HTTPStatus.OK
+        if response.status_code == http.HTTPStatus.OK:
+            if response.json().get("success"):
+                return True
+
+        logging.error(response.json().get("message"))
+        return False
 
     def stop(self) -> bool:
         logging.debug("Wowza - Stop_record")
@@ -210,7 +222,12 @@ class Wowza(PilotingInterface, ABC):
             "Content-Type": "application/json"
         })
 
-        return response.status_code == http.HTTPStatus.OK
+        if response.status_code == http.HTTPStatus.OK:
+            if response.json().get("success"):
+                return True
+
+        logging.error(response.json().get("message"))
+        return False
 
     def get_info_current_record(self):
         logging.debug("Wowza - Get info from current record")
