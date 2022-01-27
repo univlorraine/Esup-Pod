@@ -104,7 +104,7 @@ def check_event_date_and_hour(form):
         )
     )
     if form.instance.id:
-        events = events.exclude(id=self.instance.id)
+        events = events.exclude(id=form.instance.id)
 
     if events.exists():
         form.add_error("start_date", _("An event is already planned at these dates"))
