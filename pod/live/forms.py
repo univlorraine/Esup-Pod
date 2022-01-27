@@ -58,6 +58,7 @@ class EventAdminForm(forms.ModelForm):
 
     def clean(self):
         super(EventAdminForm, self).clean()
+        check_event_date_and_hour(self)
 
     class Meta(object):
         model = Event
@@ -78,6 +79,36 @@ class CustomBroadcasterChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
          return obj.name
 
+def check_event_date_and_hour(form):
+    if not {'start_time', 'start_time', 'end_time', 'broadcaster'} <= form.cleaned_data.keys():
+        return
+
+    d_deb = form.cleaned_data['start_date']
+    h_deb = form.cleaned_data['start_time']
+    h_fin = form.cleaned_data['end_time']
+    brd = form.cleaned_data['broadcaster']
+
+    if h_deb >= h_fin:
+        form.add_error("start_time", _("Start should not be after end"))
+        form.add_error("end_time", _("Start should not be after end"))
+        raise forms.ValidationError("Date error.")
+
+    events = Event.objects.filter(
+        Q(broadcaster_id=brd.id)
+        & Q(start_date=d_deb)
+        & (
+                (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
+                | (Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
+                | (Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
+                | (Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+        )
+    )
+    if form.instance.id:
+        events = events.exclude(id=self.instance.id)
+
+    if events.exists():
+        form.add_error("start_date", _("An event is already planned at these dates"))
+        raise forms.ValidationError("Date error.")
 
 class EventForm(forms.ModelForm):
 
@@ -118,6 +149,9 @@ class EventForm(forms.ModelForm):
             try:
                 build = Building.objects.filter(name=self.data.get('building')).first()
                 self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, build.id)
+                self.fields['building'].queryset = get_building_having_available_broadcaster(self.user,
+                                                                                             build.id)
+                self.initial['building'] = build.name
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
         else:
@@ -140,35 +174,7 @@ class EventForm(forms.ModelForm):
             del self.fields[field]
 
     def clean(self):
-        if not {'start_time', 'start_time', 'end_time', 'broadcaster'} <= self.cleaned_data.keys():
-            return
-
-        d_deb = self.cleaned_data['start_date']
-        h_deb = self.cleaned_data['start_time']
-        h_fin = self.cleaned_data['end_time']
-        brd = self.cleaned_data['broadcaster']
-
-        if h_deb >= h_fin:
-            self.add_error("start_time", _("Start should not be after end"))
-            self.add_error("end_time", _("Start should not be after end"))
-            raise forms.ValidationError("Date error.")
-
-        events = Event.objects.filter(
-            Q(broadcaster_id=brd.id)
-            & Q(start_date=d_deb)
-            & (
-            (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
-            |(Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
-            |(Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
-            |(Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
-            )
-        )
-        if self.instance.id:
-            events = events.exclude(id=self.instance.id)
-
-        if events.exists() :
-            self.add_error("start_date", _("An event is already planned at these dates"))
-            raise forms.ValidationError("Date error.")
+        check_event_date_and_hour(self)
 
 
     class Meta(object):
