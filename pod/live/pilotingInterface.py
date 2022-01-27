@@ -257,7 +257,7 @@ class Wowza(PilotingInterface, ABC):
                 number = ending.split(".")[0]
                 if int(number) > 0:
                     # segment_number = int(number) + 1
-                    segment_number = "(" + str(segment_number) + ")"
+                    segment_number = "(" + number + ")"
         except :
             pass
 
