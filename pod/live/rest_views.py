@@ -1,4 +1,4 @@
-from .models import Building, Broadcaster
+from .models import Building, Broadcaster, Event
 from rest_framework import serializers, viewsets
 
 # Serializers define the API representation.
@@ -11,6 +11,9 @@ class BuildingSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='broadcaster-detail', lookup_field='slug')
+    broadcaster_url = serializers.URLField(source='url')
+
     class Meta:
         model = Broadcaster
         fields = (
@@ -21,7 +24,7 @@ class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
             "building",
             "description",
             "poster",
-            "url",
+            "broadcaster_url",
             "status",
             "is_restricted",
             "manage_groups",
@@ -30,6 +33,31 @@ class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
         )
         lookup_field = "slug"
 
+class EventSerializer(serializers.HyperlinkedModelSerializer):
+   # broadcaster = serializers.HyperlinkedIdentityField(view_name='broadcaster-detail', lookup_field='broadcaster_url',lookup_url_kwarg='broadcaster_url')
+    broadcaster = serializers.SlugRelatedField(
+        many=False,
+        read_only=True,
+        slug_field='url'
+    )
+
+    class Meta:
+        model = Event
+        fields = (
+            "id",
+            "url",
+            "title",
+            "owner",
+            "slug",
+            "description",
+            "start_date",
+            "start_time",
+            "end_time",
+            "broadcaster",
+            "type",
+            "is_draft",
+            "videos",
+        )
 
 #############################################################################
 # ViewSets define the view behavior.
@@ -45,3 +73,8 @@ class BroadcasterViewSet(viewsets.ModelViewSet):
     queryset = Broadcaster.objects.all().order_by("building", "name")
     serializer_class = BroadcasterSerializer
     lookup_field = "slug"
+
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all().order_by("start_date", "start_time")
+    serializer_class = EventSerializer
