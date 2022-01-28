@@ -352,8 +352,8 @@
                         getEventVideos();
                     }
                 },
-                error: function () {
-                    console.error('Error calling event_video_transform');
+                error: function (data) {
+                    console.error('Error calling event_video_transform' + data.error);
                 },
             });
         }
