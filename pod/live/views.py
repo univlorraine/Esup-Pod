@@ -527,7 +527,6 @@ def event_get_video_cards(request):
 
 
 def event_video_transform(request):
-
     event_id = request.POST.get("event", None)
 
     event = Event.objects.get(pk=event_id)
@@ -554,26 +553,26 @@ def event_video_transform(request):
     dest_dir_name = os.path.dirname(dest_file)
     os.makedirs(dest_dir_name, exist_ok=True)
 
-    if not os.path.isdir(dest_dir_name) :
+    if not os.path.isdir(dest_dir_name):
         logging.error(f"Dir: {dest_dir_name} does not exists")
-        return HttpResponseServerError(json.dumps({"error": f"Dir: {dest_dir_name} does not exists"}))
+        return JsonResponse(status=500, data={"success": False, "message": f"Dir: {dest_dir_name} does not exists"})
 
     # file creation if not exists
     full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
 
-    if not os.path.exists(full_file_name) :
+    if not os.path.exists(full_file_name):
         logging.error(f"File: {full_file_name} does not exists")
-        return HttpResponseServerError(json.dumps({"error": f"File: {full_file_name} does not exists"}))
+        return JsonResponse(status=500, data={"success": False, "message": f"File: {full_file_name} does not exists"})
 
     # moving the file
-    try :
+    try:
         os.rename(
             full_file_name,
             dest_file,
         )
     except FileNotFoundError as err:
         logging.error(f"FileNotFoundError: {format(err)}")
-        return HttpResponseServerError(json.dumps({"error": f"FileNotFoundError: {format(err)}"}))
+        return JsonResponse(status=500, data={"success": False, "message": f"FileNotFoundError: {format(err)}"})
 
     segment = "(" + segment_number + ")" if segment_number else ""
 
