@@ -188,34 +188,71 @@ def heartbeat(request):
         )
     return HttpResponseBadRequest()
 
+def get_event_access(request, event, slug_private):
+    """Return True if access is granted to current user."""
+    is_draft = event.is_draft
+    is_restricted = event.broadcaster.is_restricted
+    is_restricted_to_group = False
+    #is_restricted_to_group = video.restrict_access_to_groups.all().exists()
 
-def event(request, slug):  # affichage d'un event
+    is_access_protected = (
+        is_draft
+        or is_restricted
+       # or is_restricted_to_group
+    )
+    if is_access_protected:
+        access_granted_for_private = slug_private and slug_private == event.get_hashkey()
+        access_granted_for_draft = request.user.is_authenticated() and (
+            request.user == event.owner
+            or request.user.is_superuser
+            or request.user.has_perm("live.view_event")
+           # or (request.user in video.additional_owners.all())
+        )
+        access_granted_for_restricted = (
+            request.user.is_authenticated() and not is_restricted_to_group
+        )
+        # access_granted_for_group = (
+        #     (request.user.is_authenticated() and is_in_video_groups(request.user, video))
+        #     or request.user == video.owner
+        #     or request.user.is_superuser
+        #     or request.user.has_perm("live.view_event")
+        #     or (request.user in video.additional_owners.all())
+        # )
+
+        return (
+            access_granted_for_private
+            or (is_draft and access_granted_for_draft)
+            or (is_restricted and access_granted_for_restricted)
+            #or (is_restricted_to_group and access_granted_for_group)
+        )
+    else:
+        return True
+
+def event(request, slug, slug_private=None):  # affichage d'un event
 
     # modif de l'url d'appel pour compatibilité avec le template link_video.html (variable : urleditapp)
     request.resolver_match.namespace = ""
 
     event = get_object_or_404(Event, slug=slug)
 
-    # draft ou non on l'affiche
+    if event.broadcaster.is_restricted and not request.user.is_authenticated():
+        url = reverse("authentication_login")
+        url += "?referrer=" + request.get_full_path()
+        return redirect(url)
 
-    # droits sur le broadcaster : public, restricted , access en view
-    # restricted_groups = event.broadcaster.restrict_access_to_groups.all()
-    if not event.broadcaster.public and not request.user.is_superuser:
-        # if event.broadcaster.is_restricted or restricted_groups.exists():
-        if event.broadcaster.is_restricted:
-            if not request.user.is_authenticated():
-                url = reverse("authentication_login")
-                url += "?referrer=" + request.get_full_path()
-                return redirect(url)
-        # if restricted_groups.exists():
-        #     user_groups = request.user.groups.all()
-        #     if set(user_groups).isdisjoint(restricted_groups):
-        #         raise PermissionDenied
+    if not get_event_access(request, event, slug_private):
+        #return render(request, "live/event.html", {"access_not_allowed": True})
+        messages.add_message(
+            request, messages.ERROR, _("You cannot watch this event.")
+        )
+        raise PermissionDenied
+
     need_piloting_buttons = False
     if (event.owner == request.user and (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY or
                                          (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff))) \
             or request.user.is_superuser:
         need_piloting_buttons = True
+
     return render(
         request,
         "live/event.html",
@@ -336,6 +373,21 @@ def my_events(request):
         }
     )
 
+def get_event_edition_access(request, event):
+    if request.user.is_superuser \
+            or (event is not None and request.user == event.owner) \
+            or (event is None and request.user.has_perm("live.add_event")) \
+            or (event is not None and request.user.has_perm("live.change_event")):
+
+        if (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff) \
+                or (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated):
+            print("(RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff) " + str((RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff)))
+            print("(not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated) " + str(
+            (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated)))
+            return True
+        return False
+    return False
+
 
 @csrf_protect
 @ensure_csrf_cookie
@@ -349,8 +401,7 @@ def event_edit(request, slug=None):
         if slug
         else None
     )
-
-    if RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff is False:
+    if not get_event_edition_access(request, event):
         return render(request, "live/event_edit.html", {"access_not_allowed": True})
 
     form = EventForm(
@@ -389,7 +440,7 @@ def event_delete(request, slug=None):
     event = get_object_or_404(Event, slug=slug)
 
     if request.user != event.owner and not (
-        request.user.is_superuser or request.user.has_perm("event.delete_video")
+        request.user.is_superuser or request.user.has_perm("live.delete_event")
     ):
         messages.add_message(request, messages.ERROR, _(u"You cannot delete this event."))
         raise PermissionDenied

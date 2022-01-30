@@ -22,6 +22,7 @@ else:
         url(r"^ajax_calls/getbroadcastersfrombuiding/$", broadcasters_from_building, name="broadcasters_from_building"),
         url(r"^ajax_calls/geteventvideocards/$", event_get_video_cards, name="event_get_video_cards"),
         url(r"^event/(?P<slug>[\-\d\w]+)/$", event, name="event"),
+        url(r"^event/(?P<slug>[\-\d\w]+)/(?P<slug_private>[\-\d\w]+)/$", event, name="event_private"),
         url(r"^event_edit/$", event_edit, name="event_edit"),
         url(r"^event_edit/(?P<slug>[\-\d\w]+)/$", event_edit, name="event_edit"),
         url(r"^event_delete/(?P<slug>[\-\d\w]+)/$", event_delete, name="event_delete"),

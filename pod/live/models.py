@@ -1,4 +1,6 @@
 """Esup-Pod "live" models."""
+import hashlib
+
 from datetime import timedelta, date, datetime
 from django.core.exceptions import ValidationError
 from ckeditor.fields import RichTextField
@@ -35,7 +37,7 @@ DEFAULT_EVENT_TYPE_ID = getattr(settings, "DEFAULT_EVENT_TYPE_ID", 1)
 RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
     settings, "RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY", True
 )
-
+SECRET_KEY = getattr(settings, "SECRET_KEY", "")
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -400,6 +402,11 @@ class Event(models.Model):
 
     def get_absolute_url(self):
         return reverse("live:event", args=[str(self.slug)])
+
+    def get_hashkey(self):
+        return hashlib.sha256(
+            ("%s-%s" % (SECRET_KEY, self.id)).encode("utf-8")
+        ).hexdigest()
 
  #   def clean(self):
  #       if self.start_date < date.today():
