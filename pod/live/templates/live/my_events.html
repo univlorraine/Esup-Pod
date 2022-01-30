@@ -6,6 +6,7 @@
     {% if use_category %}
         <link rel="stylesheet" href="{% static 'css/video_category.css' %}?ver={{ VERSION }}">
     {% endif %}
+    <link href="{% static 'css/event.css' %}?ver={{ VERSION }}" rel="stylesheet"/>
 {% endblock more_style %}
 
 {% block breadcrumbs %}{{ block.super }}

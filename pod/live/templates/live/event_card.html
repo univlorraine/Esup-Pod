@@ -8,7 +8,11 @@
 {#            between<small class="text-muted time">{% blocktrans with start_date=event.start_date|date:"d/m/Y" start_time=event.start_time end_time=event.end_time %}The {{start_date}} from {{start_time}} to {{end_time}}{% endblocktrans %}</small>#}
             <span class="text-muted small">
                     <span>
+                    {% if event.is_current %}
+                        <i class="current_event_feather" data-feather="radio"></i>
+                    {%  else %}
                         <i data-feather="radio"></i>
+                    {%  endif %}
                     </span>
                     <span data-toggle="tooltip" title="{{event.broadcaster.name}}">
                         <i data-feather="info"></i>

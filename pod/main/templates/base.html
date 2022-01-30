@@ -38,6 +38,9 @@
     {% if CSS_OVERRIDE %}
       <link rel="stylesheet" href="{% static CSS_OVERRIDE %}?ver={{VERSION}}" media="screen">
     {% endif %}
+    {% if USE_EVENT and "live" in THIRD_PARTY_APPS %}
+        <link href="{% static 'css/event.css' %}?ver={{ VERSION }}" rel="stylesheet"/>
+    {% endif %}
 
     <!-- more styles for each App -->
     {% block more_style %}{% endblock more_style %}
