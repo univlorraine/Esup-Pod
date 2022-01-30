@@ -56,12 +56,14 @@
                 {% trans "The event is currently in progress. Editing options are limited." %}
             </div>
         {% endif %}
+          <button type="button" class="btn btn-primary btn-sm m-1"
+            id="display_advanced_options" data-display="0">{% trans "Display advanced options" %}</button>
         {% for field_hidden in form.hidden_fields %}
             {{field_hidden}}
         {% endfor %}
         {% for field in form.visible_fields %}
             {% spaceless %}
-                <div class="field_{{ field.name }}">
+                <div class="field_{{ field.name }} {% with 'description owner type is_draft' as res %}{% if field.name in res.split %}collapse advanced_options{% endif %}{% endwith %}">
                     <div class="form-group {% if field.field.required %}form-group-required {% endif %}">
                         {{ field.errors }}
                         {% if "form-check-input" in field.field.widget.attrs.class %}
@@ -143,5 +145,19 @@
     <script src="{% static 'js/broadcaster_from_building.js' %}?ver={{ VERSION }}"></script>
 
     {{ form.media }}
+
+    <script>
+        $("#display_advanced_options").on("click",function(){
+            if ($(this).data("display")){
+                $(".advanced_options").addClass("collapse");
+                $(this).text("{% trans 'Display advanced options' %}");
+                $(this).data("display", 0)
+            } else {
+                $(".advanced_options").removeClass("collapse");
+                $(this).text("{% trans 'Hide advanced options' %}");
+                $(this).data("display", 1)
+            }
+        })
+    </script>
 
 {% endblock more_script %}

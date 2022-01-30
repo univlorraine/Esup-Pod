@@ -125,6 +125,8 @@ class EventForm(forms.ModelForm):
         empty_label=None,
     )
 
+    field_order = ['title', 'building', 'broadcaster', 'start_date', 'start_time', 'end_time']
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         is_current_event = kwargs.pop('is_current_event', None)
