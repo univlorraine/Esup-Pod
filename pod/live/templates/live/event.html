@@ -352,8 +352,9 @@
                         getEventVideos();
                     }
                 },
-                error: function () {
-                    console.error('Error calling event_video_transform');
+                error: function (xhr) {
+                    const err = JSON.parse(xhr.responseText);
+                    console.error('Error calling event_video_transform : ' + err.message);
                 },
             });
         }

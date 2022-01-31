@@ -15,7 +15,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Prefetch
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseNotAllowed, \
-    HttpResponseNotFound, Http404
+    HttpResponseNotFound, Http404, HttpResponseServerError
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -496,6 +496,7 @@ def event_isstreamavailabletorecord(request):
 @login_required(redirect_field_name="referrer")
 def event_startrecord(request):
     if request.method == "POST" and request.is_ajax():
+
         event_id = request.POST.get("idevent", None)
         broadcaster_id = request.POST.get("idbroadcaster", None)
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
@@ -574,13 +575,12 @@ def event_get_video_cards(request):
 
 
 def event_video_transform(request):
-
     event_id = request.POST.get("event", None)
 
     event = Event.objects.get(pk=event_id)
 
     current_file = request.POST.get("currentFile", None)
-    segment_number = request.POST.get("segmentNumber", "")
+    segment_number = request.POST.get("segmentNumber", None)
 
     filename = os.path.basename(current_file)
 
@@ -597,16 +597,36 @@ def event_video_transform(request):
         filename,
     )
 
-    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+    # dir creation if not exists
+    dest_dir_name = os.path.dirname(dest_file)
+    os.makedirs(dest_dir_name, exist_ok=True)
 
-    os.rename(
-        os.path.join(DEFAULT_EVENT_PATH, filename),
-        dest_file,
-    )
+    if not os.path.isdir(dest_dir_name):
+        logging.error(f"Dir: {dest_dir_name} does not exists")
+        return JsonResponse(status=500, data={"success": False, "message": f"Dir: {dest_dir_name} does not exists"})
+
+    # file creation if not exists
+    full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
+
+    if not os.path.exists(full_file_name):
+        logging.error(f"File: {full_file_name} does not exists")
+        return JsonResponse(status=500, data={"success": False, "message": f"File: {full_file_name} does not exists"})
+
+    # moving the file
+    try:
+        os.rename(
+            full_file_name,
+            dest_file,
+        )
+    except FileNotFoundError as err:
+        logging.error(f"FileNotFoundError: {format(err)}")
+        return JsonResponse(status=500, data={"success": False, "message": f"FileNotFoundError: {format(err)}"})
+
+    segment = "(" + segment_number + ")" if segment_number else ""
 
     video = Video.objects.create(
         video=dest_path,
-        title=event.title + segment_number,
+        title=event.title + segment,
         owner=event.owner,
         description=event.description + "<br/>" + _("Record the %(start_date)s from %(start_time)s to %(end_time)s")
                     % {'start_date': event.start_date.strftime("%d/%m/%Y"),
