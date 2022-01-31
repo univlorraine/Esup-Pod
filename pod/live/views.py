@@ -381,9 +381,6 @@ def get_event_edition_access(request, event):
 
         if (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff) \
                 or (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated):
-            print("(RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff) " + str((RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff)))
-            print("(not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated) " + str(
-            (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated)))
             return True
         return False
     return False
