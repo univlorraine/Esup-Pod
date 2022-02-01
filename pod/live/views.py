@@ -47,6 +47,9 @@ RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
 )
 VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
+logger = logging.getLogger("pod.live")
+
+
 def lives(request):  # affichage des directs
     site = get_current_site(request)
     buildings = (
@@ -523,16 +526,18 @@ def event_splitrecord(request):
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
         if not check_piloting_conf(broadcaster):
-            return JsonResponse({"success": False, "message": "implementation error"})
+            return JsonResponse({"success": False, "error": "implementation error"})
 
         if not is_recording(broadcaster):
-            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
+            return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
 
+        # file infos before split is done
         current_record_info = get_info_current_record(broadcaster)
-        if split_record(broadcaster):
-            return JsonResponse({"success": True,"current_record_info":current_record_info})
 
-        return JsonResponse({"success": False, "message": ""})
+        if split_record(broadcaster):
+            return event_video_transform(request, current_record_info)
+
+        return JsonResponse({"success": False, "error": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -545,16 +550,17 @@ def event_stoprecord(request):
         broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
         if not check_piloting_conf(broadcaster):
-            return JsonResponse({"success": False, "message": "implementation error"})
+            return JsonResponse({"success": False, "error": "implementation error"})
 
         if not is_recording(broadcaster):
-            return JsonResponse({"success": False, "message": "the broadcaster is not recording"})
+            return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
 
         current_record_info = get_info_current_record(broadcaster)
-        if stop_record(broadcaster):
-            return JsonResponse({"success": True,"current_record_info":current_record_info})
 
-        return JsonResponse({"success": False, "message": ""})
+        if stop_record(broadcaster):
+            return event_video_transform(request, current_record_info)
+
+        return JsonResponse({"success": False, "error": ""})
 
     return HttpResponseNotAllowed(["POST"])
 
@@ -575,13 +581,12 @@ def event_get_video_cards(request):
     return HttpResponseBadRequest
 
 
-def event_video_transform(request):
+def event_video_transform(request, infos):
     event_id = request.POST.get("event", None)
-
     event = Event.objects.get(pk=event_id)
 
-    current_file = request.POST.get("currentFile", None)
-    segment_number = request.POST.get("segmentNumber", None)
+    current_file = infos.get("currentFile", None)
+    segment_number = infos.get("segmentNumber", None)
 
     filename = os.path.basename(current_file)
 
@@ -602,16 +607,24 @@ def event_video_transform(request):
     dest_dir_name = os.path.dirname(dest_file)
     os.makedirs(dest_dir_name, exist_ok=True)
 
-    if not os.path.isdir(dest_dir_name):
-        logging.error(f"Dir: {dest_dir_name} does not exists")
-        return JsonResponse(status=500, data={"success": False, "message": f"Dir: {dest_dir_name} does not exists"})
+    try :
+        checkDirExists(dest_dir_name)
+    except:
+        return JsonResponse(status=500, data={"success": False, "error": f"Dir: {dest_dir_name} does not exists"})
 
     # file creation if not exists
     full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
 
-    if not os.path.exists(full_file_name):
-        logging.error(f"File: {full_file_name} does not exists")
-        return JsonResponse(status=500, data={"success": False, "message": f"File: {full_file_name} does not exists"})
+    try :
+        checkFileExists(full_file_name)
+    except:
+        return JsonResponse(status=500, data={"success": False, "error": f"File: {full_file_name} does not exists"})
+
+    # verif si la taille du fichier d'origine ne bouge plus
+    try :
+        checkFileSize(full_file_name)
+    except:
+        return JsonResponse(status=500, data={"success": False, "error": "File copy aborted"})
 
     # moving the file
     try:
@@ -620,8 +633,13 @@ def event_video_transform(request):
             dest_file,
         )
     except FileNotFoundError as err:
-        logging.error(f"FileNotFoundError: {format(err)}")
-        return JsonResponse(status=500, data={"success": False, "message": f"FileNotFoundError: {format(err)}"})
+        logger.error(f"FileNotFoundError: {format(err)}")
+        return JsonResponse(status=500, data={"success": False, "error": f"FileNotFoundError: {format(err)}"})
+
+
+    # TODO voir si la taille du fichier copié ne bouge plus 6x toutes les 500 ms
+
+
 
     segment = "(" + segment_number + ")" if segment_number else ""
 
@@ -655,25 +673,76 @@ def event_video_transform(request):
 
     return JsonResponse({"success": True, "videos": video_list})
 
+def checkFileSize(full_file_name, max_attempt = 6):
+    file_size = os.path.getsize(full_file_name)
+    size_match = False
+
+    attempt_number = 1
+    while not size_match and attempt_number <= max_attempt:
+        if attempt_number > 1:
+            sleep(0.5)
+        new_size = os.path.getsize(full_file_name)
+        if file_size != new_size:
+            logger.warning(f"File size changing from {file_size} to {new_size}, attempt number {attempt_number} ")
+            attempt_number = attempt_number + 1
+            if attempt_number == max_attempt:
+                logger.error(f"File: {full_file_name} is still moving")
+                raise Exception("File copy aborted")
+        else:
+            logger.info("Size checked")
+            size_match = True
+
+def checkDirExists(dest_dir_name, max_attempt = 6):
+
+    attempt_number = 1
+    while not os.path.isdir(dest_dir_name) and attempt_number <= max_attempt:
+        logger.warning(f"Dir does not exists, attempt number {attempt_number} ")
+
+        if attempt_number == max_attempt:
+            logger.error(f"Impossible to create dir {dest_dir_name}")
+            raise Exception("Dir creation aborted")
+
+        attempt_number = attempt_number + 1
+        sleep(0.5)
+
+    logger.info("Dir exists")
+
+
+def checkFileExists(full_file_name, max_attempt = 6):
+
+    attempt_number = 1
+    while not os.path.exists(full_file_name) and attempt_number <= max_attempt:
+        logger.warning(f"File does not exists, attempt number {attempt_number} ")
+
+        if attempt_number == max_attempt:
+            logger.error(f"Impossible to get file {full_file_name}")
+            raise Exception(f"File {full_file_name} is nowhere")
+
+        attempt_number = attempt_number + 1
+        sleep(0.5)
+
+    logger.info("File exists")
+
+
 def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
-    logging.debug("get_piloting_implementation")
+    logger.debug("get_piloting_implementation")
     piloting_impl = broadcaster.piloting_implementation
     if not piloting_impl:
-        logging.debug("'piloting_implementation' value is not set for '" + broadcaster.name + "' broadcaster.")
+        logger.info("'piloting_implementation' value is not set for '" + broadcaster.name + "' broadcaster.")
         return None
 
     if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
-        logging.warning("'piloting_implementation' : " + piloting_impl + " is not know for '" + broadcaster.name
+        logger.warning("'piloting_implementation' : " + piloting_impl + " is not know for '" + broadcaster.name
                         + "' broadcaster. Available piloting_implementations are '"
                         + "','".join(BROADCASTER_IMPLEMENTATION) + "'")
         return None
 
     if piloting_impl.lower() == "wowza":
-        logging.debug("'piloting_implementation' found : " + piloting_impl.lower() + " for '"
+        logger.debug("'piloting_implementation' found : " + piloting_impl.lower() + " for '"
                       + broadcaster.name + "' broadcaster.")
         return Wowza(broadcaster)
 
-    logging.debug("->get_piloting_implementation - This should not happen.")
+    logger.warning("->get_piloting_implementation - This should not happen.")
     return None
 
 

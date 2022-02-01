@@ -209,7 +209,7 @@
 
         // Management of the streaming live
         var player = videojs('podvideoplayer', options, function () {
-        });
+        })
 
         {% if broadcaster.enable_viewer_count%}
             player.videoJsViewerCount();
@@ -220,7 +220,6 @@
             linktitle: '{{TITLE_ETB}} - {{TITLE_SITE}}',
             link: '{{LINK_PLAYER}}'
         });
-
         player.on('error', function () {
             // Handle successives errors to avoid multiple reload
             if (typeof (errored) == 'undefined' || !errored) {
@@ -268,19 +267,19 @@
                 },
                 success: function (data) {
                     if (data.success) {
-                        console.log('Record started');
-                        $("#startrecord").addClass("d-none");
-                        $("#stoprecord").removeClass("d-none");
+                        console.log('Record started')
+                        $("#startrecord").addClass("d-none")
+                        $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
                     } else {
-                        console.warning('Start not done : ' + data.message);
+                        console.warning('Start not done : ' + data.message)
                     }
                 },
                 error: function (data) {
-                    console.error('Error calling startrecord');
+                    console.error('Error calling startrecord')
                 }
             })
-        });
+        })
 
         $(document).on('click', '#stoprecord', function () {
             $.ajax({
@@ -290,26 +289,30 @@
                     "X-CSRFToken": '{{ csrf_token }}'
                 },
                 data: {
+                    "event": "{{ event.id }}",
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
                 success: function (data) {
                     if (data.success) {
-                        console.log('Record stopped');
-                        $("#startrecord").removeClass("d-none");
-                        $("#stoprecord").addClass("d-none");
-                        $("#splitrecord").addClass("d-none");
-                        transformVideo(data.current_record_info);
+                        console.log('Record stopped')
+                        $("#startrecord").removeClass("d-none")
+                        $("#stoprecord").addClass("d-none")
+                        $("#splitrecord").addClass("d-none")
+                        getEventVideos();
                     } else {
-                        console.warning('Stop not done : ' + data.message);
+                        console.warning('Stop not done : ' + data.message)
                     }
                 },
-                error: function (data) {
-                    console.error('Error calling stoprecord');
+                error: function (xhr) {
+                    const err = JSON.parse(xhr.responseText)
+                    console.error('Error calling stop record : ' + err.error)
                 },
             })
-        });
+        })
 
         $(document).on('click', '#splitrecord', function () {
+            $("#stoprecord").prop('disabled', true)
+            $("#splitrecord").prop('disabled', true)
             $.ajax({
                 url: "{% url 'live:event_splitrecord' %}",
                 method: 'POST',
@@ -317,47 +320,25 @@
                     "X-CSRFToken": '{{ csrf_token }}'
                 },
                 data: {
+                    "event": "{{ event.id }}",
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
                 success: function (data) {
                     if (data.success) {
-                        console.log('Record split');
-                        transformVideo(data.current_record_info);
-                    } else {
-                        console.warning('Split not done : ' + data.message);
-                    }
-                },
-                error: function (data) {
-                    console.error('Error calling splitrecord');
-                },
-            })
-        });
-
-        // display the event's videos
-        const transformVideo = function (record_infos) {
-            $.ajax({
-                url: "{% url 'live:event_video_transform' %}",
-                method: 'POST',
-                headers: {
-                    "X-CSRFToken": '{{ csrf_token }}'
-                },
-                data: {
-                    "event": "{{ event.id }}",
-                    "currentFile": record_infos.currentFile,
-                    "segmentNumber": record_infos.segmentNumber,
-                },
-                success: function (data) {
-                    if (data.success) {
-                        console.log("conversion done");
+                        console.log("conversion done")
                         getEventVideos();
                     }
                 },
                 error: function (xhr) {
-                    const err = JSON.parse(xhr.responseText);
-                    console.error('Error calling event_video_transform : ' + err.message);
+                    const err = JSON.parse(xhr.responseText)
+                    console.error('Error calling splitrecord : ' + err.error)
                 },
-            });
-        }
+                complete: function (){
+                    $("#stoprecord").prop('disabled', false)
+                    $("#splitrecord").prop('disabled', false)
+                }
+            })
+        })
 
         // display the event's videos
         const getEventVideos = function () {
@@ -386,9 +367,9 @@
 
         // Status of the stream
         const updateStreamStatus = function () {
-            console.log("get stream status" + new Date());
-            $("#startrecord").addClass("d-none");
-            $("#stoprecord").addClass("d-none");
+            console.log("get stream status" + new Date())
+            $("#startrecord").addClass("d-none")
+            $("#stoprecord").addClass("d-none")
             $("#splitrecord").addClass("d-none")
             $.ajax({
                 url: "{% url 'live:event_isstreamavailabletorecord' %}",
@@ -402,24 +383,24 @@
                 },
                 success: function (data) {
                     if (data.recording) {
-                        $("#stoprecord").removeClass("d-none");
+                        $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
                     } else if (data.available) {
-                        $("#startrecord").removeClass("d-none");
+                        $("#startrecord").removeClass("d-none")
                     }
                 },
                 error: function (data) {
-                    console.error('error calling isstreamavailabletorecord');
+                    console.error('error calling isstreamavailabletorecord')
                 },
-            });
-        };
+            })
+        }
 
         // On load
         $(function () {
-            getEventVideos();
-            updateStreamStatus();
-            setInterval(updateStreamStatus, 60000); // every 60 sec
-        });
+            getEventVideos()
+            updateStreamStatus()
+            setInterval(updateStreamStatus, 60000) // every 60 sec
+        })
 
     </script>
 

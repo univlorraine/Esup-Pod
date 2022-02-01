@@ -123,24 +123,6 @@ class Wowza(PilotingInterface, ABC):
         logging.error(response.json().get("message"))
         return False
 
-    def get_current_record(self):
-        # TODO non utilisé et non déclaré mais peut être utile
-        json_conf = self.broadcaster.piloting_conf
-        conf = json.loads(json_conf)
-        url_state_live_stream_recording = self.url + "/instances/_definst_/streamrecorders"
-
-        response = requests.get(url_state_live_stream_recording, verify=True, headers={
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        })
-
-        streamrecorder = response.json().get('streamrecorder')
-        for prop in streamrecorder:
-            if prop.get("recorderName") == conf["livestream"]:
-                return streamrecorder
-
-        return None
-
     def start(self, event_id=None, login=None) -> bool:
         logging.debug("Wowza - Start record")
         json_conf = self.broadcaster.piloting_conf
@@ -256,7 +238,6 @@ class Wowza(PilotingInterface, ABC):
             if re.match(r'\d+\.', ending):
                 number = ending.split(".")[0]
                 if int(number) > 0:
-                    # segment_number = int(number) + 1
                     segment_number = number
         except :
             pass
