@@ -174,16 +174,29 @@
                     for (i=8; i <= 20; i++) {
                         var newLink = '<li><a href="javascript:DateTimeShortcuts.handleClockQuicklink('+ clockCount + ', ' + i
                             + ');"> ' + i + ':00</a></li>';
+                        // Plan B : forcer le format au lieu de changer TIME_INPUT_FORMATS dans settings.py
+                        // var newLink = '<li><a href="javascript:settime('+ clockCount + ', ' + i
+                        //    + ');"> ' + i + ':00</a></li>';
                         $this.append(newLink);
                     }
-                   // console.log($this.html());
 
                     clockCount++;
             });
         };
         DateTimeShortcuts.overrideTimeOptions();
     });
-
+    {% comment %}function settime(num, val) {
+      var d;
+      if (val == -1) {
+          d = DateTimeShortcuts.now();
+       }
+       else {
+           d = new Date(1970, 1, 1, val, 0, 0, 0)
+       }
+       DateTimeShortcuts.clockInputs[num].value = d.strftime("%H:%M");
+       DateTimeShortcuts.clockInputs[num].focus();
+       DateTimeShortcuts.dismissClock(num);
+    }{% endcomment %}
     </script>
 
 {% endblock more_script %}
