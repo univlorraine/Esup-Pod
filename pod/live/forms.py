@@ -184,8 +184,8 @@ class EventForm(forms.ModelForm):
         fields = ["title", "description", "owner", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft"]
         widgets = {
             'start_date': widgets.AdminDateWidget,
-            'start_time': forms.TimeInput(format='%H:%M'),
-            'end_time': forms.TimeInput(format='%H:%M'),
+            'start_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),
+            'end_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),
         }
 
 class EventDeleteForm(forms.Form):

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-01-30 23:31+0100\n"
+"POT-Creation-Date: 2022-02-01 10:56+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -151,8 +151,8 @@ msgstr "Changer votre image de profil"
 #: pod/enrichment/templates/enrichment/group_enrichment.html:29
 #: pod/interactive/templates/interactive/group_interactive.html:27
 #: pod/live/templates/live/event_delete.html:39
-#: pod/live/templates/live/live-form.html:10 pod/live/views.py:422
-#: pod/live/views.py:451 pod/main/templates/contact_us.html:17
+#: pod/live/templates/live/live-form.html:10 pod/live/views.py:429
+#: pod/live/views.py:458 pod/main/templates/contact_us.html:17
 #: pod/main/tests/test_views.py:99 pod/main/views.py:300
 #: pod/playlist/views.py:217
 #: pod/recorder/templates/recorder/add_recording.html:34
@@ -180,7 +180,7 @@ msgstr "Une ou plusieurs erreurs ont été trouvées dans le formulaire."
 #: pod/enrichment/templates/enrichment/group_enrichment.html:51
 #: pod/interactive/templates/interactive/group_interactive.html:49
 #: pod/live/templates/live/event_delete.html:65
-#: pod/live/templates/live/event_edit.html:82
+#: pod/live/templates/live/event_edit.html:84
 #: pod/live/templates/live/live-form.html:25
 #: pod/main/templates/contact_us.html:40
 #: pod/playlist/templates/playlist/playlist_video_list.html:72
@@ -2294,11 +2294,11 @@ msgstr "Bâtiment"
 msgid "Broadcaster device"
 msgstr "Matériel de captation"
 
-#: pod/live/forms.py:191 pod/recorder/forms.py:75 pod/video/forms.py:864
+#: pod/live/forms.py:193 pod/recorder/forms.py:75 pod/video/forms.py:864
 msgid "I agree"
 msgstr "J'accepte"
 
-#: pod/live/forms.py:192
+#: pod/live/forms.py:194
 msgid "Delete event cannot be undo"
 msgstr "La suppression d'évènement est définitive"
 
@@ -2670,17 +2670,17 @@ msgid "Current event videos"
 msgstr "Vidéos de l'évenement"
 
 #: pod/live/templates/live/event.html:98
-#: pod/live/templates/live/event_edit.html:102
+#: pod/live/templates/live/event_edit.html:104
 msgid "Manage event"
 msgstr "Gérer l'évènement"
 
 #: pod/live/templates/live/event.html:102
-#: pod/live/templates/live/event_edit.html:106
+#: pod/live/templates/live/event_edit.html:108
 msgid "Edit the event"
 msgstr "Éditer l'évènement"
 
 #: pod/live/templates/live/event.html:110
-#: pod/live/templates/live/event_edit.html:113
+#: pod/live/templates/live/event_edit.html:115
 msgid "Delete the event"
 msgstr "Supprimer l'évènement"
 
@@ -2782,7 +2782,12 @@ msgid "The event is currently in progress. Editing options are limited."
 msgstr ""
 "L'évènement est actuellement en cours. Les options d'édition sont limitées."
 
-#: pod/live/templates/live/event_edit.html:90
+#: pod/live/templates/live/event_edit.html:60
+#: pod/live/templates/live/event_edit.html:153
+msgid "Display advanced options"
+msgstr "Options avancées"
+
+#: pod/live/templates/live/event_edit.html:92
 #: pod/live/templates/live/filter_aside.html:13
 #: pod/live/templates/live/live-form.html:31
 #: pod/main/templates/contact_us.html:46
@@ -2791,11 +2796,11 @@ msgstr ""
 msgid "Send"
 msgstr "Envoyer"
 
-#: pod/live/templates/live/event_edit.html:120
+#: pod/live/templates/live/event_edit.html:122
 msgid "Event planning"
 msgstr "Planification d'un évènement"
 
-#: pod/live/templates/live/event_edit.html:122
+#: pod/live/templates/live/event_edit.html:124
 msgid ""
 "You can schedule a live event by selecting a building and a room or "
 "recording device."
@@ -2803,13 +2808,13 @@ msgstr ""
 "Vous pouvez planifier un évènement en direct en sélectionnant un bâtiment et "
 "une salle ou un dispositif de captation."
 
-#: pod/live/templates/live/event_edit.html:123
+#: pod/live/templates/live/event_edit.html:125
 msgid "You will then need to specify a date, a start time and an end time."
 msgstr ""
 "Vous devrez ensuite préciser une date, une heure de début et une heure de "
 "fin. "
 
-#: pod/live/templates/live/event_edit.html:124
+#: pod/live/templates/live/event_edit.html:126
 msgid ""
 "Please note that 2 events cannot be scheduled in the same room "
 "simultaneously."
@@ -2817,11 +2822,11 @@ msgstr ""
 "Attention, 2 évènements ne peuvent pas être programmés dans la même salle "
 "simultanément."
 
-#: pod/live/templates/live/event_edit.html:125
+#: pod/live/templates/live/event_edit.html:127
 msgid "Finally, remember to provide as precise a description as possible."
 msgstr "Enfin, pensez à renseigner une description la plus précise possible."
 
-#: pod/live/templates/live/event_edit.html:129
+#: pod/live/templates/live/event_edit.html:131
 #: pod/main/templates/contact_us.html:63
 #: pod/video/templates/channel/channel_edit.html:90
 #: pod/video/templates/channel/theme_edit.html:66
@@ -2829,13 +2834,17 @@ msgstr "Enfin, pensez à renseigner une description la plus précise possible."
 msgid "Mandatory fields"
 msgstr "Champs obligatoires"
 
-#: pod/live/templates/live/event_edit.html:131
+#: pod/live/templates/live/event_edit.html:133
 #: pod/main/templates/contact_us.html:65
 #: pod/video/templates/channel/channel_edit.html:92
 #: pod/video/templates/channel/theme_edit.html:68
 #: pod/video/templates/videos/video_edit.html:188
 msgid "Fields marked with an asterisk are mandatory."
 msgstr "Les champs marqués avec un astérisque sont obligatoires."
+
+#: pod/live/templates/live/event_edit.html:157
+msgid "Hide advanced options"
+msgstr "Cacher les options avancées"
 
 #: pod/live/templates/live/events.html:12
 #: pod/live/templates/live/events.html:34
@@ -2999,19 +3008,19 @@ msgstr "Le mot de passe est incorrect."
 msgid "You cannot watch this event."
 msgstr "Vous ne pouvez pas accèder à cet évènement en direct."
 
-#: pod/live/views.py:415 pod/video/views.py:361 pod/video/views.py:947
+#: pod/live/views.py:422 pod/video/views.py:361 pod/video/views.py:947
 msgid "The changes have been saved."
 msgstr "Les modifications ont été sauvegardées."
 
-#: pod/live/views.py:436
+#: pod/live/views.py:443
 msgid "You cannot delete this event."
 msgstr "Vous ne pouvez pas supprimer cet évènement."
 
-#: pod/live/views.py:445
+#: pod/live/views.py:452
 msgid "The event has been deleted."
 msgstr "L'évènement a été supprimé."
 
-#: pod/live/views.py:605
+#: pod/live/views.py:632
 #, python-format
 msgid "Record the %(start_date)s from %(start_time)s to %(end_time)s"
 msgstr "Enregistré le %(start_date)s de %(start_time)s à %(end_time)s"

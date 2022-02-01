@@ -47,7 +47,6 @@ RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
 )
 VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
-
 def lives(request):  # affichage des directs
     site = get_current_site(request)
     buildings = (
@@ -374,15 +373,17 @@ def my_events(request):
     )
 
 def get_event_edition_access(request, event):
-    if request.user.is_superuser \
-            or (event is not None and request.user == event.owner) \
-            or (event is None and request.user.has_perm("live.add_event")) \
-            or (event is not None and request.user.has_perm("live.change_event")):
-
-        if (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff) \
-                or (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated):
+    if request.user.is_superuser :
+        return True
+    if event is None:#creation
+        if request.user.has_perm("live.add_event") \
+            or (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff) \
+            or (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_authenticated):
             return True
-        return False
+    else:#edition
+        if request.user.has_perm("live.change_event") \
+            or request.user == event.owner:
+            return True
     return False
 
 
