@@ -33,4 +33,5 @@ else:
         url(r"^event_splitrecord/$", event_splitrecord, name="event_splitrecord"),
         url(r"^event_isstreamavailabletorecord/$", event_isstreamavailabletorecord, name="event_isstreamavailabletorecord"),
         url(r"^event_video_transform/$", event_video_transform, name="event_video_transform"),
+        url(r"^ajax_calls/heartbeat/", heartbeat),
     ]
