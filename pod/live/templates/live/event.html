@@ -10,7 +10,7 @@
     {% endwith %}
 
     <script src="{% static 'js/videojs-logo-controlbar.js' %}?ver={{ VERSION }}"></script>
-    {% if broadcaster.enable_viewer_count %}
+    {% if event.broadcaster.enable_viewer_count %}
         <script>let heartbeat_delay = {{ heartbeat_delay }}</script>
         <script src="{% static 'js/viewcounter.js' %}?ver={{ VERSION }}"></script>
     {% endif %}
@@ -156,7 +156,7 @@
             if (started && player.readyState() <= 2) {
                 // Check if .m3u8 exists, to be sure that live is stopped
                 $.ajax({
-                    url: '{{broadcaster.url}}',
+                    url: '{{event.broadcaster.url}}',
                     type: 'GET',
                     crossDomain: true,
                     dataType: 'html',
@@ -188,7 +188,7 @@
         }
 
         // Management of the video on hold
-        {% if broadcaster.video_on_hold.is_video %}
+        {% if event.broadcaster.video_on_hold.is_video %}
             // In this case, loop is necessary
             options["loop"] = true;
             var playerOnHold = videojs('podvideoonholdplayer', options, function () {
@@ -199,7 +199,7 @@
                 linktitle: '{{TITLE_ETB}} - {{TITLE_SITE}}',
                 link: '{{LINK_PLAYER}}'
             });
-            var mp4_sources = {{broadcaster.video_on_hold.get_video_mp4_json|safe}};
+            var mp4_sources = {{event.broadcaster.video_on_hold.get_video_mp4_json|safe}};
             playerOnHold.src(mp4_sources);
             let modalOnHold = playerOnHold.createModal('{% trans "Live not found, displaying the video on hold, retry every 10 seconds" %}');
             setTimeout(function () {
@@ -211,7 +211,7 @@
         var player = videojs('podvideoplayer', options, function () {
         })
 
-        {% if broadcaster.enable_viewer_count%}
+        {% if event.broadcaster.enable_viewer_count%}
             player.videoJsViewerCount();
         {% endif %}
 
