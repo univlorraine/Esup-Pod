@@ -262,6 +262,7 @@ def event(request, slug, slug_private=None):  # affichage d'un event
         {
             "event": event,
             "need_piloting_buttons": need_piloting_buttons,
+            "heartbeat_delay": HEARTBEAT_DELAY,
         }
     )
 
