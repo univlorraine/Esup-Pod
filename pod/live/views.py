@@ -3,6 +3,7 @@ import os.path
 import re
 import logging
 from datetime import date, datetime
+from time import sleep
 from typing import Optional
 
 from django.conf import settings
@@ -684,6 +685,7 @@ def checkFileSize(full_file_name, max_attempt = 6):
         new_size = os.path.getsize(full_file_name)
         if file_size != new_size:
             logger.warning(f"File size changing from {file_size} to {new_size}, attempt number {attempt_number} ")
+            file_size = new_size
             attempt_number = attempt_number + 1
             if attempt_number == max_attempt:
                 logger.error(f"File: {full_file_name} is still moving")
