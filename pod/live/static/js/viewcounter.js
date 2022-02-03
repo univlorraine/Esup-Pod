@@ -13,6 +13,7 @@ $(document).ready(function () {
   let podplayer = videojs("podvideoplayer");
   podplayer.ready(function () {
     let secret = makeid(24);
+    console.log($("#livename").data("liveid"));
     (function () {
       $.ajax({
         type: "GET",
