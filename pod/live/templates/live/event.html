@@ -26,7 +26,7 @@
 
 {% block page_content %}
     {% csrf_token %}
-    <h3 id="livename" data-liveid="{{ event.id }}"><i data-feather="airplay"></i>&nbsp;{{ event.title|title }}</h3>
+    <h3 id="livename" data-liveid="{{ event.broadcaster.id }}"><i data-feather="airplay"></i>&nbsp;{{ event.title|title }}</h3>
 
     {% if event.is_current %}
         <div id="divvideoonhold" style="display: block;">
