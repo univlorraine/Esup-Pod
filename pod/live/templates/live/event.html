@@ -66,6 +66,8 @@
             </button>
         </div>
 
+        <div id="viewers-list"><ul id="viewers-ul"></ul></div>
+
     {% elif event.is_past %}
         <div class="p-3 mb-2 bg-warning text-dark">
             {% trans "Event is finished at : " %} {{ event.start_date }} {{ event.end_time }}
