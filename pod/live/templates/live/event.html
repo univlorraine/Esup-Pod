@@ -29,13 +29,13 @@
     <h3 id="livename" data-liveid="{{ event.broadcaster.id }}"><i data-feather="airplay"></i>&nbsp;{{ event.title|title }}</h3>
 
     {% if event.is_current %}
-        <div id="divvideoonhold" style="display: block;">
+        <div id="divvideoonhold" style="display: none;">
             <video id="podvideoonholdplayer"
                    class="video-js vjs-default-skin vjs-big-play-centered"
                    controls height="360" muted autoplay>
             </video>
         </div>
-        <div id="divvideoplayer" style="display: none;">
+        <div id="divvideoplayer" style="display: block;">
             <div class="row">
                 <div class="col">
                     <video id="podvideoplayer"
