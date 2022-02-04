@@ -130,7 +130,7 @@ class Wowza(PilotingInterface, ABC):
         url_start_record = self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"]
         filename = self.broadcaster.slug
         if event_id is not None:
-            filename = event_id + "_" + filename
+            filename = str(event_id) + "_" + filename
         elif login is not None:
             filename = login + "_" + filename
         data = {
