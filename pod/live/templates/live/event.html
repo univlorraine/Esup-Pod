@@ -255,9 +255,9 @@
         })
 
         // Recording actions on the stream
-        $(document).on('click', '#startrecord', function (e) {
+        $(document).on('click', '#startrecord', function () {
             $.ajax({
-                url: "{% url 'live:event_startrecord' %}",
+                url: "{% url 'live:ajax_event_startrecord' %}",
                 method: 'POST',
                 dataType: 'json',
                 headers: {
@@ -285,13 +285,13 @@
 
         $(document).on('click', '#stoprecord', function () {
             $.ajax({
-                url: "{% url 'live:event_stoprecord' %}",
+                url: "{% url 'live:ajax_event_stoprecord' %}",
                 method: 'POST',
                 headers: {
                     "X-CSRFToken": '{{ csrf_token }}'
                 },
                 data: {
-                    "event": "{{ event.id }}",
+                    "idevent": "{{ event.id }}",
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
                 success: function (data) {
@@ -316,13 +316,13 @@
             $("#stoprecord").prop('disabled', true)
             $("#splitrecord").prop('disabled', true)
             $.ajax({
-                url: "{% url 'live:event_splitrecord' %}",
+                url: "{% url 'live:ajax_event_splitrecord' %}",
                 method: 'POST',
                 headers: {
                     "X-CSRFToken": '{{ csrf_token }}'
                 },
                 data: {
-                    "event": "{{ event.id }}",
+                    "idevent": "{{ event.id }}",
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
                 success: function (data) {

@@ -500,71 +500,86 @@ def event_isstreamavailabletorecord(request):
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
-def event_startrecord(request):
+def ajax_event_startrecord(request):
     if request.method == "POST" and request.is_ajax():
 
         event_id = request.POST.get("idevent", None)
         broadcaster_id = request.POST.get("idbroadcaster", None)
-        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-        if not check_piloting_conf(broadcaster):
-            return JsonResponse({"success": False, "message": "implementation error"})
-
-        if is_recording(broadcaster):
-            return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
-
-        if start_record(broadcaster,event_id):
-            return JsonResponse({"success": True})
-
-        return JsonResponse({"success": False, "message": ""})
+        return event_startrecord(event_id, broadcaster_id)
 
     return HttpResponseNotAllowed(["POST"])
+
+def event_startrecord(event_id, broadcaster_id):
+    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+    if not check_piloting_conf(broadcaster):
+        return JsonResponse({"success": False, "message": "implementation error"})
+
+    if is_recording(broadcaster):
+        return JsonResponse({"success": False, "message": "the broadcaster is already recording"})
+
+    if start_record(broadcaster, event_id):
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False, "message": ""})
 
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
-def event_splitrecord(request):
+def ajax_event_splitrecord(request):
     if request.method == "POST" and request.is_ajax():
+        event_id = request.POST.get("idevent", None)
         broadcaster_id = request.POST.get("idbroadcaster", None)
-        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
 
-        if not check_piloting_conf(broadcaster):
-            return JsonResponse({"success": False, "error": "implementation error"})
-
-        if not is_recording(broadcaster):
-            return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
-
-        # file infos before split is done
-        current_record_info = get_info_current_record(broadcaster)
-
-        if split_record(broadcaster):
-            return event_video_transform(request, current_record_info)
-
-        return JsonResponse({"success": False, "error": ""})
+        return event_splitrecord(event_id, broadcaster_id)
 
     return HttpResponseNotAllowed(["POST"])
 
+
+def event_splitrecord(event_id, broadcaster_id):
+    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+
+    if not check_piloting_conf(broadcaster):
+        return JsonResponse({"success": False, "error": "implementation error"})
+
+    if not is_recording(broadcaster):
+        return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
+
+    # file infos before split is done
+    current_record_info = get_info_current_record(broadcaster)
+
+    if split_record(broadcaster):
+        return event_video_transform(event_id, current_record_info.get("currentFile", None),
+                                     current_record_info.get("segmentNumber", None))
+
+    return JsonResponse({"success": False, "error": ""})
 
 @csrf_protect
 @login_required(redirect_field_name="referrer")
-def event_stoprecord(request):
+def ajax_event_stoprecord(request):
     if request.method == "POST" and request.is_ajax():
+        event_id = request.POST.get("idevent", None)
         broadcaster_id = request.POST.get("idbroadcaster", None)
-        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
-
-        if not check_piloting_conf(broadcaster):
-            return JsonResponse({"success": False, "error": "implementation error"})
-
-        if not is_recording(broadcaster):
-            return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
-
-        current_record_info = get_info_current_record(broadcaster)
-
-        if stop_record(broadcaster):
-            return event_video_transform(request, current_record_info)
-
-        return JsonResponse({"success": False, "error": ""})
+        return event_stoprecord(event_id, broadcaster_id)
 
     return HttpResponseNotAllowed(["POST"])
+
+
+def event_stoprecord(event_id, broadcaster_id):
+    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+
+    if not check_piloting_conf(broadcaster):
+        return JsonResponse({"success": False, "error": "implementation error"})
+
+    if not is_recording(broadcaster):
+        return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
+
+    current_record_info = get_info_current_record(broadcaster)
+
+    if stop_record(broadcaster):
+        return event_video_transform(event_id, current_record_info.get("currentFile", None),
+                                     current_record_info.get("segmentNumber", None))
+
+    return JsonResponse({"success": False, "error": ""})
 
 
 @csrf_protect
@@ -583,25 +598,21 @@ def event_get_video_cards(request):
     return HttpResponseBadRequest
 
 
-def event_video_transform(request, infos):
-    event_id = request.POST.get("event", None)
-    event = Event.objects.get(pk=event_id)
-
-    current_file = infos.get("currentFile", None)
-    segment_number = infos.get("segmentNumber", None)
+def event_video_transform(event_id, current_file, segment_number):
+    live_event = Event.objects.get(pk=event_id)
 
     filename = os.path.basename(current_file)
 
     dest_file = os.path.join(
         settings.MEDIA_ROOT,
         VIDEOS_DIR,
-        request.user.owner.hashkey,
+        live_event.owner.owner.hashkey,
         filename,
     )
 
     dest_path = os.path.join(
         VIDEOS_DIR,
-        request.user.owner.hashkey,
+        live_event.owner.owner.hashkey,
         filename,
     )
 
@@ -638,31 +649,28 @@ def event_video_transform(request, infos):
         logger.error(f"FileNotFoundError: {format(err)}")
         return JsonResponse(status=500, data={"success": False, "error": f"FileNotFoundError: {format(err)}"})
 
-
     # TODO voir si la taille du fichier copié ne bouge plus 6x toutes les 500 ms
-
-
 
     segment = "(" + segment_number + ")" if segment_number else ""
 
     video = Video.objects.create(
         video=dest_path,
-        title=event.title + segment,
-        owner=event.owner,
-        description=event.description + "<br/>" + _("Record the %(start_date)s from %(start_time)s to %(end_time)s")
-                    % {'start_date': event.start_date.strftime("%d/%m/%Y"),
-                       'start_time': event.start_time.strftime("%H:%M"),
-                       'end_time': event.end_time.strftime("%H:%M")},
-        is_draft=event.is_draft,
-        type=event.type,
+        title=live_event.title + segment,
+        owner=live_event.owner,
+        description=live_event.description + "<br/>" + _("Record the %(start_date)s from %(start_time)s to %(end_time)s")
+                    % {'start_date': live_event.start_date.strftime("%d/%m/%Y"),
+                       'start_time': live_event.start_time.strftime("%H:%M"),
+                       'end_time': live_event.end_time.strftime("%H:%M")},
+        is_draft=live_event.is_draft,
+        type=live_event.type,
     )
     video.launch_encode = True
     video.save()
 
-    event.videos.add(video)
-    event.save()
+    live_event.videos.add(video)
+    live_event.save()
 
-    videos = event.videos.all()
+    videos = live_event.videos.all()
 
     video_list = {}
     for video in videos:
@@ -694,6 +702,7 @@ def checkFileSize(full_file_name, max_attempt = 6):
         else:
             logger.info("Size checked")
             size_match = True
+
 
 def checkDirExists(dest_dir_name, max_attempt = 6):
 
@@ -775,6 +784,7 @@ def stop_record(broadcaster: Broadcaster) -> bool:
     if not impl_class:
         return False
     return impl_class.stop()
+
 
 def get_info_current_record(broadcaster: Broadcaster) -> dict:
     impl_class = get_piloting_implementation(broadcaster)
