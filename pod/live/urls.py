@@ -2,7 +2,7 @@ from django.conf.urls import url
 
 from .views import settings, broadcasters_from_building, building, event, events, event_edit, event_delete, heartbeat, \
     lives, my_events, video_live, ajax_event_startrecord, ajax_event_stoprecord, ajax_event_splitrecord, \
-    event_isstreamavailabletorecord, event_video_transform, event_get_video_cards
+    event_isstreamavailabletorecord, event_video_transform, event_get_video_cards, ajax_event_info_record
 
 app_name = "live"
 
@@ -24,6 +24,7 @@ else:
         url(r"^ajax_calls/event_startrecord/$", ajax_event_startrecord, name="ajax_event_startrecord"),
         url(r"^ajax_calls/event_stoprecord/$", ajax_event_stoprecord, name="ajax_event_stoprecord"),
         url(r"^ajax_calls/event_splitrecord/$", ajax_event_splitrecord, name="ajax_event_splitrecord"),
+        url(r"^ajax_calls/geteventinforcurrentecord/$", ajax_event_info_record, name="ajax_event_info_record"),
         url(r"^ajax_calls/heartbeat/", heartbeat),
         url(r"^event/(?P<slug>[\-\d\w]+)/$", event, name="event"),
         url(r"^event/(?P<slug>[\-\d\w]+)/(?P<slug_private>[\-\d\w]+)/$", event, name="event_private"),

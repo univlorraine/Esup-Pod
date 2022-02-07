@@ -2,7 +2,7 @@ import json
 import os.path
 import re
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from time import sleep
 from typing import Optional
 
@@ -578,6 +578,32 @@ def event_stoprecord(event_id, broadcaster_id):
     if stop_record(broadcaster):
         return event_video_transform(event_id, current_record_info.get("currentFile", None),
                                      current_record_info.get("segmentNumber", None))
+
+    return JsonResponse({"success": False, "error": ""})
+
+
+@login_required(redirect_field_name="referrer")
+def ajax_event_info_record(request):
+    if request.method == "POST" and request.is_ajax():
+        event_id = request.POST.get("idevent", None)
+        broadcaster_id = request.POST.get("idbroadcaster", None)
+        return event_info_record(event_id, broadcaster_id)
+
+    return HttpResponseNotAllowed(["POST"])
+
+def event_info_record(event_id, broadcaster_id):
+    broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+
+    if not check_piloting_conf(broadcaster):
+        return JsonResponse({"success": False, "error": "implementation error"})
+
+    if not is_recording(broadcaster):
+        return JsonResponse({"success": False, "error": "the broadcaster is not recording"})
+
+    current_record_info = get_info_current_record(broadcaster)
+
+    if current_record_info.get("segmentDuration")!="":
+        return JsonResponse({"success": True, "duration": datetime.utcfromtimestamp((timedelta(milliseconds=current_record_info.get("segmentDuration"))).total_seconds()).strftime("%H:%M:%S")})
 
     return JsonResponse({"success": False, "error": ""})
 

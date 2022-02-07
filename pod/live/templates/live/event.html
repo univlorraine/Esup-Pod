@@ -50,6 +50,7 @@
             </div>
 
         </div>
+        <div id="recordingduration"></div>
         {% if need_piloting_buttons %}
             <div id="control">
                 <button type="button" class="btn btn-primary btn-sm m-1 d-none"
@@ -281,6 +282,8 @@
                         $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
+                        $("#recordingduration").html("").removeClass("d-none")
+                        setInterval(getInfoCurrentRecord,2000)
                     } else {
                         console.warning('Start not done : ' + data.message)
                     }
@@ -308,6 +311,8 @@
                         $("#startrecord").removeClass("d-none")
                         $("#stoprecord").addClass("d-none")
                         $("#splitrecord").addClass("d-none")
+                        $("#recordingduration").html("").addClass("d-none")
+                        clearInterval(getInfoCurrentRecord())
                         getEventVideos();
                     } else {
                         console.warning('Stop not done : ' + data.message)
@@ -395,6 +400,7 @@
                     if (data.recording) {
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
+                        setInterval(getInfoCurrentRecord,1000)
                     } else if (data.available) {
                         $("#startrecord").removeClass("d-none")
                     }
@@ -411,6 +417,37 @@
             updateStreamStatus()
             setInterval(updateStreamStatus, 60000) // every 60 sec
         })
+
+
+        const getInfoCurrentRecord = function () {
+            $.ajax({
+                url: "{% url 'live:ajax_event_info_record' %}",
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                data: {
+                    "idevent": "{{ event.id }}",
+                    "idbroadcaster": "{{ event.broadcaster.id }}",
+                },
+                success: function (data) {
+                    if (data.success) {
+                        console.log('Recording Info')
+                        $("#recordingduration").html('{% trans "Recording duration" %} : ' + data.duration)
+                    } else {
+                        $("#recordingduration").html("")
+                        console.error('Recording Info not done')
+                        clearInterval(getInfoCurrentRecord())
+                    }
+                },
+                error: function (xhr) {
+                    const err = JSON.parse(xhr.responseText)
+                    console.error('Error calling info record : ' + err.error)
+                },
+            })
+        }
+
+
 
     </script>
 
