@@ -121,6 +121,7 @@ class EventAdmin(admin.ModelAdmin):
         "end_time",
         "broadcaster",
         "is_draft",
+        "is_auto_start",
     )
     fields = (
         "title",
@@ -131,7 +132,8 @@ class EventAdmin(admin.ModelAdmin):
         "end_time",
         "type",
         "broadcaster",
-        "is_draft"
+        "is_draft",
+        "is_auto_start",
     )
 
 admin.site.register(Building, BuildingAdmin)

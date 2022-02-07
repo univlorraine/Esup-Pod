@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-01 10:56+0100\n"
+"POT-Creation-Date: 2022-02-07 09:18+0100\n"
 "PO-Revision-Date: 2021-01-22 12:27+0100\n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: \n"
@@ -149,8 +149,8 @@ msgstr ""
 #: pod/enrichment/templates/enrichment/group_enrichment.html:29
 #: pod/interactive/templates/interactive/group_interactive.html:27
 #: pod/live/templates/live/event_delete.html:39
-#: pod/live/templates/live/live-form.html:10 pod/live/views.py:429
-#: pod/live/views.py:458 pod/main/templates/contact_us.html:17
+#: pod/live/templates/live/live-form.html:10 pod/live/views.py:434
+#: pod/live/views.py:463 pod/main/templates/contact_us.html:17
 #: pod/main/tests/test_views.py:99 pod/main/views.py:300
 #: pod/playlist/views.py:217
 #: pod/recorder/templates/recorder/add_recording.html:34
@@ -178,7 +178,7 @@ msgstr ""
 #: pod/enrichment/templates/enrichment/group_enrichment.html:51
 #: pod/interactive/templates/interactive/group_interactive.html:49
 #: pod/live/templates/live/event_delete.html:65
-#: pod/live/templates/live/event_edit.html:84
+#: pod/live/templates/live/event_edit.html:83
 #: pod/live/templates/live/live-form.html:25
 #: pod/main/templates/contact_us.html:40
 #: pod/playlist/templates/playlist/playlist_video_list.html:72
@@ -2184,11 +2184,11 @@ msgstr ""
 msgid "Broadcaster device"
 msgstr ""
 
-#: pod/live/forms.py:193 pod/recorder/forms.py:75 pod/video/forms.py:864
+#: pod/live/forms.py:194 pod/recorder/forms.py:75 pod/video/forms.py:864
 msgid "I agree"
 msgstr ""
 
-#: pod/live/forms.py:194
+#: pod/live/forms.py:195
 msgid "Delete event cannot be undo"
 msgstr ""
 
@@ -2402,11 +2402,19 @@ msgid ""
 "users."
 msgstr ""
 
-#: pod/live/models.py:377
+#: pod/live/models.py:364
+msgid "Auto start"
+msgstr ""
+
+#: pod/live/models.py:366
+msgid "If this box is checked, the record will start automatically."
+msgstr ""
+
+#: pod/live/models.py:386
 msgid "Event"
 msgstr ""
 
-#: pod/live/models.py:378 pod/live/templates/live/events.html:9
+#: pod/live/models.py:387 pod/live/templates/live/events.html:9
 msgid "Events"
 msgstr ""
 
@@ -2517,57 +2525,57 @@ msgstr ""
 msgid "Split record"
 msgstr ""
 
-#: pod/live/templates/live/event.html:71
+#: pod/live/templates/live/event.html:73
 msgid "Event is finished at : "
 msgstr ""
 
-#: pod/live/templates/live/event.html:76
+#: pod/live/templates/live/event.html:78
 msgid "The event is scheduled on the : "
 msgstr ""
 
-#: pod/live/templates/live/event.html:77
+#: pod/live/templates/live/event.html:79
 msgid "from"
 msgstr ""
 
-#: pod/live/templates/live/event.html:77
+#: pod/live/templates/live/event.html:79
 msgid "to"
 msgstr ""
 
-#: pod/live/templates/live/event.html:84
+#: pod/live/templates/live/event.html:86
 msgid "Current event videos"
 msgstr ""
 
-#: pod/live/templates/live/event.html:98
+#: pod/live/templates/live/event.html:100
 #: pod/live/templates/live/event_edit.html:104
 msgid "Manage event"
 msgstr ""
 
-#: pod/live/templates/live/event.html:102
+#: pod/live/templates/live/event.html:104
 #: pod/live/templates/live/event_edit.html:108
 msgid "Edit the event"
 msgstr ""
 
-#: pod/live/templates/live/event.html:110
+#: pod/live/templates/live/event.html:112
 #: pod/live/templates/live/event_edit.html:115
 msgid "Delete the event"
 msgstr ""
 
-#: pod/live/templates/live/event.html:138 pod/live/templates/live/live.html:199
+#: pod/live/templates/live/event.html:140 pod/live/templates/live/live.html:199
 #: pod/video/templates/videos/video-script.html:28
 msgid "Please use different browser"
 msgstr ""
 
-#: pod/live/templates/live/event.html:180 pod/live/templates/live/live.html:236
+#: pod/live/templates/live/event.html:182 pod/live/templates/live/live.html:236
 msgid ""
 "Thank you for watching this streaming live with us. The page will reload "
 "automatically within a few seconds to display the video on hold."
 msgstr ""
 
-#: pod/live/templates/live/event.html:204 pod/live/templates/live/live.html:253
+#: pod/live/templates/live/event.html:206 pod/live/templates/live/live.html:253
 msgid "Live not found, displaying the video on hold, retry every 10 seconds"
 msgstr ""
 
-#: pod/live/templates/live/event.html:228 pod/live/templates/live/live.html:268
+#: pod/live/templates/live/event.html:229 pod/live/templates/live/live.html:268
 msgid "Live not found, retry in 10 seconds"
 msgstr ""
 
@@ -2640,7 +2648,7 @@ msgstr ""
 msgid "The event is currently in progress. Editing options are limited."
 msgstr ""
 
-#: pod/live/templates/live/event_edit.html:60
+#: pod/live/templates/live/event_edit.html:90
 #: pod/live/templates/live/event_edit.html:153
 msgid "Display advanced options"
 msgstr ""
@@ -2837,33 +2845,33 @@ msgstr ""
 msgid "Past events"
 msgstr ""
 
-#: pod/live/views.py:82
+#: pod/live/views.py:85
 msgid "You cannot view this page."
 msgstr ""
 
-#: pod/live/views.py:121
+#: pod/live/views.py:124
 #: pod/playlist/templates/playlist/playlist_video_list.html:73
 #: pod/video/views.py:871
 msgid "The password is incorrect."
 msgstr ""
 
-#: pod/live/views.py:246
+#: pod/live/views.py:249
 msgid "You cannot watch this event."
 msgstr ""
 
-#: pod/live/views.py:422 pod/video/views.py:361 pod/video/views.py:947
+#: pod/live/views.py:427 pod/video/views.py:361 pod/video/views.py:947
 msgid "The changes have been saved."
 msgstr ""
 
-#: pod/live/views.py:443
+#: pod/live/views.py:448
 msgid "You cannot delete this event."
 msgstr ""
 
-#: pod/live/views.py:452
+#: pod/live/views.py:457
 msgid "The event has been deleted."
 msgstr ""
 
-#: pod/live/views.py:632
+#: pod/live/views.py:660
 #, python-format
 msgid "Record the %(start_date)s from %(start_time)s to %(end_time)s"
 msgstr ""

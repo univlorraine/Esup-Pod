@@ -360,6 +360,15 @@ class Event(models.Model):
         default=False,
     )
 
+    is_auto_start = models.BooleanField(
+        verbose_name=_("Auto start"),
+        help_text=_(
+            "If this box is checked, "
+            "the record will start automatically."
+        ),
+        default=False,
+    )
+
     # password = models.CharField(
     #     _("password"),
     #     help_text=_("Viewing this video will not be possible without this password."),

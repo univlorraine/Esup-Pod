@@ -8,7 +8,6 @@ from pod.live.models import Broadcaster, get_building_having_available_broadcast
     get_available_broadcasters_of_building
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
-from django.forms.widgets import HiddenInput
 
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
@@ -125,7 +124,7 @@ class EventForm(forms.ModelForm):
         empty_label=None,
     )
 
-    field_order = ['title', 'building', 'broadcaster', 'start_date', 'start_time', 'end_time']
+    # field_order = ['title', 'building', 'broadcaster', 'start_date', 'start_time', 'end_time']
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -141,6 +140,7 @@ class EventForm(forms.ModelForm):
             self.remove_field("start_date")
             self.remove_field("start_time")
             self.remove_field("is_draft")
+            self.remove_field("is_auto_start")
             self.remove_field("building")
             self.remove_field("broadcaster")
             self.remove_field("owner")
@@ -181,7 +181,7 @@ class EventForm(forms.ModelForm):
 
     class Meta(object):
         model = Event
-        fields = ["title", "description", "owner", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft"]
+        fields = ["title", "description", "owner", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft", "is_auto_start"]
         widgets = {
             'start_date': widgets.AdminDateWidget,
             'start_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),

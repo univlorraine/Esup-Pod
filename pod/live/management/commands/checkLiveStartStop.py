@@ -87,7 +87,8 @@ class Command(BaseCommand):
         self.stdout.write("-- Starting new events")
 
         events = Event.objects.filter(
-            Q(start_date=date.today())
+            Q(is_auto_start=True)
+            & Q(start_date=date.today())
             & Q(start_time__lte=datetime.now())
             & Q(end_time__gte=datetime.now())
         )
