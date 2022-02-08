@@ -434,3 +434,7 @@ class Event(models.Model):
     def is_coming(self):
         return self.start_date > date.today() or (
                     self.start_date == date.today() and datetime.now().time() < self.start_time)
+
+    @property
+    def get_start(self):
+        return datetime.combine(self.start_date, self.start_time)

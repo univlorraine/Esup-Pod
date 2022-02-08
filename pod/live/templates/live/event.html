@@ -411,13 +411,6 @@
             })
         }
 
-        // On load
-        $(function () {
-            getEventVideos()
-            updateStreamStatus()
-            setInterval(updateStreamStatus, 60000) // every 60 sec
-        })
-
 
         const getInfoCurrentRecord = function () {
             $.ajax({
@@ -447,7 +440,26 @@
             })
         }
 
+        const reloadIfHasStarted = function () {
+            {% if event.is_coming %}
+                const deb = new Date("{{ event.get_start.isoformat }}")
 
+                setInterval(function () {
+                    if (new Date() > deb)
+                        location.reload()
+                }, 1000);
+
+            {% endif %}
+        }
+
+        // On load
+        $(function () {
+            getEventVideos()
+            updateStreamStatus()
+            setInterval(updateStreamStatus, 60000) // every 60 sec
+
+            reloadIfHasStarted()
+        })
 
     </script>
 
