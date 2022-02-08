@@ -282,8 +282,8 @@
                         $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
-                        $("#recordingduration").html("").removeClass("d-none")
-                        setInterval(getInfoCurrentRecord,2000)
+                        recordingduration = 0
+                        setInterval(displayRecordingDuration,1000)
                     } else {
                         console.warning('Start not done : ' + data.message)
                     }
@@ -312,7 +312,6 @@
                         $("#stoprecord").addClass("d-none")
                         $("#splitrecord").addClass("d-none")
                         $("#recordingduration").html("").addClass("d-none")
-                        clearInterval(getInfoCurrentRecord())
                         getEventVideos();
                     } else {
                         console.warning('Stop not done : ' + data.message)
@@ -322,6 +321,9 @@
                     const err = JSON.parse(xhr.responseText)
                     console.error('Error calling stop record : ' + err.error)
                 },
+                complete: function (){
+                    clearInterval(displayRecordingDuration)
+                }
             })
         })
 
@@ -342,6 +344,8 @@
                     if (data.success) {
                         console.log("conversion done")
                         getEventVideos();
+                        recordingduration=0
+                        setInterval(displayRecordingDuration,1000)
                     }
                 },
                 error: function (xhr) {
@@ -400,7 +404,7 @@
                     if (data.recording) {
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
-                        setInterval(getInfoCurrentRecord,1000)
+                        getInfoCurrentRecord()
                     } else if (data.available) {
                         $("#startrecord").removeClass("d-none")
                     }
@@ -411,6 +415,16 @@
             })
         }
 
+        let recordingduration = 0;
+
+        const displayRecordingDuration = function (){
+            let minutes = parseInt(recordingduration/60,10)
+            let seconds = recordingduration  - minutes * 60
+            minutes = minutes<10 ? "0"+minutes : minutes
+            seconds = seconds<10 ? "0"+seconds : seconds
+            $("#recordingduration").html('{% trans "Recording duration" %} : ' + minutes + ':' + seconds);
+            recordingduration++
+        }
 
         const getInfoCurrentRecord = function () {
             $.ajax({
@@ -426,7 +440,9 @@
                 success: function (data) {
                     if (data.success) {
                         console.log('Recording Info')
-                        $("#recordingduration").html('{% trans "Recording duration" %} : ' + data.duration)
+                        recordingduration = data.duration
+                        console.log(recordingduration)
+                        setInterval(displayRecordingDuration,1000)
                     } else {
                         $("#recordingduration").html("")
                         console.error('Recording Info not done')
@@ -457,6 +473,7 @@
             getEventVideos()
             updateStreamStatus()
             setInterval(updateStreamStatus, 60000) // every 60 sec
+            //setInterval(getInfoCurrentRecord,60000) // every 60 sec
 
             reloadIfHasStarted()
         })

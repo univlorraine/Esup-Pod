@@ -603,7 +603,7 @@ def event_info_record(event_id, broadcaster_id):
     current_record_info = get_info_current_record(broadcaster)
 
     if current_record_info.get("segmentDuration")!="":
-        return JsonResponse({"success": True, "duration": datetime.utcfromtimestamp((timedelta(milliseconds=current_record_info.get("segmentDuration"))).total_seconds()).strftime("%H:%M:%S")})
+        return JsonResponse({"success": True, "duration": int((timedelta(milliseconds=current_record_info.get("segmentDuration"))).total_seconds())})
 
     return JsonResponse({"success": False, "error": ""})
 
