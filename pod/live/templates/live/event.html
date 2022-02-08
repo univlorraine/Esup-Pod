@@ -285,7 +285,7 @@
                         recordingduration = 0
                         setInterval(displayRecordingDuration,1000)
                     } else {
-                        console.warning('Start not done : ' + data.message)
+                        console.warn('Start not done : ' + data.message)
                     }
                 },
                 error: function (data) {
@@ -314,7 +314,7 @@
                         $("#recordingduration").html("").addClass("d-none")
                         getEventVideos();
                     } else {
-                        console.warning('Stop not done : ' + data.message)
+                        console.warn('Stop not done : ' + data.message)
                     }
                 },
                 error: function (xhr) {
@@ -387,9 +387,6 @@
         // Status of the stream
         const updateStreamStatus = function () {
             console.log("get stream status" + new Date())
-            $("#startrecord").addClass("d-none")
-            $("#stoprecord").addClass("d-none")
-            $("#splitrecord").addClass("d-none")
             $.ajax({
                 url: "{% url 'live:event_isstreamavailabletorecord' %}",
                 method: 'GET',
@@ -402,10 +399,11 @@
                 },
                 success: function (data) {
                     if (data.recording) {
+                        $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
                         getInfoCurrentRecord()
-                    } else  {
+                    } else {
                         if (data.available) {
                             $("#startrecord").removeClass("d-none")
                         }
