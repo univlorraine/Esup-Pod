@@ -285,7 +285,7 @@
                         $("#recordingduration").html("").removeClass("d-none")
                         setInterval(getInfoCurrentRecord,2000)
                     } else {
-                        console.warning('Start not done : ' + data.message)
+                        console.warn('Start not done : ' + data.message)
                     }
                 },
                 error: function (data) {
@@ -315,7 +315,7 @@
                         clearInterval(getInfoCurrentRecord())
                         getEventVideos();
                     } else {
-                        console.warning('Stop not done : ' + data.message)
+                        console.warn('Stop not done : ' + data.message)
                     }
                 },
                 error: function (xhr) {
@@ -383,9 +383,6 @@
         // Status of the stream
         const updateStreamStatus = function () {
             console.log("get stream status" + new Date())
-            $("#startrecord").addClass("d-none")
-            $("#stoprecord").addClass("d-none")
-            $("#splitrecord").addClass("d-none")
             $.ajax({
                 url: "{% url 'live:event_isstreamavailabletorecord' %}",
                 method: 'GET',
@@ -398,14 +395,22 @@
                 },
                 success: function (data) {
                     if (data.recording) {
+                        $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
                         setInterval(getInfoCurrentRecord,1000)
-                    } else if (data.available) {
-                        $("#startrecord").removeClass("d-none")
+                    } else {
+                        if (data.available) {
+                            $("#startrecord").removeClass("d-none")
+                        }
+                        $("#stoprecord").addClass("d-none")
+                        $("#splitrecord").addClass("d-none")
                     }
                 },
                 error: function (data) {
+                    $("#startrecord").addClass("d-none")
+                    $("#stoprecord").addClass("d-none")
+                    $("#splitrecord").addClass("d-none")
                     console.error('error calling isstreamavailabletorecord')
                 },
             })
