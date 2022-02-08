@@ -405,11 +405,18 @@
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
                         getInfoCurrentRecord()
-                    } else if (data.available) {
-                        $("#startrecord").removeClass("d-none")
+                    } else  {
+                        if (data.available) {
+                            $("#startrecord").removeClass("d-none")
+                        }
+                        $("#stoprecord").addClass("d-none")
+                        $("#splitrecord").addClass("d-none")
                     }
                 },
                 error: function (data) {
+                    $("#startrecord").addClass("d-none")
+                    $("#stoprecord").addClass("d-none")
+                    $("#splitrecord").addClass("d-none")
                     console.error('error calling isstreamavailabletorecord')
                 },
             })
