@@ -284,7 +284,6 @@
                         $("#splitrecord").removeClass("d-none")
                         $("#recordingduration").html("").removeClass("d-none")
                         recordingduration = 0
-                        setInterval(displayRecordingDuration,1000)
                     } else {
                         console.warn('Start not done : ' + data.message)
                     }
@@ -321,9 +320,6 @@
                 error: function (xhr) {
                     const err = JSON.parse(xhr.responseText)
                     console.error('Error calling stop record : ' + err.error)
-                },
-                complete: function (){
-                    clearInterval(displayRecordingDuration)
                 }
             })
         })
@@ -351,7 +347,6 @@
                 error: function (xhr) {
                     const err = JSON.parse(xhr.responseText)
                     console.error('Error calling splitrecord : ' + err.error)
-                    clearInterval(displayRecordingDuration)
                 },
                 complete: function (){
                     $("#stoprecord").prop('disabled', false)
@@ -410,12 +405,14 @@
                         }
                         $("#stoprecord").addClass("d-none")
                         $("#splitrecord").addClass("d-none")
+                        $("#recordingduration").addClass("d-none")
                     }
                 },
                 error: function (data) {
                     $("#startrecord").addClass("d-none")
                     $("#stoprecord").addClass("d-none")
                     $("#splitrecord").addClass("d-none")
+                    $("#recordingduration").addClass("d-none")
                     console.error('error calling isstreamavailabletorecord')
                 },
             })
@@ -447,12 +444,11 @@
                     if (data.success) {
                         console.log('Recording Info')
                         recordingduration = data.duration
+                        $("#recordingduration").removeClass("d-none")
                         console.log(recordingduration)
-                        setInterval(displayRecordingDuration,1000)
                     } else {
-                        $("#recordingduration").html("")
+                        $("#recordingduration").addClass("d-none")
                         console.error('Recording Info not done')
-                        clearInterval(displayRecordingDuration)
                     }
                 },
                 error: function (xhr) {
@@ -480,7 +476,10 @@
             updateStreamStatus()
             setInterval(updateStreamStatus, 60000) // every 60 sec
             //setInterval(getInfoCurrentRecord,60000) // every 60 sec
-
+            {% if event.owner == request.user or request.user.is_superuser %}
+                getInfoCurrentRecord()
+                setInterval(displayRecordingDuration,1000)
+            {%  endif %}
             reloadIfHasStarted()
         })
 
