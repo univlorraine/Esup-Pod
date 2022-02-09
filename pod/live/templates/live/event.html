@@ -282,13 +282,14 @@
                         $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
-                        $("#recordingduration").html("").removeClass("d-none")
+                        $("#recordingduration").removeClass("d-none")
                         recordingduration = 0
                     } else {
                         console.warn('Start not done : ' + data.message)
                     }
                 },
                 error: function (data) {
+                    $("#recordingduration").addClass("d-none")
                     console.error('Error calling startrecord')
                 }
             })
@@ -311,14 +312,16 @@
                         $("#startrecord").removeClass("d-none")
                         $("#stoprecord").addClass("d-none")
                         $("#splitrecord").addClass("d-none")
-                        $("#recordingduration").html("").addClass("d-none")
+                        $("#recordingduration").addClass("d-none")
                         getEventVideos();
                     } else {
-                        console.warn('Stop not done : ' + data.message)
+                        console.warn('Stop not done ')
+                        $("#recordingduration").addClass("d-none")
                     }
                 },
                 error: function (xhr) {
                     const err = JSON.parse(xhr.responseText)
+                    $("#recordingduration").addClass("d-none")
                     console.error('Error calling stop record : ' + err.error)
                 }
             })
@@ -339,14 +342,18 @@
                 },
                 success: function (data) {
                     if (data.success) {
-                        console.log("conversion done")
+                        recordingduration = 0;
+                        console.log("conversion done");
                         getEventVideos();
-                        recordingduration=0
+                    } else {
+                        console.warn('Split not done ')
+                        $("#recordingduration").addClass("d-none")
                     }
                 },
                 error: function (xhr) {
                     const err = JSON.parse(xhr.responseText)
                     console.error('Error calling splitrecord : ' + err.error)
+                    $("#recordingduration").addClass("d-none")
                 },
                 complete: function (){
                     $("#stoprecord").prop('disabled', false)
@@ -475,10 +482,11 @@
             getEventVideos()
             updateStreamStatus()
             setInterval(updateStreamStatus, 60000) // every 60 sec
-            //setInterval(getInfoCurrentRecord,60000) // every 60 sec
+
             {% if event.owner == request.user or request.user.is_superuser %}
                 setInterval(displayRecordingDuration,1000)
             {%  endif %}
+
             reloadIfHasStarted()
         })
 
