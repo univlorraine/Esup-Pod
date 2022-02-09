@@ -351,6 +351,7 @@
                 error: function (xhr) {
                     const err = JSON.parse(xhr.responseText)
                     console.error('Error calling splitrecord : ' + err.error)
+                    clearInterval(displayRecordingDuration)
                 },
                 complete: function (){
                     $("#stoprecord").prop('disabled', false)
@@ -451,7 +452,7 @@
                     } else {
                         $("#recordingduration").html("")
                         console.error('Recording Info not done')
-                        clearInterval(getInfoCurrentRecord())
+                        clearInterval(displayRecordingDuration)
                     }
                 },
                 error: function (xhr) {
