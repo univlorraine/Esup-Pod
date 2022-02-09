@@ -477,7 +477,6 @@
             setInterval(updateStreamStatus, 60000) // every 60 sec
             //setInterval(getInfoCurrentRecord,60000) // every 60 sec
             {% if event.owner == request.user or request.user.is_superuser %}
-                getInfoCurrentRecord()
                 setInterval(displayRecordingDuration,1000)
             {%  endif %}
             reloadIfHasStarted()
