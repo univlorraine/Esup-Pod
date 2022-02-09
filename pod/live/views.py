@@ -663,7 +663,7 @@ def event_video_transform(event_id, current_file, segment_number):
     try :
         checkFileSize(full_file_name)
     except:
-        return JsonResponse(status=500, data={"success": False, "error": "File copy aborted"})
+        return JsonResponse(status=500, data={"success": False, "error": "check file to copy aborted"})
 
     # moving the file
     try:
@@ -675,7 +675,11 @@ def event_video_transform(event_id, current_file, segment_number):
         logger.error(f"FileNotFoundError: {format(err)}")
         return JsonResponse(status=500, data={"success": False, "error": f"FileNotFoundError: {format(err)}"})
 
-    # TODO voir si la taille du fichier copié ne bouge plus 6x toutes les 500 ms
+    # verif si la taille du fichier copié ne bouge plus
+    try :
+        checkFileSize(dest_file)
+    except:
+        return JsonResponse(status=500, data={"success": False, "error": "check file moved aborted"})
 
     segment = "(" + segment_number + ")" if segment_number else ""
 
@@ -715,16 +719,16 @@ def checkFileSize(full_file_name, max_attempt = 6):
 
     attempt_number = 1
     while not size_match and attempt_number <= max_attempt:
-        if attempt_number > 1:
-            sleep(0.5)
+        # if attempt_number > 1:
+        sleep(0.5)
         new_size = os.path.getsize(full_file_name)
         if file_size != new_size:
             logger.warning(f"File size changing from {file_size} to {new_size}, attempt number {attempt_number} ")
             file_size = new_size
             attempt_number = attempt_number + 1
             if attempt_number == max_attempt:
-                logger.error(f"File: {full_file_name} is still moving")
-                raise Exception("File copy aborted")
+                logger.error(f"File: {full_file_name} is still changing")
+                raise Exception("checkFileSize aborted")
         else:
             logger.info("Size checked")
             size_match = True
