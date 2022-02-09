@@ -465,15 +465,24 @@
             })
         }
 
-        const reloadIfHasStarted = function () {
-            {% if event.is_coming %}
-                const deb = new Date("{{ event.get_start.isoformat }}")
+        // if event has started or ended while viewing, the page is reloaded
+        const reloadIfNeeded = function () {
+            const start = new Date("{{ event.get_start.isoformat }}")
+            const end = new Date("{{ event.get_end.isoformat }}")
 
+            {% if event.is_coming %}
                 setInterval(function () {
-                    if (new Date() > deb)
+                    if (new Date() >= start){
                         location.reload()
+                    }
                 }, 1000);
 
+            {% elif event.is_current %}
+                setInterval(function () {
+                    if (new Date() >= end) {
+                        location.reload()
+                    }
+                }, 1000);
             {% endif %}
         }
 
@@ -487,7 +496,7 @@
                 setInterval(displayRecordingDuration,1000)
             {%  endif %}
 
-            reloadIfHasStarted()
+            reloadIfNeeded()
         })
 
     </script>
