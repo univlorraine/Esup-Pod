@@ -609,7 +609,6 @@ def event_info_record(event_id, broadcaster_id):
 
 
 @csrf_protect
-@login_required(redirect_field_name="referrer")
 def event_get_video_cards(request):
     if request.is_ajax():
         event_id = request.GET.get("idevent", None)
