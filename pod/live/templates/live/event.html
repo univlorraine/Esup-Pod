@@ -16,13 +16,17 @@
     {% endif %}
 {% endblock %}
 
-{% block breadcrumbs %}{{ block.super }}
-    <li class="breadcrumb-item"><a href="{% url 'live:my_events' %}">{% trans 'My events' %}</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'live:event' slug=event.slug %}"
-                                   title="{{ event.title }}">{{ event.title|title|truncatechars:45 }}</a></li>
-{% endblock %}
+{% if not request.GET.is_iframe %}
+    {% block breadcrumbs %}{{ block.super }}
 
-{% block page_title %}{{ event.title|title|truncatechars:45 }}{% endblock %}
+        <li class="breadcrumb-item"><a href="{% url 'live:my_events' %}">{% trans 'My events' %}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'live:event' slug=event.slug %}"
+                                       title="{{ event.title }}">{{ event.title|title|truncatechars:45 }}</a></li>
+
+    {% endblock %}
+
+    {% block page_title %}{{ event.title|title|truncatechars:45 }}{% endblock %}
+{% endif %}
 
 {% block page_content %}
     {% csrf_token %}
@@ -50,25 +54,28 @@
             </div>
 
         </div>
-        <div id="recordingduration"></div>
-        {% if need_piloting_buttons %}
-            <div id="control">
-                <button type="button" class="btn btn-primary btn-sm m-1 d-none"
-                        id="startrecord">{% trans "Start record" %}</button>
-                <button type="button" class="btn btn-primary btn-sm m-1 d-none"
-                        id="stoprecord">{% trans "Stop record" %}</button>
-                <button type="button" class="btn btn-primary btn-sm m-1 d-none"
-                        id="splitrecord">{% trans "Split record" %}</button>
+
+        {% if not request.GET.is_iframe %}
+            <div id="recordingduration"></div>
+            {% if need_piloting_buttons %}
+                <div id="control">
+                    <button type="button" class="btn btn-primary btn-sm m-1 d-none"
+                            id="startrecord">{% trans "Start record" %}</button>
+                    <button type="button" class="btn btn-primary btn-sm m-1 d-none"
+                            id="stoprecord">{% trans "Stop record" %}</button>
+                    <button type="button" class="btn btn-primary btn-sm m-1 d-none"
+                            id="splitrecord">{% trans "Split record" %}</button>
+                </div>
+            {% endif %}
+            <div id="info-video" style="display:none" class="jumbotron">
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
+
+            <div id="viewers-list"><ul id="viewers-ul"></ul></div>
+
         {% endif %}
-        <div id="info-video" style="display:none" class="jumbotron">
-            <button type="button" class="close" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-
-        <div id="viewers-list"><ul id="viewers-ul"></ul></div>
-
     {% else %}
         <div id="divvideoonhold" style="display: none;">
             <video id="podvideoonholdplayer"></video>
@@ -89,44 +96,48 @@
         {% endif %}
     {% endif %}
 
-
-    <div id="list_videos_of_event" {% if event.videos.count == 0 %} class="d-none" {% endif %}>
-        <div class="jumbotron pl-0" id="event_videos">
-            <h4>{% trans "Current event videos" %}</h4>
-            <div id="event_videos_list"></div>
-        </div>
-    </div>
-
-    <div id="info-video">{% include 'live/event-all-info.html' %}</div>
-{% endblock %}
-
-{% block page_aside %}
-
-    {% include 'aside.html' with HIDE_DISCIPLINES=True HIDE_TAGS=True %}
-
-    {% if event.owner == request.user or request.user.is_superuser or perms.live.delete_event %}
-        <div class="card mt-1" id="card-managevideo">
-            <h5 class="card-header card-title pl-2"><i data-feather="settings"></i>&nbsp;{% trans "Manage event" %}
-            </h5>
-            <div class="card-body card-text text-center">
-                {% if event.owner == request.user or request.user.is_superuser %}
-                    <a href="{% url 'live:event_edit' slug=event.slug %}" title="{% trans "Edit the event" %}"
-                       class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
-                        <i data-feather="edit"></i>
-                    </a>
-                {% endif %}
-
-                <a href="{% url 'live:event_delete' slug=event.slug %}"
-                   class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1"
-                   title="{% trans "Delete the event" %}">
-                    <i data-feather="trash-2"></i>
-                </a>
-
+    {% if not request.GET.is_iframe %}
+        <div id="list_videos_of_event" {% if event.videos.count == 0 %} class="d-none" {% endif %}>
+            <div class="jumbotron pl-0" id="event_videos">
+                <h4>{% trans "Current event videos" %}</h4>
+                <div id="event_videos_list"></div>
             </div>
         </div>
-    {% endif %}
 
-{% endblock page_aside %}
+        <div id="info-video">{% include 'live/event-all-info.html' %}</div>
+
+    {% endif %}
+{% endblock %}
+
+{% if not request.GET.is_iframe %}
+    {% block page_aside %}
+
+        {% include 'aside.html' with HIDE_DISCIPLINES=True HIDE_TAGS=True %}
+
+        {% if event.owner == request.user or request.user.is_superuser or perms.live.delete_event %}
+            <div class="card mt-1" id="card-managevideo">
+                <h5 class="card-header card-title pl-2"><i data-feather="settings"></i>&nbsp;{% trans "Manage event" %}
+                </h5>
+                <div class="card-body card-text text-center">
+                    {% if event.owner == request.user or request.user.is_superuser %}
+                        <a href="{% url 'live:event_edit' slug=event.slug %}" title="{% trans "Edit the event" %}"
+                           class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
+                            <i data-feather="edit"></i>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'live:event_delete' slug=event.slug %}"
+                       class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1"
+                       title="{% trans "Delete the event" %}">
+                        <i data-feather="trash-2"></i>
+                    </a>
+
+                </div>
+            </div>
+        {% endif %}
+
+    {% endblock page_aside %}
+{% endif %}
 
 {% block more_script %}
     <script>
