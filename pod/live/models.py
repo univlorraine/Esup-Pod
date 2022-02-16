@@ -309,6 +309,22 @@ class Event(models.Model):
         search_field=select_event_owner(),
         on_delete=models.CASCADE,
     )
+
+    additional_owners = select2_fields.ManyToManyField(
+        User,
+        blank=True,
+        ajax=True,
+        js_options={"width": "off"},
+        verbose_name=_("Additional owners"),
+        search_field=select_event_owner(),
+        related_name="owners_events",
+        help_text=_(
+            "You can add additional owners to the event. They "
+            "will have the same rights as you except that they "
+            "can't delete this event."
+        ),
+    )
+
     start_date = models.DateField(
         _("Date of Event"),
         default=date.today,

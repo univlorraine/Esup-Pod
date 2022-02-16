@@ -144,6 +144,7 @@ class EventForm(forms.ModelForm):
             self.remove_field("building")
             self.remove_field("broadcaster")
             self.remove_field("owner")
+            self.remove_field("additional_owners")
 
         # mise a jour dynamique de la liste
         if 'building' in self.data:
@@ -181,7 +182,7 @@ class EventForm(forms.ModelForm):
 
     class Meta(object):
         model = Event
-        fields = ["title", "description", "owner", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft", "is_auto_start"]
+        fields = ["title", "description", "owner", "additional_owners", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft", "is_auto_start"]
         widgets = {
             'start_date': widgets.AdminDateWidget,
             'start_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),

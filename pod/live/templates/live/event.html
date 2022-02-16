@@ -114,12 +114,12 @@
 
         {% include 'aside.html' with HIDE_DISCIPLINES=True HIDE_TAGS=True %}
 
-        {% if event.owner == request.user or request.user.is_superuser or perms.live.delete_event %}
+        {% if event.owner == request.user or request.user in event.additional_owners.all or request.user.is_superuser or perms.live.delete_event %}
             <div class="card mt-1" id="card-managevideo">
                 <h5 class="card-header card-title pl-2"><i data-feather="settings"></i>&nbsp;{% trans "Manage event" %}
                 </h5>
                 <div class="card-body card-text text-center">
-                    {% if event.owner == request.user or request.user.is_superuser %}
+                    {% if event.owner == request.user or request.user in event.additional_owners.all or request.user.is_superuser %}
                         <a href="{% url 'live:event_edit' slug=event.slug %}" title="{% trans "Edit the event" %}"
                            class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
                             <i data-feather="edit"></i>
@@ -502,7 +502,7 @@
             getEventVideos()
 
             {% if event.is_current %}
-                {% if event.owner == request.user or request.user.is_superuser %}
+                {% if event.owner == request.user or request.user in event.additional_owners.all or request.user.is_superuser %}
                     updateStreamStatus()
                     setInterval(updateStreamStatus, 60000) // every 60 sec
                     setInterval(displayRecordingDuration, 1000) // every sec

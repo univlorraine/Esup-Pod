@@ -207,6 +207,7 @@ def get_event_access(request, event, slug_private):
         access_granted_for_private = slug_private and slug_private == event.get_hashkey()
         access_granted_for_draft = request.user.is_authenticated() and (
             request.user == event.owner
+            or request.user in event.additional_owners.all()
             or request.user.is_superuser
             or request.user.has_perm("live.view_event")
            # or (request.user in video.additional_owners.all())
@@ -251,7 +252,7 @@ def event(request, slug, slug_private=None):  # affichage d'un event
         raise PermissionDenied
 
     need_piloting_buttons = False
-    if (event.owner == request.user and (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY or
+    if ((event.owner == request.user or request.user in event.additional_owners.all()) and (not RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY or
                                          (RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY and request.user.is_staff))) \
             or request.user.is_superuser:
         need_piloting_buttons = True
@@ -320,6 +321,10 @@ def events(request):  # affichage des events
 def my_events(request):
     queryset = request.user.event_set
 
+    queryset = request.user.event_set.all() \
+               | request.user.owners_events.all()
+
+
     past_events = queryset.filter(
         Q(start_date__lt=date.today())
         |(Q(start_date=date.today()) & Q(end_time__lte=datetime.now()))
@@ -387,7 +392,8 @@ def get_event_edition_access(request, event):
             return True
     else:#edition
         if request.user.has_perm("live.change_event") \
-            or request.user == event.owner:
+            or request.user == event.owner \
+            or request.user in event.additional_owners.all():
             return True
     return False
 
