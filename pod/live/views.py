@@ -411,7 +411,7 @@ def event_edit(request, slug=None):
         request.POST or None,
         instance=event,
         user=request.user,
-        is_current_event=event.is_current if slug else None
+        is_current_event=event.is_current() if slug else None
     )
 
     if request.POST:
@@ -419,7 +419,7 @@ def event_edit(request, slug=None):
             request.POST,
             instance=event,
             user=request.user,
-            is_current_event=event.is_current if slug else None
+            is_current_event=event.is_current() if slug else None
         )
         if form.is_valid():
             event = form.save()

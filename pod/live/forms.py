@@ -157,7 +157,7 @@ class EventForm(forms.ModelForm):
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
         else:
-            if self.instance.pk and not self.instance.is_current:
+            if self.instance.pk and not is_current_event:
                 # à l'édition
                 broadcaster = self.instance.broadcaster
                 self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, broadcaster.building.id, broadcaster.id)
