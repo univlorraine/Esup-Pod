@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
@@ -6,9 +7,12 @@ from django.forms import Textarea
 from pod.live.forms import BuildingAdminForm, EventAdminForm, BroadcasterAdminForm
 from pod.live.models import Building, Event, Broadcaster, HeartBeat, Video
 
-
 # Register your models here.
 
+FILEPICKER = False
+if getattr(settings, "USE_PODFILE", False):
+    FILEPICKER = True
+    from pod.podfile.widgets import CustomFileWidget
 
 class HeartBeatAdmin(admin.ModelAdmin):
     list_display = ("viewkey", "user", "broadcaster", "last_heartbeat")
@@ -113,7 +117,7 @@ class EventAdmin(admin.ModelAdmin):
         return ModelFormMetaClass
 
     form = EventAdminForm
-    list_display = (
+    list_display = [
         "title",
         "owner",
         "start_date",
@@ -122,8 +126,9 @@ class EventAdmin(admin.ModelAdmin):
         "broadcaster",
         "is_draft",
         "is_auto_start",
-    )
-    fields = (
+        "get_thumbnail_admin",
+    ]
+    fields = [
         "title",
         "description",
         "owner",
@@ -134,7 +139,26 @@ class EventAdmin(admin.ModelAdmin):
         "broadcaster",
         "is_draft",
         "is_auto_start",
-    )
+    ]
+
+    if FILEPICKER:
+        fields.append("thumbnail")
+
+    class Media:
+        css = {
+            "all": (
+                "css/pod.css",
+                "bootstrap-4/css/bootstrap.min.css",
+                "bootstrap-4/css/bootstrap-grid.css",
+            )
+        }
+        js = (
+            "podfile/js/filewidget.js",
+            "js/main.js",
+            "js/validate-date_delete-field.js",
+            "feather-icons/feather.min.js",
+            "bootstrap-4/js/bootstrap.min.js",
+        )
 
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(Broadcaster, BroadcasterAdmin)

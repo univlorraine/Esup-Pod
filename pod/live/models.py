@@ -1,15 +1,16 @@
 """Esup-Pod "live" models."""
 import hashlib
+from datetime import date, datetime
 
-from datetime import timedelta, date, datetime
-from django.core.exceptions import ValidationError
 from ckeditor.fields import RichTextField
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
@@ -17,8 +18,10 @@ from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from select2 import fields as select2_fields
+from sorl.thumbnail import get_thumbnail
 
 from pod.main.models import get_nextautoincrement
 from pod.video.models import Video, Type
@@ -385,6 +388,14 @@ class Event(models.Model):
         default=False,
     )
 
+    thumbnail = models.ForeignKey(
+        CustomImageModel,
+        models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_("Thumbnails"),
+    )
+
     # password = models.CharField(
     #     _("password"),
     #     help_text=_("Viewing this video will not be possible without this password."),
@@ -432,6 +443,53 @@ class Event(models.Model):
         return hashlib.sha256(
             ("%s-%s" % (SECRET_KEY, self.id)).encode("utf-8")
         ).hexdigest()
+
+
+    def get_thumbnail_url(self):
+        """Get a thumbnail url for the event."""
+        request = None
+        if self.thumbnail and self.thumbnail.file_exist():
+            thumbnail_url = "".join(
+                [
+                    "//",
+                    get_current_site(request).domain,
+                    self.thumbnail.file.url,
+                ]
+            )
+        else:
+            thumbnail_url = static(DEFAULT_EVENT_THUMBNAIL)
+        return thumbnail_url
+
+    @property
+    def get_thumbnail_admin(self):
+        if self.thumbnail and self.thumbnail.file_exist():
+            im = get_thumbnail(self.thumbnail.file, "100x100", crop="center", quality=72)
+            thumbnail_url = im.url
+        else:
+            thumbnail_url = static(DEFAULT_EVENT_THUMBNAIL)
+        return format_html(
+            '<img style="max-width:100px" '
+            'src="%s" alt="%s" loading="lazy"/>'
+            % (
+                thumbnail_url,
+                self.title.replace("{", "").replace("}", "").replace('"', "'"),
+            )
+        )
+
+    get_thumbnail_admin.fget.short_description = _("Thumbnails")
+
+    def get_thumbnail_card(self):
+        """Return thumbnail image card of current event."""
+        if self.thumbnail and self.thumbnail.file_exist():
+            im = get_thumbnail(self.thumbnail.file, "x170", crop="center", quality=72)
+            thumbnail_url = im.url
+        else:
+            thumbnail_url = static(DEFAULT_EVENT_THUMBNAIL)
+        return (
+            '<img class="card-img-top" src="%s" alt=""\
+            loading="lazy"/>'
+            % thumbnail_url
+        )
 
     def is_current(self):
         return self.start_date == date.today() and (self.start_time <= datetime.now().time() <= self.end_time)

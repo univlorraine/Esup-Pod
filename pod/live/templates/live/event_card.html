@@ -26,10 +26,8 @@
             </div>
         </div>
         <div class="card-thumbnail">
-{#            {{ video.get_thumbnail_card|safe }}#}
-
             <a class="link-center-pod" href="{{ event.get_absolute_url }}" title="{{ event.title }}">
-                <img class="card-img-top" src="{{ DEFAULT_EVENT_THUMBNAIL }}" alt="Default event image" loading="lazy"/>
+                {{ event.get_thumbnail_card|safe }}
             </a>
         </div>
         <div class="card-body px-3 py-2">

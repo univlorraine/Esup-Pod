@@ -54,6 +54,8 @@ class EventAdminForm(forms.ModelForm):
         self.request = kwargs.pop('request', None)
         super(EventAdminForm, self).__init__(*args, **kwargs)
         self.fields['owner'].initial = self.request.user
+        if FILEPICKER and self.fields.get("thumbnail"):
+            self.fields["thumbnail"].widget = CustomFileWidget(type="image")
 
     def clean(self):
         super(EventAdminForm, self).clean()
@@ -124,8 +126,6 @@ class EventForm(forms.ModelForm):
         empty_label=None,
     )
 
-    # field_order = ['title', 'building', 'broadcaster', 'start_date', 'start_time', 'end_time']
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         is_current_event = kwargs.pop('is_current_event', None)
@@ -145,6 +145,7 @@ class EventForm(forms.ModelForm):
             self.remove_field("broadcaster")
             self.remove_field("owner")
             self.remove_field("additional_owners")
+            self.remove_field("thumbnail")
 
         # mise a jour dynamique de la liste
         if 'building' in self.data:
@@ -152,8 +153,7 @@ class EventForm(forms.ModelForm):
             try:
                 build = Building.objects.filter(name=self.data.get('building')).first()
                 self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, build.id)
-                self.fields['building'].queryset = get_building_having_available_broadcaster(self.user,
-                                                                                             build.id)
+                self.fields['building'].queryset = get_building_having_available_broadcaster(self.user, build.id)
                 self.initial['building'] = build.name
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
@@ -188,6 +188,9 @@ class EventForm(forms.ModelForm):
             'start_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),
             'end_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),
         }
+        if FILEPICKER:
+            fields.append("thumbnail")
+            widgets["thumbnail"] = CustomFileWidget(type="image")
 
 class EventDeleteForm(forms.Form):
     agree = forms.BooleanField(
