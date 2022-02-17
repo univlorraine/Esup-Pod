@@ -293,8 +293,8 @@
                         $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
-                        $("#recordingduration").removeClass("d-none")
                         recordingduration = 0
+                        $("#recordingduration").html('').removeClass("d-none")
                     } else {
                         console.warn('Start not done : ' + data.message)
                     }
@@ -443,7 +443,7 @@
             let seconds = recordingduration  - minutes * 60
             minutes = minutes<10 ? "0"+minutes : minutes
             seconds = seconds<10 ? "0"+seconds : seconds
-            $("#recordingduration").html('{% trans "Recording duration" %} : ' + minutes + ':' + seconds);
+            $("#recordingduration").html('{% trans "Recording duration" %} : ' + minutes + ':' + seconds)
             recordingduration++
         }
 
@@ -459,7 +459,7 @@
                     "idbroadcaster": "{{ event.broadcaster.id }}",
                 },
                 success: function (data) {
-                    if (data.success) {
+                    if (data.success && data.duration) {
                         console.log('Recording Info')
                         recordingduration = data.duration
                         $("#recordingduration").removeClass("d-none")
