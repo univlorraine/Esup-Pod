@@ -8,28 +8,32 @@ from django.db.models import Q
 from django.utils import timezone
 
 from pod.live.models import Event
-from pod.live.views import is_recording, get_info_current_record, event_stoprecord, \
-    event_startrecord
+from pod.live.views import (
+    is_recording,
+    get_info_current_record,
+    event_stoprecord,
+    event_startrecord,
+)
 
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 
 
 class Command(BaseCommand):
-    help = 'start or stop broadcaster recording based on live events '
+    help = "start or stop broadcaster recording based on live events "
 
     is_prod = False
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '-p',
-            '--prod',
-            action='store_true',
-            help='Start and stop recording FOR REAL',
+            "-p",
+            "--prod",
+            action="store_true",
+            help="Start and stop recording FOR REAL",
         )
 
     def handle(self, *args, **options):
 
-        self.is_prod = options['prod']
+        self.is_prod = options["prod"]
 
         if self.is_prod:
             self.stderr.write(" RUN FOR REAL ")
@@ -47,8 +51,7 @@ class Command(BaseCommand):
         endtime = datetime.now() + timezone.timedelta(minutes=-5)
 
         events = Event.objects.filter(
-            Q(start_date=date.today())
-            & Q(end_time__gte=endtime)
+            Q(start_date=date.today()) & Q(end_time__gte=endtime)
         )
 
         self.stdout.write("-- Stopping finished events")
@@ -56,7 +59,9 @@ class Command(BaseCommand):
             if not is_recording(event.broadcaster):
                 continue
 
-            self.stdout.write(f"Broadcaster {event.broadcaster.name} should be stopped : ", ending="")
+            self.stdout.write(
+                f"Broadcaster {event.broadcaster.name} should be stopped : ", ending=""
+            )
 
             if not self.is_prod:
                 self.stdout.write("... but not tried (debug mode) ")
@@ -74,7 +79,9 @@ class Command(BaseCommand):
 
             # Vérification qu'il existe bien pour cette instance ce Pod
             if not os.path.exists(full_file_name):
-                self.stdout.write(" ...  is not a on POD recording filesystem : " + full_file_name)
+                self.stdout.write(
+                    " ...  is not a on POD recording filesystem : " + full_file_name
+                )
                 continue
 
             if event_stoprecord(event.id, event.broadcaster.id):
@@ -96,10 +103,14 @@ class Command(BaseCommand):
         for event in events:
 
             if is_recording(event.broadcaster):
-                self.stdout.write(f"Broadcaster {event.broadcaster.name} is already recording")
+                self.stdout.write(
+                    f"Broadcaster {event.broadcaster.name} is already recording"
+                )
                 continue
 
-            self.stdout.write(f"Broadcaster {event.broadcaster.name} should be started : ", ending="")
+            self.stdout.write(
+                f"Broadcaster {event.broadcaster.name} should be started : ", ending=""
+            )
 
             if not self.is_prod:
                 self.stdout.write("... but not tried (debug mode) ")
