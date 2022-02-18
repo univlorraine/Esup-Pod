@@ -12,7 +12,6 @@ from pod.live.models import Building, Event, Broadcaster, HeartBeat, Video
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
-    from pod.podfile.widgets import CustomFileWidget
 
 
 class HeartBeatAdmin(admin.ModelAdmin):

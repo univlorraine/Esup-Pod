@@ -1,7 +1,7 @@
 import json
+import logging
 import os.path
 import re
-import logging
 from datetime import date, datetime, timedelta
 from time import sleep
 from typing import Optional
@@ -21,8 +21,6 @@ from django.http import (
     JsonResponse,
     HttpResponseNotAllowed,
     HttpResponseNotFound,
-    Http404,
-    HttpResponseServerError,
 )
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -44,8 +42,7 @@ from .models import (
 )
 from .pilotingInterface import Wowza, PilotingInterface, BROADCASTER_IMPLEMENTATION
 from ..main.views import in_maintenance
-from ..video.models import Video, Type
-from django.template.defaultfilters import slugify
+from ..video.models import Video
 
 VIEWERS_ONLY_FOR_STAFF = getattr(settings, "VIEWERS_ONLY_FOR_STAFF", False)
 
@@ -363,8 +360,8 @@ def my_events(request):
     NEXT_EVENT_URL_NAME = "npage"
 
     full_path = request.get_full_path()
-    full_path = re.sub("\?|\&" + PREVIOUS_EVENT_URL_NAME + "=\d+", "", full_path)
-    full_path = re.sub("\?|\&" + NEXT_EVENT_URL_NAME + "=\d+", "", full_path)
+    full_path = re.sub(r"\?|&" + PREVIOUS_EVENT_URL_NAME + r"=\d+", "", full_path)
+    full_path = re.sub(r"\?|&" + NEXT_EVENT_URL_NAME + r"=\d+", "", full_path)
 
     paginatorComing = Paginator(coming_events, 8)
     paginatorPast = Paginator(past_events, 8)
@@ -715,7 +712,7 @@ def event_video_transform(event_id, current_file, segment_number):
 
     try:
         checkDirExists(dest_dir_name)
-    except:
+    except Exception:
         return JsonResponse(
             status=500,
             data={"success": False, "error": f"Dir: {dest_dir_name} does not exists"},
@@ -726,7 +723,7 @@ def event_video_transform(event_id, current_file, segment_number):
 
     try:
         checkFileExists(full_file_name)
-    except:
+    except Exception:
         return JsonResponse(
             status=500,
             data={"success": False, "error": f"File: {full_file_name} does not exists"},
@@ -735,7 +732,7 @@ def event_video_transform(event_id, current_file, segment_number):
     # verif si la taille du fichier d'origine ne bouge plus
     try:
         checkFileSize(full_file_name)
-    except:
+    except Exception:
         return JsonResponse(
             status=500, data={"success": False, "error": "check file to copy aborted"}
         )
@@ -756,7 +753,7 @@ def event_video_transform(event_id, current_file, segment_number):
     # verif si la taille du fichier copié ne bouge plus
     try:
         checkFileSize(dest_file)
-    except:
+    except Exception:
         return JsonResponse(
             status=500, data={"success": False, "error": "check file moved aborted"}
         )

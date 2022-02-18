@@ -86,7 +86,7 @@ class Wowza(PilotingInterface, ABC):
             return False
         try:
             decoded = json.loads(conf)
-        except:
+        except Exception:
             logging.error(
                 "'piloting_conf' has not a valid Json format for '"
                 + self.broadcaster.name
@@ -280,7 +280,7 @@ class Wowza(PilotingInterface, ABC):
                 number = ending.split(".")[0]
                 if int(number) > 0:
                     segment_number = number
-        except:
+        except Exception:
             pass
 
         return {
