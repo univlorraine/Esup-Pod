@@ -257,9 +257,15 @@ def event(request, slug, slug_private=None):  # affichage d'un event
             or request.user.is_superuser:
         need_piloting_buttons = True
 
+    template_event = "live/event.html"
+    if request.GET.get("is_iframe"):
+        params = {}
+        template_event = "live/event-iframe.html"
+
+
     return render(
         request,
-        "live/event.html",
+        template_event,
         {
             "event": event,
             "need_piloting_buttons": need_piloting_buttons,
