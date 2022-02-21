@@ -132,6 +132,7 @@ class EventAdmin(admin.ModelAdmin):
         "title",
         "description",
         "owner",
+        "additional_owners",
         "start_date",
         "start_time",
         "end_time",
