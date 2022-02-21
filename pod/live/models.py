@@ -6,7 +6,6 @@ from ckeditor.fields import RichTextField
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
-from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -35,12 +34,15 @@ else:
     from pod.main.models import CustomImageModel
 
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
-DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
+DEFAULT_EVENT_THUMBNAIL = getattr(
+    settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg"
+)
 DEFAULT_EVENT_TYPE_ID = getattr(settings, "DEFAULT_EVENT_TYPE_ID", 1)
 RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
     settings, "RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY", True
 )
 SECRET_KEY = getattr(settings, "SECRET_KEY", "")
+
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -84,23 +86,36 @@ def default_site_building(sender, instance, created, **kwargs):
 
 def get_available_broadcasters_of_building(user, building_id, broadcaster_id=None):
     right_filter = Broadcaster.objects.filter(
-        Q(status=True) &
-        Q(building_id=building_id) &
-        (Q(manage_groups__isnull=True) | Q(manage_groups__in=user.groups.all())))
+        Q(status=True)
+        & Q(building_id=building_id)
+        & (Q(manage_groups__isnull=True) | Q(manage_groups__in=user.groups.all()))
+    )
     if broadcaster_id:
-        return (right_filter | Broadcaster.objects.filter(Q(id=broadcaster_id))).distinct().order_by('name')
+        return (
+            (right_filter | Broadcaster.objects.filter(Q(id=broadcaster_id)))
+            .distinct()
+            .order_by("name")
+        )
 
-    return right_filter.distinct().order_by('name')
+    return right_filter.distinct().order_by("name")
 
 
 def get_building_having_available_broadcaster(user, building_id=None):
     right_filter = Building.objects.filter(
-        Q(broadcaster__status=True) &
-        (Q(broadcaster__manage_groups__isnull=True) | Q(broadcaster__manage_groups__in=user.groups.all())))
+        Q(broadcaster__status=True)
+        & (
+            Q(broadcaster__manage_groups__isnull=True)
+            | Q(broadcaster__manage_groups__in=user.groups.all())
+        )
+    )
     if building_id:
-        return (right_filter | Building.objects.filter(Q(id=building_id))).distinct().order_by('name')
+        return (
+            (right_filter | Building.objects.filter(Q(id=building_id)))
+            .distinct()
+            .order_by("name")
+        )
 
-    return right_filter.distinct().order_by('name')
+    return right_filter.distinct().order_by("name")
 
 
 class Broadcaster(models.Model):
@@ -255,10 +270,6 @@ def one_hour_hence():
     return datetime.now() + timezone.timedelta(hours=1)
 
 
-def get_default_event_type():
-    return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID).id
-
-
 def present_or_future_date(value):
     if value < date.today():
         raise ValidationError(_("An event cannot be planned in the past"))
@@ -357,7 +368,7 @@ class Event(models.Model):
 
     type = models.ForeignKey(
         Type,
-        default=get_default_event_type,
+        default=DEFAULT_EVENT_TYPE_ID,
         verbose_name=_("Type")
     )
 
@@ -444,7 +455,6 @@ class Event(models.Model):
             ("%s-%s" % (SECRET_KEY, self.id)).encode("utf-8")
         ).hexdigest()
 
-
     def get_thumbnail_url(self):
         """Get a thumbnail url for the event."""
         request = None
@@ -492,15 +502,19 @@ class Event(models.Model):
         )
 
     def is_current(self):
-        return self.start_date == date.today() and (self.start_time <= datetime.now().time() <= self.end_time)
+        return self.start_date == date.today() and (
+            self.start_time <= datetime.now().time() <= self.end_time
+        )
 
     def is_past(self):
         return self.start_date < date.today() or (
-                    self.start_date == date.today() and self.end_time < datetime.now().time())
+            self.start_date == date.today() and self.end_time < datetime.now().time()
+        )
 
     def is_coming(self):
         return self.start_date > date.today() or (
-                    self.start_date == date.today() and datetime.now().time() < self.start_time)
+            self.start_date == date.today() and datetime.now().time() < self.start_time
+        )
 
     def get_start(self):
         return datetime.combine(self.start_date, self.start_time)

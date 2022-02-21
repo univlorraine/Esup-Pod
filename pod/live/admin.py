@@ -12,7 +12,7 @@ from pod.live.models import Building, Event, Broadcaster, HeartBeat, Video
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
-    from pod.podfile.widgets import CustomFileWidget
+
 
 class HeartBeatAdmin(admin.ModelAdmin):
     list_display = ("viewkey", "user", "broadcaster", "last_heartbeat")
@@ -72,8 +72,12 @@ class BroadcasterAdmin(admin.ModelAdmin):
     readonly_fields = ["slug"]
 
     def get_form(self, request, obj=None, **kwargs):
-        kwargs['widgets'] = {
-            'piloting_conf': Textarea(attrs={'placeholder': "{\n 'server_url':'...',\n 'application':'...',\n 'livestream':'...',\n}"})
+        kwargs["widgets"] = {
+            "piloting_conf": Textarea(
+                attrs={
+                    "placeholder": "{\n 'server_url':'...',\n 'application':'...',\n 'livestream':'...',\n}"
+                }
+            )
         }
         return super().get_form(request, obj, **kwargs)
 
@@ -105,13 +109,14 @@ class BroadcasterAdmin(admin.ModelAdmin):
             "bootstrap-4/js/bootstrap.min.js",
         )
 
+
 class EventAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         ModelForm = super(EventAdmin, self).get_form(request, obj, **kwargs)
 
         class ModelFormMetaClass(ModelForm):
             def __new__(cls, *args, **kwargs):
-                kwargs['request'] = request
+                kwargs["request"] = request
                 return ModelForm(*args, **kwargs)
 
         return ModelFormMetaClass
@@ -160,6 +165,7 @@ class EventAdmin(admin.ModelAdmin):
             "feather-icons/feather.min.js",
             "bootstrap-4/js/bootstrap.min.js",
         )
+
 
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(Broadcaster, BroadcasterAdmin)

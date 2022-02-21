@@ -14,8 +14,7 @@ def get_next_events(context: object):
     request = context["request"]
     queryset = Event.objects.filter(
         Q(start_date__gt=date.today())
-        |
-        (Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
+        | (Q(start_date=date.today()) & Q(end_time__gte=datetime.now()))
     )
     queryset = queryset.filter(is_draft=False)
     if not request.user.is_authenticated():
@@ -26,4 +25,4 @@ def get_next_events(context: object):
     #     queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
     #                Q(broadcaster__restrict_access_to_groups__in=request.user.groups.all()))
 
-    return queryset.all().order_by('start_date', 'start_time')[:4]
+    return queryset.all().order_by("start_date", "start_time")[:4]

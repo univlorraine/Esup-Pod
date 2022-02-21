@@ -4,8 +4,11 @@ from django.contrib.admin import widgets
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 
-from pod.live.models import Broadcaster, get_building_having_available_broadcaster, \
-    get_available_broadcasters_of_building
+from pod.live.models import (
+    Broadcaster,
+    get_building_having_available_broadcaster,
+    get_available_broadcasters_of_building,
+)
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
 
@@ -49,11 +52,12 @@ class BroadcasterAdminForm(forms.ModelForm):
         model = Broadcaster
         fields = "__all__"
 
+
 class EventAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
+        self.request = kwargs.pop("request", None)
         super(EventAdminForm, self).__init__(*args, **kwargs)
-        self.fields['owner'].initial = self.request.user
+        self.fields["owner"].initial = self.request.user
         if FILEPICKER and self.fields.get("thumbnail"):
             self.fields["thumbnail"].widget = CustomFileWidget(type="image")
 
@@ -65,9 +69,10 @@ class EventAdminForm(forms.ModelForm):
         model = Event
         fields = "__all__"
         widgets = {
-            'start_time': forms.TimeInput(format='%H:%M'),
-            'end_time': forms.TimeInput(format='%H:%M'),
+            "start_time": forms.TimeInput(format="%H:%M"),
+            "end_time": forms.TimeInput(format="%H:%M"),
         }
+
 
 class LivePasswordForm(forms.Form):
     password = forms.CharField(label=_("Password"), widget=forms.PasswordInput())
@@ -76,18 +81,23 @@ class LivePasswordForm(forms.Form):
         super(LivePasswordForm, self).__init__(*args, **kwargs)
         self.fields = add_placeholder_and_asterisk(self.fields)
 
+
 class CustomBroadcasterChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-         return obj.name
+        return obj.name
+
 
 def check_event_date_and_hour(form):
-    if not {'start_time', 'start_time', 'end_time', 'broadcaster'} <= form.cleaned_data.keys():
+    if (
+        not {"start_time", "start_time", "end_time", "broadcaster"}
+        <= form.cleaned_data.keys()
+    ):
         return
 
-    d_deb = form.cleaned_data['start_date']
-    h_deb = form.cleaned_data['start_time']
-    h_fin = form.cleaned_data['end_time']
-    brd = form.cleaned_data['broadcaster']
+    d_deb = form.cleaned_data["start_date"]
+    h_deb = form.cleaned_data["start_time"]
+    h_fin = form.cleaned_data["end_time"]
+    brd = form.cleaned_data["broadcaster"]
 
     if h_deb >= h_fin:
         form.add_error("start_time", _("Start should not be after end"))
@@ -98,10 +108,10 @@ def check_event_date_and_hour(form):
         Q(broadcaster_id=brd.id)
         & Q(start_date=d_deb)
         & (
-                (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
-                | (Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
-                | (Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
-                | (Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+            (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
+            | (Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
+            | (Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
+            | (Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
         )
     )
     if form.instance.id:
@@ -110,6 +120,7 @@ def check_event_date_and_hour(form):
     if events.exists():
         form.add_error("start_date", _("An event is already planned at these dates"))
         raise forms.ValidationError("Date error.")
+
 
 class EventForm(forms.ModelForm):
 
@@ -127,10 +138,10 @@ class EventForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        is_current_event = kwargs.pop('is_current_event', None)
+        self.user = kwargs.pop("user", None)
+        is_current_event = kwargs.pop("is_current_event", None)
         super(EventForm, self).__init__(*args, **kwargs)
-        self.fields['owner'].initial = self.user
+        self.fields["owner"].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
         if not self.user.is_superuser:
@@ -148,29 +159,47 @@ class EventForm(forms.ModelForm):
             self.remove_field("thumbnail")
 
         # mise a jour dynamique de la liste
-        if 'building' in self.data:
+        if "building" in self.data:
             # à la sauvegarde
             try:
-                build = Building.objects.filter(name=self.data.get('building')).first()
-                self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, build.id)
-                self.fields['building'].queryset = get_building_having_available_broadcaster(self.user, build.id)
-                self.initial['building'] = build.name
+                build = Building.objects.filter(name=self.data.get("building")).first()
+                self.fields[
+                    "broadcaster"
+                ].queryset = get_available_broadcasters_of_building(self.user, build.id)
+                self.fields[
+                    "building"
+                ].queryset = get_building_having_available_broadcaster(
+                    self.user, build.id
+                )
+                self.initial["building"] = build.name
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
         else:
             if self.instance.pk and not is_current_event:
                 # à l'édition
                 broadcaster = self.instance.broadcaster
-                self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, broadcaster.building.id, broadcaster.id)
-                self.fields['building'].queryset = get_building_having_available_broadcaster(self.user, broadcaster.building.id)
-                self.initial['building'] = broadcaster.building.name
+                self.fields[
+                    "broadcaster"
+                ].queryset = get_available_broadcasters_of_building(
+                    self.user, broadcaster.building.id, broadcaster.id
+                )
+                self.fields[
+                    "building"
+                ].queryset = get_building_having_available_broadcaster(
+                    self.user, broadcaster.building.id
+                )
+                self.initial["building"] = broadcaster.building.name
             elif not self.instance.pk:
                 # à la création
                 query_buildings = get_building_having_available_broadcaster(self.user)
                 if query_buildings:
-                    self.fields['building'].queryset = query_buildings.all()
-                    self.initial['building'] = query_buildings.first().name
-                    self.fields['broadcaster'].queryset = get_available_broadcasters_of_building(self.user, query_buildings.first())
+                    self.fields["building"].queryset = query_buildings.all()
+                    self.initial["building"] = query_buildings.first().name
+                    self.fields[
+                        "broadcaster"
+                    ].queryset = get_available_broadcasters_of_building(
+                        self.user, query_buildings.first()
+                    )
 
     def remove_field(self, field):
         if self.fields.get(field):
@@ -179,18 +208,31 @@ class EventForm(forms.ModelForm):
     def clean(self):
         check_event_date_and_hour(self)
 
-
     class Meta(object):
         model = Event
-        fields = ["title", "description", "owner", "additional_owners", "start_date", "start_time", "end_time", "building", "broadcaster", "type", "is_draft", "is_auto_start"]
+        fields = [
+            "title",
+            "description",
+            "owner",
+            "additional_owners",
+            "start_date",
+            "start_time",
+            "end_time",
+            "building",
+            "broadcaster",
+            "type",
+            "is_draft",
+            "is_auto_start",
+        ]
         widgets = {
-            'start_date': widgets.AdminDateWidget,
-            'start_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),
-            'end_time': forms.TimeInput(format='%H:%M', attrs={'class': 'vTimeField'}),
+            "start_date": widgets.AdminDateWidget,
+            "start_time": forms.TimeInput(format="%H:%M", attrs={"class": "vTimeField"}),
+            "end_time": forms.TimeInput(format="%H:%M", attrs={"class": "vTimeField"}),
         }
         if FILEPICKER:
             fields.append("thumbnail")
             widgets["thumbnail"] = CustomFileWidget(type="image")
+
 
 class EventDeleteForm(forms.Form):
     agree = forms.BooleanField(
