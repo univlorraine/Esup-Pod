@@ -712,50 +712,27 @@ def event_video_transform(event_id, current_file, segment_number):
 
     try:
         checkDirExists(dest_dir_name)
-    except Exception:
-        return JsonResponse(
-            status=500,
-            data={"success": False, "error": f"Dir: {dest_dir_name} does not exists"},
-        )
 
-    # file creation if not exists
-    full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
-
-    try:
+        # file creation if not exists
+        full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
         checkFileExists(full_file_name)
-    except Exception:
-        return JsonResponse(
-            status=500,
-            data={"success": False, "error": f"File: {full_file_name} does not exists"},
-        )
 
-    # verif si la taille du fichier d'origine ne bouge plus
-    try:
+        # verif si la taille du fichier d'origine ne bouge plus
         checkFileSize(full_file_name)
-    except Exception:
-        return JsonResponse(
-            status=500, data={"success": False, "error": "check file to copy aborted"}
-        )
 
-    # moving the file
-    try:
+        # moving the file
         os.rename(
             full_file_name,
             dest_file,
         )
-    except FileNotFoundError as err:
-        logger.error(f"FileNotFoundError: {format(err)}")
+
+        # verif si la taille du fichier copié ne bouge plus
+        checkFileSize(dest_file)
+
+    except Exception as exc :
         return JsonResponse(
             status=500,
-            data={"success": False, "error": f"FileNotFoundError: {format(err)}"},
-        )
-
-    # verif si la taille du fichier copié ne bouge plus
-    try:
-        checkFileSize(dest_file)
-    except Exception:
-        return JsonResponse(
-            status=500, data={"success": False, "error": "check file moved aborted"}
+            data={"success": False, "error": exc},
         )
 
     segment = "(" + segment_number + ")" if segment_number else ""
@@ -826,7 +803,7 @@ def checkDirExists(dest_dir_name, max_attempt=6):
 
         if attempt_number == max_attempt:
             logger.error(f"Impossible to create dir {dest_dir_name}")
-            raise Exception("Dir creation aborted")
+            raise Exception(f"Dir: {dest_dir_name} does not exists and can't be created")
 
         attempt_number = attempt_number + 1
         sleep(0.5)
@@ -842,7 +819,7 @@ def checkFileExists(full_file_name, max_attempt=6):
 
         if attempt_number == max_attempt:
             logger.error(f"Impossible to get file {full_file_name}")
-            raise Exception(f"File {full_file_name} is nowhere")
+            raise Exception(f"File: {full_file_name} does not exists")
 
         attempt_number = attempt_number + 1
         sleep(0.5)

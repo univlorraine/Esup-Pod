@@ -144,19 +144,8 @@ class EventForm(forms.ModelForm):
         self.fields["owner"].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
-        if not self.user.is_superuser:
-            self.remove_field("owner")
-            self.instance.owner = self.user
-        if is_current_event:
-            self.remove_field("start_date")
-            self.remove_field("start_time")
-            self.remove_field("is_draft")
-            self.remove_field("is_auto_start")
-            self.remove_field("building")
-            self.remove_field("broadcaster")
-            self.remove_field("owner")
-            self.remove_field("additional_owners")
-            self.remove_field("thumbnail")
+        # Manage fields to display
+        self.initFields(is_current_event)
 
         # mise a jour dynamique de la liste
         if "building" in self.data:
@@ -174,32 +163,48 @@ class EventForm(forms.ModelForm):
                 self.initial["building"] = build.name
             except (ValueError, TypeError):
                 pass  # invalid input from the client; ignore and fallback to empty Broadcaster queryset
-        else:
-            if self.instance.pk and not is_current_event:
-                # à l'édition
-                broadcaster = self.instance.broadcaster
+            return
+
+        if self.instance.pk and not is_current_event:
+            # à l'édition
+            broadcaster = self.instance.broadcaster
+            self.fields[
+                "broadcaster"
+            ].queryset = get_available_broadcasters_of_building(
+                self.user, broadcaster.building.id, broadcaster.id
+            )
+            self.fields[
+                "building"
+            ].queryset = get_building_having_available_broadcaster(
+                self.user, broadcaster.building.id
+            )
+            self.initial["building"] = broadcaster.building.name
+        elif not self.instance.pk:
+            # à la création
+            query_buildings = get_building_having_available_broadcaster(self.user)
+            if query_buildings:
+                self.fields["building"].queryset = query_buildings.all()
+                self.initial["building"] = query_buildings.first().name
                 self.fields[
                     "broadcaster"
                 ].queryset = get_available_broadcasters_of_building(
-                    self.user, broadcaster.building.id, broadcaster.id
+                    self.user, query_buildings.first()
                 )
-                self.fields[
-                    "building"
-                ].queryset = get_building_having_available_broadcaster(
-                    self.user, broadcaster.building.id
-                )
-                self.initial["building"] = broadcaster.building.name
-            elif not self.instance.pk:
-                # à la création
-                query_buildings = get_building_having_available_broadcaster(self.user)
-                if query_buildings:
-                    self.fields["building"].queryset = query_buildings.all()
-                    self.initial["building"] = query_buildings.first().name
-                    self.fields[
-                        "broadcaster"
-                    ].queryset = get_available_broadcasters_of_building(
-                        self.user, query_buildings.first()
-                    )
+
+    def initFields(self, is_current_event):
+        if not self.user.is_superuser:
+            self.remove_field("owner")
+            self.instance.owner = self.user
+        if is_current_event:
+            self.remove_field("start_date")
+            self.remove_field("start_time")
+            self.remove_field("is_draft")
+            self.remove_field("is_auto_start")
+            self.remove_field("building")
+            self.remove_field("broadcaster")
+            self.remove_field("owner")
+            self.remove_field("additional_owners")
+            self.remove_field("thumbnail")
 
     def remove_field(self, field):
         if self.fields.get(field):
