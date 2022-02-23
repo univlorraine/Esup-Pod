@@ -275,7 +275,6 @@ def event(request, slug, slug_private=None):  # affichage d'un event
 
     template_event = "live/event.html"
     if request.GET.get("is_iframe"):
-        params = {}
         template_event = "live/event-iframe.html"
 
 
