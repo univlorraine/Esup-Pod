@@ -168,14 +168,10 @@ class EventForm(forms.ModelForm):
         if self.instance.pk and not is_current_event:
             # à l'édition
             broadcaster = self.instance.broadcaster
-            self.fields[
-                "broadcaster"
-            ].queryset = get_available_broadcasters_of_building(
+            self.fields["broadcaster"].queryset = get_available_broadcasters_of_building(
                 self.user, broadcaster.building.id, broadcaster.id
             )
-            self.fields[
-                "building"
-            ].queryset = get_building_having_available_broadcaster(
+            self.fields["building"].queryset = get_building_having_available_broadcaster(
                 self.user, broadcaster.building.id
             )
             self.initial["building"] = broadcaster.building.name
