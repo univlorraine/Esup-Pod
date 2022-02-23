@@ -2,7 +2,7 @@ name: Code Formatting
 
 on:
   push:
-    branches: [master, dev]
+    branches: [master, dev, liveevent-testunitaire]
 
 jobs:
   code-formatting:
