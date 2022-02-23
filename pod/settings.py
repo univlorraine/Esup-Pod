@@ -7,6 +7,7 @@ import os
 import sys
 from pod.main.settings import BASE_DIR
 import django.conf.global_settings
+
 ##
 # Version of the project
 #
@@ -263,4 +264,4 @@ if "H5P_ENABLED" in globals() and eval("H5P_ENABLED") is True:
     INSTALLED_APPS.append("h5pp")
     INSTALLED_APPS.append("pod.interactive")
 
-TIME_INPUT_FORMATS=["%H:%M",*django.conf.global_settings.TIME_INPUT_FORMATS]
+TIME_INPUT_FORMATS = ["%H:%M", *django.conf.global_settings.TIME_INPUT_FORMATS]

@@ -278,7 +278,6 @@ def event(request, slug, slug_private=None):  # affichage d'un event
         params = {}
         template_event = "live/event-iframe.html"
 
-
     return render(
         request,
         template_event,
@@ -735,7 +734,7 @@ def event_video_transform(event_id, current_file, segment_number):
         # verif si la taille du fichier copié ne bouge plus
         checkFileSize(dest_file)
 
-    except Exception as exc :
+    except Exception as exc:
         return JsonResponse(
             status=500,
             data={"success": False, "error": exc},
