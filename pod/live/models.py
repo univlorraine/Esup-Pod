@@ -253,7 +253,7 @@ def one_hour_hence():
 
 
 def get_default_event_type():
-    return Type.objects.get(id=DEFAULT_EVENT_TYPE_ID).id
+    return DEFAULT_EVENT_TYPE_ID
 
 
 def present_or_future_date(value):
