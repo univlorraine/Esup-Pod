@@ -1,15 +1,15 @@
 """Esup-Pod "live" models."""
 import hashlib
+from datetime import date, datetime
 
-from datetime import timedelta, date, datetime
-from django.core.exceptions import ValidationError
 from ckeditor.fields import RichTextField
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
-from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save
@@ -17,8 +17,10 @@ from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from select2 import fields as select2_fields
+from sorl.thumbnail import get_thumbnail
 
 from pod.main.models import get_nextautoincrement
 from pod.video.models import Video, Type
@@ -32,12 +34,15 @@ else:
     from pod.main.models import CustomImageModel
 
 DEFAULT_THUMBNAIL = getattr(settings, "DEFAULT_THUMBNAIL", "img/default.svg")
-DEFAULT_EVENT_THUMBNAIL = getattr(settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg")
+DEFAULT_EVENT_THUMBNAIL = getattr(
+    settings, "DEFAULT_EVENT_THUMBNAIL", "img/default-event.svg"
+)
 DEFAULT_EVENT_TYPE_ID = getattr(settings, "DEFAULT_EVENT_TYPE_ID", 1)
 RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = getattr(
     settings, "RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY", True
 )
 SECRET_KEY = getattr(settings, "SECRET_KEY", "")
+
 
 class Building(models.Model):
     name = models.CharField(_("name"), max_length=200, unique=True)
@@ -81,23 +86,36 @@ def default_site_building(sender, instance, created, **kwargs):
 
 def get_available_broadcasters_of_building(user, building_id, broadcaster_id=None):
     right_filter = Broadcaster.objects.filter(
-        Q(status=True) &
-        Q(building_id=building_id) &
-        (Q(manage_groups__isnull=True) | Q(manage_groups__in=user.groups.all())))
+        Q(status=True)
+        & Q(building_id=building_id)
+        & (Q(manage_groups__isnull=True) | Q(manage_groups__in=user.groups.all()))
+    )
     if broadcaster_id:
-        return (right_filter | Broadcaster.objects.filter(Q(id=broadcaster_id))).distinct().order_by('name')
+        return (
+            (right_filter | Broadcaster.objects.filter(Q(id=broadcaster_id)))
+            .distinct()
+            .order_by("name")
+        )
 
-    return right_filter.distinct().order_by('name')
+    return right_filter.distinct().order_by("name")
 
 
 def get_building_having_available_broadcaster(user, building_id=None):
     right_filter = Building.objects.filter(
-        Q(broadcaster__status=True) &
-        (Q(broadcaster__manage_groups__isnull=True) | Q(broadcaster__manage_groups__in=user.groups.all())))
+        Q(broadcaster__status=True)
+        & (
+            Q(broadcaster__manage_groups__isnull=True)
+            | Q(broadcaster__manage_groups__in=user.groups.all())
+        )
+    )
     if building_id:
-        return (right_filter | Building.objects.filter(Q(id=building_id))).distinct().order_by('name')
+        return (
+            (right_filter | Building.objects.filter(Q(id=building_id)))
+            .distinct()
+            .order_by("name")
+        )
 
-    return right_filter.distinct().order_by('name')
+    return right_filter.distinct().order_by("name")
 
 
 class Broadcaster(models.Model):
@@ -309,6 +327,22 @@ class Event(models.Model):
         search_field=select_event_owner(),
         on_delete=models.CASCADE,
     )
+
+    additional_owners = select2_fields.ManyToManyField(
+        User,
+        blank=True,
+        ajax=True,
+        js_options={"width": "off"},
+        verbose_name=_("Additional owners"),
+        search_field=select_event_owner(),
+        related_name="owners_events",
+        help_text=_(
+            "You can add additional owners to the event. They "
+            "will have the same rights as you except that they "
+            "can't delete this event."
+        ),
+    )
+
     start_date = models.DateField(
         _("Date of Event"),
         default=date.today,
@@ -338,7 +372,7 @@ class Event(models.Model):
 
     type = models.ForeignKey(
         Type,
-        default=get_default_event_type,
+        default=DEFAULT_EVENT_TYPE_ID,
         verbose_name=_("Type")
     )
 
@@ -358,6 +392,23 @@ class Event(models.Model):
             "the video will only be accessible to authenticated users."
         ),
         default=False,
+    )
+
+    is_auto_start = models.BooleanField(
+        verbose_name=_("Auto start"),
+        help_text=_(
+            "If this box is checked, "
+            "the record will start automatically."
+        ),
+        default=False,
+    )
+
+    thumbnail = models.ForeignKey(
+        CustomImageModel,
+        models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_("Thumbnails"),
     )
 
     # password = models.CharField(
@@ -408,20 +459,69 @@ class Event(models.Model):
             ("%s-%s" % (SECRET_KEY, self.id)).encode("utf-8")
         ).hexdigest()
 
- #   def clean(self):
- #       if self.start_date < date.today():
- #           raise ValidationError({'start_date': _("An event cannot be planned in the past")})
+    def get_thumbnail_url(self):
+        """Get a thumbnail url for the event."""
+        request = None
+        if self.thumbnail and self.thumbnail.file_exist():
+            thumbnail_url = "".join(
+                [
+                    "//",
+                    get_current_site(request).domain,
+                    self.thumbnail.file.url,
+                ]
+            )
+        else:
+            thumbnail_url = static(DEFAULT_EVENT_THUMBNAIL)
+        return thumbnail_url
 
     @property
+    def get_thumbnail_admin(self):
+        if self.thumbnail and self.thumbnail.file_exist():
+            im = get_thumbnail(self.thumbnail.file, "100x100", crop="center", quality=72)
+            thumbnail_url = im.url
+        else:
+            thumbnail_url = static(DEFAULT_EVENT_THUMBNAIL)
+        return format_html(
+            '<img style="max-width:100px" '
+            'src="%s" alt="%s" loading="lazy"/>'
+            % (
+                thumbnail_url,
+                self.title.replace("{", "").replace("}", "").replace('"', "'"),
+            )
+        )
+
+    get_thumbnail_admin.fget.short_description = _("Thumbnails")
+
+    def get_thumbnail_card(self):
+        """Return thumbnail image card of current event."""
+        if self.thumbnail and self.thumbnail.file_exist():
+            im = get_thumbnail(self.thumbnail.file, "x170", crop="center", quality=72)
+            thumbnail_url = im.url
+        else:
+            thumbnail_url = static(DEFAULT_EVENT_THUMBNAIL)
+        return (
+            '<img class="card-img-top" src="%s" alt=""\
+            loading="lazy"/>'
+            % thumbnail_url
+        )
+
     def is_current(self):
-        return self.start_date == date.today() and (self.start_time <= datetime.now().time() <= self.end_time)
+        return self.start_date == date.today() and (
+            self.start_time <= datetime.now().time() <= self.end_time
+        )
 
-    @property
     def is_past(self):
         return self.start_date < date.today() or (
-                    self.start_date == date.today() and self.end_time < datetime.now().time())
+            self.start_date == date.today() and self.end_time < datetime.now().time()
+        )
 
-    @property
     def is_coming(self):
         return self.start_date > date.today() or (
-                    self.start_date == date.today() and datetime.now().time() < self.start_time)
+            self.start_date == date.today() and datetime.now().time() < self.start_time
+        )
+
+    def get_start(self):
+        return datetime.combine(self.start_date, self.start_time)
+
+    def get_end(self):
+        return datetime.combine(self.start_date, self.end_time)
