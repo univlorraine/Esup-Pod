@@ -1,0 +1,53 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "pod"
+    }
+  },
+  {
+    "model": "live.building",
+    "pk": 1,
+    "fields": {
+      "name": "building1"
+    }
+  },
+  {
+    "model": "live.broadcaster",
+    "pk": 1,
+    "fields": {
+      "name": "broadcaster1",
+      "building": 1
+    }
+  },
+  {
+    "model": "video.type",
+    "pk": 1,
+    "fields": {
+      "title": "type1"
+    }
+  },
+  {
+    "model": "video.video",
+    "pk": 1,
+    "fields": {
+      "video": "event_video.mp4",
+      "type": 1,
+      "owner": 1
+    }
+  },
+  {
+    "model": "live.event",
+    "pk": 1,
+    "fields": {
+      "title": "event1",
+      "type": 1,
+      "owner": 1,
+      "broadcaster": 1,
+      "start_date": "2000-01-01",
+      "start_time": "00:00:00.001",
+      "end_time": "23:59:59.999"
+    }
+  }
+]

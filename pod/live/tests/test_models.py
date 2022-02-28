@@ -1,10 +1,12 @@
+from datetime import date
+
 from django.test import TestCase
 from django.conf import settings
 from django.contrib.auth.models import User
 
 from pod.video.models import Type
 from pod.video.models import Video
-from ..models import Building, Broadcaster, HeartBeat
+from ..models import Building, Broadcaster, HeartBeat, Event
 from django.utils import timezone
 
 if getattr(settings, "USE_PODFILE", False):
@@ -175,3 +177,101 @@ class HeartbeatTestCase(TestCase):
         self.assertEqual(hb.viewkey, "testkey")
         self.assertEqual(hb.broadcaster.name, "broadcaster1")
         print("   --->  test_attributs of HeartbeatTestCase : OK !")
+
+
+def add_video(event):
+    e_video = Video.objects.get(id=1)
+    event.videos.add(e_video)
+    return event
+
+
+class EventTestCase(TestCase):
+    fixtures = ["test_live.json"]
+
+    # def setUp(self):
+    #     building = Building.objects.create(name="building1")
+    #     e_broad = Broadcaster.objects.create(
+    #         name="broadcaster1",
+    #         url="http://test.live",
+    #         status=True,
+    #         is_restricted=True,
+    #         building=building,
+    #         iframe_url="http://iframe.live",
+    #         iframe_height=120,
+    #         public=False,
+    #     )
+    #     e_user = User.objects.create(username="pod")
+    #     e_type = Type.objects.create(title="type1")
+    #     Event.objects.create(
+    #         title="event1",
+    #         owner=e_user,
+    #         broadcaster=e_broad,
+    #         type=e_type,
+    #     )
+    #     print(" --->  SetUp of EventTestCase : OK !")
+
+    def test_create(self):
+        e_broad = Broadcaster.objects.get(id=1)
+        e_user = User.objects.get(id=1)
+        e_type = Type.objects.get(id=1)
+        event = Event.objects.create(
+            title="event2",
+            owner=e_user,
+            broadcaster=e_broad,
+            type=e_type,
+        )
+        self.assertEqual(2, event.id)
+        print(" --->  test_create of EventTestCase : OK !")
+
+    def test_attributs(self):
+        event = Event.objects.get(id=1)
+        self.assertEqual(event.title, "event1")
+        self.assertTrue(event.is_draft)
+        self.assertFalse(event.is_restricted)
+        self.assertFalse(event.is_auto_start)
+        self.assertEqual(event.description, "")
+        event.start_date = date.today()
+        self.assertTrue(event.is_current())
+        self.assertFalse(event.is_past())
+        self.assertFalse(event.is_coming())
+        self.assertEqual(event.videos.count(), 0)
+        event.save()
+        print("   --->  test_attributs of EventTestCase : OK !")
+
+    def test_add_thumbnail(self):
+        event = Event.objects.get(id=1)
+        if FILEPICKER:
+            fp_user, created = User.objects.get_or_create(username="pod")
+            homedir, created = UserFolder.objects.get_or_create(name="Home", owner=fp_user)
+            thumb = CustomImageModel.objects.create(
+                folder=homedir, created_by=fp_user, file="blabla.jpg"
+            )
+        else:
+            thumb = CustomImageModel.objects.create(file="blabla.jpg")
+        event.thumbnail = thumb
+        event.save()
+        self.assertTrue("blabla" in event.thumbnail.name)
+        print("   --->  test_add_thumbnail of EventTestCase : OK !")
+
+    def test_add_video(self):
+        event = Event.objects.get(id=1)
+        event = add_video(event)
+        event.save()
+
+        self.assertEquals(event.videos.count(), 1)
+        print("   --->  test_add_video of EventTestCase : OK !")
+
+    def test_delete_object(self):
+        event = Event.objects.get(id=1)
+        event.delete()
+        self.assertEquals(Event.objects.all().count(), 0)
+        print("   --->  test_delete_object of EventTestCase : OK !")
+
+    def test_delete_object_keep_video(self):
+        event = Event.objects.get(id=1)
+        add_video(event)
+        event.delete()
+        # video is not deleted with event
+        self.assertEquals(Video.objects.all().count(), 1)
+        print("   --->  test_delete_object_keep_video of EventTestCase : OK !")
+
