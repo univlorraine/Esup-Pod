@@ -1,82 +1,121 @@
-import datetime
+import os
 from datetime import date, datetime
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
+from django.utils import timezone
 
-from pod.live.models import Event, Broadcaster
-from pod.live.views import is_recording, start_record, stop_record, check_piloting_conf
+from pod.live.models import Event
+from pod.live.views import (
+    is_recording,
+    get_info_current_record,
+    event_stoprecord,
+    event_startrecord,
+)
+
+DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 
 
 class Command(BaseCommand):
+    help = "start or stop broadcaster recording based on live events "
 
-    help = 'Check events to start or stop'
+    is_prod = False
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '-p',
-            '--prod',
-            action='store_true',
-            help='Start and stop broadcasters FOR REAL',
+            "-p",
+            "--prod",
+            action="store_true",
+            help="Start and stop recording FOR REAL",
         )
 
-    def handle(self,*args,**options):
+    def handle(self, *args, **options):
 
-        is_prod = options['prod']
+        self.is_prod = options["prod"]
 
-        if is_prod:
+        if self.is_prod:
             self.stderr.write(" RUN FOR REAL ")
         else:
             self.stderr.write(" RUN ONLY FOR DEBUGGING PURPOSE ")
 
+        self.stop_finished()
+
+        self.start_new()
+
+        self.stdout.write("- Done -")
+
+    def stop_finished(self):
+        # finished events in the last 5 minutes
+        endtime = datetime.now() + timezone.timedelta(minutes=-5)
+
         events = Event.objects.filter(
-            Q(start_date=date.today())
+            Q(start_date=date.today()) & Q(end_time__gte=endtime)
+        )
+
+        self.stdout.write("-- Stopping finished events")
+        for event in events:
+            if not is_recording(event.broadcaster):
+                continue
+
+            self.stdout.write(
+                f"Broadcaster {event.broadcaster.name} should be stopped : ", ending=""
+            )
+
+            if not self.is_prod:
+                self.stdout.write("... but not tried (debug mode) ")
+                continue
+
+            # Récupération du fichier associé à l'enregistrement du broadcaster
+            current_record_info = get_info_current_record(event.broadcaster)
+
+            if not current_record_info.get("currentFile"):
+                self.stderr.write(" ... impossible to get recording file name")
+                continue
+
+            filename = current_record_info.get("currentFile")
+            full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
+
+            # Vérification qu'il existe bien pour cette instance ce Pod
+            if not os.path.exists(full_file_name):
+                self.stdout.write(
+                    " ...  is not a on POD recording filesystem : " + full_file_name
+                )
+                continue
+
+            if event_stoprecord(event.id, event.broadcaster.id):
+                self.stdout.write(" ...  stopped ")
+            else:
+                self.stderr.write(" ... fail to stop recording")
+
+    def start_new(self):
+
+        self.stdout.write("-- Starting new events")
+
+        events = Event.objects.filter(
+            Q(is_auto_start=True)
+            & Q(start_date=date.today())
             & Q(start_time__lte=datetime.now())
             & Q(end_time__gte=datetime.now())
         )
-        rec_bro_ids=[]
 
-        self.stdout.write("-- Starting new events")
         for event in events:
-            rec_bro_ids.append(event.broadcaster.id)
 
-            if not is_recording(event.broadcaster):
+            if is_recording(event.broadcaster):
+                self.stdout.write(
+                    f"Broadcaster {event.broadcaster.name} is already recording"
+                )
+                continue
 
-                self.stdout.write(f"Broadcaster {event.broadcaster.name} should be started : " + event.broadcaster.name, ending="")
+            self.stdout.write(
+                f"Broadcaster {event.broadcaster.name} should be started : ", ending=""
+            )
 
-                if not check_piloting_conf(event.broadcaster):
-                    self.stderr.write("Config error")
-                    continue
+            if not self.is_prod:
+                self.stdout.write("... but not tried (debug mode) ")
+                continue
 
-                if is_prod:
-                    if start_record(event.broadcaster):
-                        self.stdout.write(" ... successfully started")
-                    else:
-                        self.stderr.write(" ... fail to start")
-                    continue
-                else:
-                    self.stderr.write(" but not tried (debug mode) ")
+            if event_startrecord(event.id, event.broadcaster.id):
+                self.stdout.write(" ... successfully started")
             else:
-                self.stdout.write(f"Broadcaster {event.broadcaster.name} is recording")
-
-        broadcasters = Broadcaster.objects.order_by("name").all()
-
-        self.stdout.write("-- Stopping finished events")
-        for broadcaster in broadcasters:
-            if broadcaster.id not in rec_bro_ids:
-                if not check_piloting_conf(broadcaster):
-                    self.stderr.write(f"Config error for Broadcaster {broadcaster.name}")
-                    continue
-
-                if is_recording(broadcaster):
-                    self.stdout.write(f"Broadcaster {broadcaster.name} should be stopped : " + broadcaster.name, ending="")
-
-                    if is_prod:
-                        if stop_record(broadcaster):
-                            self.stdout.write(" ...  stopped ")
-                        else:
-                            self.stderr.write(" ... fail to stop recording")
-                    else:
-                        self.stdout.write(" but not tried (debug mode) ")
-
-        self.stdout.write("- Done -")
+                self.stderr.write(" ... fail to start")

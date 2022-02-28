@@ -101,7 +101,10 @@ COOKIE_LEARN_MORE = getattr(django_settings, "COOKIE_LEARN_MORE", "")
 
 USE_EVENT = getattr(django_settings, "USE_EVENT", False)
 
-DEFAULT_EVENT_THUMBNAIL = getattr(django_settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg")
+DEFAULT_EVENT_THUMBNAIL = getattr(
+    django_settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg"
+)
+
 
 def context_settings(request):
     """Return all context settings."""
@@ -164,7 +167,7 @@ def context_settings(request):
     new_settings["USE_VIDEO_RECORD"] = USE_VIDEO_RECORD
     new_settings["COOKIE_LEARN_MORE"] = COOKIE_LEARN_MORE
     new_settings["USE_EVENT"] = USE_EVENT
-    new_settings["DEFAULT_EVENT_THUMBNAIL"] =DEFAULT_EVENT_THUMBNAIL
+    new_settings["DEFAULT_EVENT_THUMBNAIL"] = DEFAULT_EVENT_THUMBNAIL
     return new_settings
 
 

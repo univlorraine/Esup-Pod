@@ -56,12 +56,13 @@
                 {% trans "The event is currently in progress. Editing options are limited." %}
             </div>
         {% endif %}
+
         {% for field_hidden in form.hidden_fields %}
             {{field_hidden}}
         {% endfor %}
         {% for field in form.visible_fields %}
             {% spaceless %}
-                <div class="field_{{ field.name }}">
+                <div class="field_{{ field.name }} {% with 'description owner additional_owners type is_draft is_auto_start' as res %}{% if field.name in res.split %}collapse advanced_options{% endif %}{% endwith %}">
                     <div class="form-group {% if field.field.required %}form-group-required {% endif %}">
                         {{ field.errors }}
                         {% if "form-check-input" in field.field.widget.attrs.class %}
@@ -85,7 +86,8 @@
                 </div>
             {% endspaceless %}
         {% endfor %}
-
+        <button type="button" class="btn btn-primary btn-sm m-1"
+            id="display_advanced_options" data-display="0">{% trans "Display advanced options" %}</button>
         <div class="text-center mt-1">
             <button type="submit" class="btn btn-primary">{% trans "Send" %}</button>
         </div>
@@ -143,5 +145,58 @@
     <script src="{% static 'js/broadcaster_from_building.js' %}?ver={{ VERSION }}"></script>
 
     {{ form.media }}
+
+    <script>
+        $("#display_advanced_options").on("click",function(){
+            if ($(this).data("display")){
+                $(".advanced_options").addClass("collapse");
+                $(this).text("{% trans 'Display advanced options' %}");
+                $(this).data("display", 0)
+            } else {
+                $(".advanced_options").removeClass("collapse");
+                $(this).text("{% trans 'Hide advanced options' %}");
+                $(this).data("display", 1)
+            }
+        })
+        $('document').ready(function () {
+            DateTimeShortcuts.overrideTimeOptions = function () {
+                var clockCount = 0;
+                $('.clockbox').each(function () {
+                    var $this = $(this);
+                    console.log('clockbox');
+                     $this.find('h2').remove();
+                });
+                $('ul.timelist').each(function () {
+                    var $this = $(this);
+                    var originalHref = $this.find('a').attr('href');
+                    console.log(originalHref);
+                    $this.find('li').remove();
+                    for (i=8; i <= 20; i++) {
+                        var newLink = '<li><a href="javascript:DateTimeShortcuts.handleClockQuicklink('+ clockCount + ', ' + i
+                            + ');"> ' + i + ':00</a></li>';
+                        // Plan B : forcer le format au lieu de changer TIME_INPUT_FORMATS dans settings.py
+                        // var newLink = '<li><a href="javascript:settime('+ clockCount + ', ' + i
+                        //    + ');"> ' + i + ':00</a></li>';
+                        $this.append(newLink);
+                    }
+
+                    clockCount++;
+            });
+        };
+        DateTimeShortcuts.overrideTimeOptions();
+    });
+    {% comment %}function settime(num, val) {
+      var d;
+      if (val == -1) {
+          d = DateTimeShortcuts.now();
+       }
+       else {
+           d = new Date(1970, 1, 1, val, 0, 0, 0)
+       }
+       DateTimeShortcuts.clockInputs[num].value = d.strftime("%H:%M");
+       DateTimeShortcuts.clockInputs[num].focus();
+       DateTimeShortcuts.dismissClock(num);
+    }{% endcomment %}
+    </script>
 
 {% endblock more_script %}
