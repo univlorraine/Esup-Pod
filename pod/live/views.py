@@ -4,7 +4,6 @@ import os.path
 import re
 from datetime import date, datetime, timedelta
 from time import sleep
-from typing import Optional
 
 from django.conf import settings
 from django.contrib import messages
@@ -32,6 +31,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from pod.bbb.models import Livestream
+from . import pilotingInterface
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from .models import (
     Building,
@@ -40,7 +40,6 @@ from .models import (
     Event,
     get_available_broadcasters_of_building,
 )
-from .pilotingInterface import Wowza, PilotingInterface, BROADCASTER_IMPLEMENTATION
 from ..main.views import in_maintenance
 from ..video.models import Video
 
@@ -831,73 +830,36 @@ def checkFileExists(full_file_name, max_attempt=6):
     logger.info("File exists")
 
 
-def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
-    logger.debug("get_piloting_implementation")
-    piloting_impl = broadcaster.piloting_implementation
-    if not piloting_impl:
-        logger.info(
-            "'piloting_implementation' value is not set for '"
-            + broadcaster.name
-            + "' broadcaster."
-        )
-        return None
-
-    if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
-        logger.warning(
-            "'piloting_implementation' : "
-            + piloting_impl
-            + " is not know for '"
-            + broadcaster.name
-            + "' broadcaster. Available piloting_implementations are '"
-            + "','".join(BROADCASTER_IMPLEMENTATION)
-            + "'"
-        )
-        return None
-
-    if piloting_impl.lower() == "wowza":
-        logger.debug(
-            "'piloting_implementation' found : "
-            + piloting_impl.lower()
-            + " for '"
-            + broadcaster.name
-            + "' broadcaster."
-        )
-        return Wowza(broadcaster)
-
-    logger.warning("->get_piloting_implementation - This should not happen.")
-    return None
-
-
 def check_piloting_conf(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.check_piloting_conf()
 
 
 def start_record(broadcaster: Broadcaster, event_id) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.start(event_id)
 
 
 def split_record(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.split()
 
 
 def stop_record(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.stop()
 
 
 def get_info_current_record(broadcaster: Broadcaster) -> dict:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return {
             "currentFile": "",
@@ -909,14 +871,14 @@ def get_info_current_record(broadcaster: Broadcaster) -> dict:
 
 
 def is_available_to_record(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.is_available_to_record()
 
 
 def is_recording(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.is_recording()

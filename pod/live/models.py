@@ -251,6 +251,17 @@ class Broadcaster(models.Model):
     def sites(self):
         return self.building.sites
 
+    def is_recording(self):
+        from pod.live.pilotingInterface import get_piloting_implementation
+        impl = get_piloting_implementation(self)
+        if impl:
+            return impl.is_recording() != False
+        else:
+            return False
+
+    is_recording.boolean = True
+    is_recording.short_description = _("Broadcaster")
+
 
 class HeartBeat(models.Model):
     user = models.ForeignKey(User, null=True, verbose_name=_("Viewer"))
