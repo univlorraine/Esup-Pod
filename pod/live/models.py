@@ -270,6 +270,10 @@ def one_hour_hence():
     return datetime.now() + timezone.timedelta(hours=1)
 
 
+def get_default_event_type():
+    return DEFAULT_EVENT_TYPE_ID
+
+
 def present_or_future_date(value):
     if value < date.today():
         raise ValidationError(_("An event cannot be planned in the past"))
