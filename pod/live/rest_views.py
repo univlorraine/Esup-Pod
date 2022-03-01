@@ -34,20 +34,18 @@ class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = "slug"
 
 class EventSerializer(serializers.HyperlinkedModelSerializer):
-   # broadcaster = serializers.HyperlinkedIdentityField(view_name='broadcaster-detail', lookup_field='broadcaster_url',lookup_url_kwarg='broadcaster_url')
-    broadcaster = serializers.SlugRelatedField(
-        many=False,
-        read_only=True,
-        slug_field='url'
-    )
+   broadcaster = serializers.HyperlinkedRelatedField(view_name='broadcaster-detail', queryset=Broadcaster.objects.all(), many=False,
+                                                read_only=False,
+                                                lookup_field="slug")
 
-    class Meta:
+   class Meta:
         model = Event
         fields = (
             "id",
             "url",
             "title",
             "owner",
+            "additional_owners",
             "slug",
             "description",
             "start_date",
@@ -56,7 +54,10 @@ class EventSerializer(serializers.HyperlinkedModelSerializer):
             "broadcaster",
             "type",
             "is_draft",
+            "is_restricted",
+            "is_auto_start",
             "videos",
+            "thumbnail"
         )
 
 #############################################################################
