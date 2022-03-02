@@ -40,6 +40,7 @@ from .models import (
     Event,
     get_available_broadcasters_of_building,
 )
+from .utils import send_email_confirmation
 from ..main.views import in_maintenance
 from ..video.models import Video
 
@@ -455,6 +456,7 @@ def event_edit(request, slug=None):
         )
         if form.is_valid():
             event = form.save()
+            send_email_confirmation(event)
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )

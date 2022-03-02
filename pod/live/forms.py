@@ -227,6 +227,7 @@ class EventForm(forms.ModelForm):
             "broadcaster",
             "type",
             "is_draft",
+            "is_restricted",
             "is_auto_start",
         ]
         widgets = {
