@@ -347,7 +347,8 @@ HIDE_LOCAL_LOGIN = False
 SHOW_ONLY_PARENT_THEMES = False
 
 """
-# Organiser l'affichage des vidéos dans des themes par sections pliables
+# Affichage uniquement des vidéos de la chaîne ou du thème actuel(le).
+# Affichage des sous-thèmes directs de la chaîne ou du thème actuel(le)
 """
 ORGANIZE_BY_THEME = False
 
@@ -658,6 +659,7 @@ ENCODE_VIDEO = "start_encode"
 # REMOTE ENCODING SETTINGS
 # SSH_REMOTE_USER = ""
 # SSH_REMOTE_HOST = "xxx.univ.fr"
+# SSH_REMOTE_PORT = "22"
 # SSH_REMOTE_KEY = "/home/pod/.ssh/id_rsa"
 # Remote command to launch, it will be call with this arguments :
 # -n encoding-<video_id> -i <video_src_file>  -v <video_id> -u <video_user_hash> -d <settings_debug>
@@ -925,7 +927,7 @@ CREATE_GROUP_FROM_AFFILIATION = False
 
 """
 # Si True, des groupes sont créés automatiquement
-#  à partir des groupes (attribut groups à memberOf) 
+#  à partir des groupes (attribut groups à memberOf)
 #  des individus qui se connectent sur la plateforme
 #  et l'individu qui se connecte est ajouté automatiquement à ces groupes
 """
@@ -1015,7 +1017,15 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "shib-given-name": (True, "first_name"),
     "shib-sn": (True, "last_name"),
     "shib-mail": (False, "email"),
+    "shib-primary-affiliation": (False, "affiliation"),
+    "shib-unscoped-affiliation": (False, "affiliations"),
 }
+
+"""
+# Custom variable to allow user of somme domain to be staff
+# If empty all domains will be allowed
+"""
+SHIBBOLETH_STAFF_ALLOWED_DOMAINS = ('univ-domain.fr',)
 
 """
 # Nom de l'attribut dans les headers qui sert à identifier
@@ -1193,6 +1203,15 @@ USE_BBB_LIVE_DOWNLOADING = False
 BBB_NUMBER_MAX_LIVES = 4
 
 """
+# Version de BigBlueButton utilisée.
+# Si les URLs de présentations Web contiennent /2.3/ (et non /2.0/),
+# il est nécessaire de mettre ce paramètre à True.
+# Remarque : si vous utilisez Scalelite, il est possible que les URLS générées soient
+# au format 2.3 même si la version de BigBlueButton est une 2.2.X.
+"""
+BBB_VERSION_IS_23 = False
+
+"""
 #
 # Permet d'activer le fonctionnement de categorie au niveau de ses vidéos
 # Vous pouvez créer des catégories pour pouvoir ranger vos propres vidéos
@@ -1282,7 +1301,7 @@ DARKMODE_ENABLED = False
 DYSLEXIAMODE_ENABLED = False
 
 """
-# Ce paramètre permet d'afficher un lien "En savoir plus" 
+# Ce paramètre permet d'afficher un lien "En savoir plus"
 # sur la boite de dialogue d'information sur l'usage des cookies dans Pod.
 # On peut préciser un lien vers les mentions légales ou page dpo
 """
