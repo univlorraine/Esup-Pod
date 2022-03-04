@@ -6,6 +6,7 @@
     {% if use_category %}
         <link rel="stylesheet" href="{% static 'css/video_category.css' %}?ver={{ VERSION }}">
     {% endif %}
+    <link href="{% static 'css/event.css' %}?ver={{ VERSION }}" rel="stylesheet"/>
 {% endblock more_style %}
 
 {% block breadcrumbs %}{{ block.super }}
@@ -53,7 +54,7 @@
         </a>
     </div>
     {% if events.count == 0 %}
-        <p class="alert alert-info">{% trans 'You have not planned any event yet, please use the "Add a new event" button to add one' %}</p>
+        <p class="alert alert-info">{% trans 'You have not planned any event yet, please use the "Plan an event" button to add one' %}</p>
     {% else %}
         <p class="alert alert-info">{% trans "Please use the thumbnails toolbar which is located under the event on which you want to work with." %}</p>
 
