@@ -3,6 +3,7 @@ import json
 import logging
 import re
 from abc import ABC
+from typing import Optional
 
 import requests
 from django.conf import settings
@@ -12,6 +13,7 @@ from .models import Broadcaster
 BROADCASTER_IMPLEMENTATION = ["Wowza"]
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 
+logger = logging.getLogger("pod.live")
 
 class PilotingInterface(ABC):
     @classmethod
@@ -289,3 +291,40 @@ class Wowza(PilotingInterface, ABC):
             "outputPath": response.json().get("outputPath"),
             "segmentDuration": response.json().get("segmentDuration"),
         }
+
+
+def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
+    logger.debug("get_piloting_implementation")
+    piloting_impl = broadcaster.piloting_implementation
+    if not piloting_impl:
+        logger.info(
+            "'piloting_implementation' value is not set for '"
+            + broadcaster.name
+            + "' broadcaster."
+        )
+        return None
+
+    if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
+        logger.warning(
+            "'piloting_implementation' : "
+            + piloting_impl
+            + " is not know for '"
+            + broadcaster.name
+            + "' broadcaster. Available piloting_implementations are '"
+            + "','".join(BROADCASTER_IMPLEMENTATION)
+            + "'"
+        )
+        return None
+
+    if piloting_impl.lower() == "wowza":
+        logger.debug(
+            "'piloting_implementation' found : "
+            + piloting_impl.lower()
+            + " for '"
+            + broadcaster.name
+            + "' broadcaster."
+        )
+        return Wowza(broadcaster)
+
+    logger.warning("->get_piloting_implementation - This should not happen.")
+    return None

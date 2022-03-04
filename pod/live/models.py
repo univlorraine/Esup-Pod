@@ -251,6 +251,17 @@ class Broadcaster(models.Model):
     def sites(self):
         return self.building.sites
 
+    def is_recording(self):
+        from pod.live.pilotingInterface import get_piloting_implementation
+        impl = get_piloting_implementation(self)
+        if impl:
+            return impl.is_recording() != False
+        else:
+            return False
+
+    is_recording.boolean = True
+    is_recording.short_description = _("Broadcaster")
+
 
 class HeartBeat(models.Model):
     user = models.ForeignKey(User, null=True, verbose_name=_("Viewer"))
@@ -449,6 +460,13 @@ class Event(models.Model):
 
     def get_absolute_url(self):
         return reverse("live:event", args=[str(self.slug)])
+
+    def get_full_url(self, request=None):
+        """Get the video full URL."""
+        full_url = "".join(
+            ["//", get_current_site(request).domain, self.get_absolute_url()]
+        )
+        return full_url
 
     def get_hashkey(self):
         return hashlib.sha256(
