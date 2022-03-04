@@ -289,7 +289,6 @@
                 },
                 success: function (data) {
                     if (data.success) {
-                        console.log('Record started')
                         $("#startrecord").addClass("d-none")
                         $("#stoprecord").removeClass("d-none")
                         $("#splitrecord").removeClass("d-none")
@@ -319,7 +318,6 @@
                 },
                 success: function (data) {
                     if (data.success) {
-                        console.log('Record stopped')
                         $("#startrecord").removeClass("d-none")
                         $("#stoprecord").addClass("d-none")
                         $("#splitrecord").addClass("d-none")
@@ -354,7 +352,6 @@
                 success: function (data) {
                     if (data.success) {
                         recordingduration = 0;
-                        console.log("conversion done");
                         getEventVideos();
                     } else {
                         console.warn('Split not done ')
@@ -374,7 +371,7 @@
         })
 
         // display the event's videos
-        const getEventVideos = function () {
+        function getEventVideos() {
             $.ajax({
                 url: "{% url 'live:event_get_video_cards' %}",
                 method: 'GET',
@@ -399,8 +396,7 @@
         }
 
         // Status of the stream
-        const updateStreamStatus = function () {
-            console.log("get stream status" + new Date())
+        function updateStreamStatus() {
             $.ajax({
                 url: "{% url 'live:event_isstreamavailabletorecord' %}",
                 method: 'GET',
@@ -438,7 +434,7 @@
 
         let recordingduration = 0;
 
-        const displayRecordingDuration = function (){
+        function displayRecordingDuration() {
             let minutes = parseInt(recordingduration/60,10)
             let seconds = recordingduration  - minutes * 60
             minutes = minutes<10 ? "0"+minutes : minutes
@@ -447,7 +443,7 @@
             recordingduration++
         }
 
-        const getInfoCurrentRecord = function () {
+        function getInfoCurrentRecord() {
             $.ajax({
                 url: "{% url 'live:ajax_event_info_record' %}",
                 method: 'POST',
@@ -460,10 +456,8 @@
                 },
                 success: function (data) {
                     if (data.success && data.duration) {
-                        console.log('Recording Info')
                         recordingduration = data.duration
                         $("#recordingduration").removeClass("d-none")
-                        console.log(recordingduration)
                     } else {
                         $("#recordingduration").addClass("d-none")
                         console.error('Recording Info not done')
@@ -477,19 +471,19 @@
         }
 
         // if event has started or ended while viewing, the page is reloaded
-        const reloadIfNeeded = function () {
+        function reloadIfNeeded() {
             const start = new Date("{{ event.get_start.isoformat }}")
             const end = new Date("{{ event.get_end.isoformat }}")
 
             {% if event.is_coming %}
-                setInterval(function () {
-                    if (new Date() >= start){
+                setInterval(() => {
+                    if (new Date() >= start) {
                         location.reload()
                     }
                 }, 1000);
 
             {% elif event.is_current %}
-                setInterval(function () {
+                setInterval(() => {
                     if (new Date() >= end) {
                         location.reload()
                     }
