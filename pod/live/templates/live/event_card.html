@@ -1,0 +1,59 @@
+{% load l10n %}
+{% load i18n %}
+{% spaceless %}
+    <div class="card mb-4 box-shadow border-secondary video-card">
+        <!-- card.html -->
+        <div class="card-header">
+            <div class="d-flex justify-content-end align-items-center">
+            <span class="text-muted small">
+                    <span>
+                        <i data-feather="tv"></i>
+                    </span>
+                    <span title="add infos here">
+                        <i data-feather="info"></i>
+                    </span>
+                    {% if event.is_draft %}
+                        <span title="{% trans 'This content is in draft.' %}">
+                            <i data-feather="x-circle"></i>
+                        </span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="card-thumbnail">
+{#            {{ video.get_thumbnail_card|safe }}#}
+
+            <a class="link-center-pod" href="{{ event.get_absolute_url }}" title="{{ event.title }}">
+                <img class="card-img-top" src="{{ DEFAULT_EVENT_THUMBNAIL }}" alt="Default event image" loading="lazy"/>
+            </a>
+        </div>
+        <div class="card-body px-3 py-2">
+            {% if event.owner == request.user or request.user.is_superuser %}
+{#                or perms.video.change_video or request.user in video.additional_owners.all #}
+
+                <footer class="card-footer card-footer-pod p-0 m-0">
+{#                {% include "videos/link_video.html" %}#}
+                    {# Remove following icons #}
+                    {% spaceless %}
+                    <a href="{% url 'live:event_edit' slug=event.slug %}" class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
+                        <i data-feather="edit"></i>
+                    </a>
+                    <a href="{% url 'live:event_delete' slug=event.slug %}" class="btn btn-light btn-sm p-0 pb-1 m-0 ml-1">
+                        <i data-feather="trash-2"></i>
+                    </a>
+                    {% endspaceless %}
+                </footer>
+            {% endif %}
+             <span class="small video-title">
+                <a href="{{event.get_absolute_url}}
+                    {% if playlist %}?playlist={{playlist.slug}}{% endif %}"
+                   title="{{event.title}}">
+                    {{event.title|capfirst|truncatechars:43}}
+                </a>
+                </br>
+                 {% blocktrans with start_date=event.start_date|date:"SHORT_DATE_FORMAT" start_time=event.start_time end_time=event.end_time %}The {{start_date}} from {{start_time}} to {{end_time}}{% endblocktrans %}
+             </span>
+        </div>
+
+    </div>
+{% endspaceless %}

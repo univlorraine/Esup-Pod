@@ -284,6 +284,9 @@ THUMBNAIL_PRESERVE_FORMAT = True
 
 # ie : USE_THEME = 'green'
 
+USE_EVENT = False
+DEFAULT_EVENT_PATH = ""
+DEFAULT_EVENT_THUMBNAIL = "/static/img/default-event.svg"
 """
 ##
 # Main menu settings:

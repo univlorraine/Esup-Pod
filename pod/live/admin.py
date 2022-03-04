@@ -1,13 +1,11 @@
 from django.contrib import admin
-
-from .models import Building
-from .models import Broadcaster
-from .models import HeartBeat
 from django.contrib.sites.models import Site
-from pod.live.forms import BuildingAdminForm
-from .forms import BroadcasterAdminForm
 from django.contrib.sites.shortcuts import get_current_site
-from pod.video.models import Video
+from django.forms import Textarea
+
+from pod.live.forms import BuildingAdminForm, EventAdminForm, BroadcasterAdminForm
+from pod.live.models import Building, Event, Broadcaster, HeartBeat, Video
+
 
 # Register your models here.
 
@@ -65,8 +63,15 @@ class BroadcasterAdmin(admin.ModelAdmin):
         "url",
         "status",
         "is_restricted",
+        "piloting_conf",
     )
     readonly_fields = ["slug"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        kwargs['widgets'] = {
+            'piloting_conf': Textarea(attrs={'placeholder': "{\n 'server_url':'...',\n 'application':'...',\n 'livestream':'...',\n}"})
+        }
+        return super().get_form(request, obj, **kwargs)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -96,7 +101,30 @@ class BroadcasterAdmin(admin.ModelAdmin):
             "bootstrap-4/js/bootstrap.min.js",
         )
 
+class EventAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        ModelForm = super(EventAdmin, self).get_form(request, obj, **kwargs)
+
+        class ModelFormMetaClass(ModelForm):
+            def __new__(cls, *args, **kwargs):
+                kwargs['request'] = request
+                return ModelForm(*args, **kwargs)
+
+        return ModelFormMetaClass
+
+    form = EventAdminForm
+    fields  = (
+        "title",
+        "description",
+        "owner",
+        "start_date",
+        "start_time",
+        "end_time",
+        "type",
+        "broadcaster",
+    )
 
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(Broadcaster, BroadcasterAdmin)
 admin.site.register(HeartBeat, HeartBeatAdmin)
+admin.site.register(Event, EventAdmin)
