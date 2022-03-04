@@ -363,11 +363,7 @@ class Event(models.Model):
     broadcaster = models.ForeignKey(
         Broadcaster,
         verbose_name=_("Broadcaster"),
-        help_text=_(
-            "If this box is checked, "
-            "the video will be visible and accessible only by you "
-            "and the additional owners."
-        ),
+        help_text=_("Broadcaster name."),
     )
 
     type = models.ForeignKey(
@@ -379,9 +375,9 @@ class Event(models.Model):
     is_draft = models.BooleanField(
         verbose_name=_("Draft"),
         help_text=_(
-            "If this box is checked, "
-            "the video will be visible and accessible only by you "
-            "and the additional owners."
+            "If this box is checked, the event will be visible "
+            "only by you and the additional owners "
+            "but accessible to anyone having the url link."
         ),
         default=True,
     )
@@ -389,7 +385,7 @@ class Event(models.Model):
         verbose_name=_("Restricted access"),
         help_text=_(
             "If this box is checked, "
-            "the video will only be accessible to authenticated users."
+            "the event will only be accessible to authenticated users."
         ),
         default=False,
     )

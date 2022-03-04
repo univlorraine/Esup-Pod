@@ -141,13 +141,14 @@ class EventForm(forms.ModelForm):
         self.user = kwargs.pop("user", None)
         is_current_event = kwargs.pop("is_current_event", None)
         super(EventForm, self).__init__(*args, **kwargs)
+        self.auto_id="event_%s"
         self.fields["owner"].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
         # Manage fields to display
         self.initFields(is_current_event)
 
-        # mise a jour dynamique de la liste
+        # mise a jour dynamique de la liste des diffuseurs
         if "building" in self.data:
             # à la sauvegarde
             try:
@@ -227,6 +228,7 @@ class EventForm(forms.ModelForm):
             "broadcaster",
             "type",
             "is_draft",
+            "is_restricted",
             "is_auto_start",
         ]
         widgets = {

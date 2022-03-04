@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from time import sleep
 from typing import Optional
 
+from ckeditor.widgets import LazyEncoder
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,6 +14,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.serializers import serialize
 from django.db.models import Prefetch
 from django.db.models import Q
 from django.http import (
@@ -207,7 +209,7 @@ def heartbeat(request):
 def get_event_access(request, event, slug_private):
     """Return True if access is granted to current user."""
     is_draft = event.is_draft
-    is_restricted = event.broadcaster.is_restricted
+    is_restricted = event.is_restricted
     is_restricted_to_group = False
     # is_restricted_to_group = video.restrict_access_to_groups.all().exists()
 
@@ -253,7 +255,7 @@ def event(request, slug, slug_private=None):  # affichage d'un event
 
     event = get_object_or_404(Event, slug=slug)
 
-    if event.broadcaster.is_restricted and not request.user.is_authenticated():
+    if event.is_restricted and not request.user.is_authenticated():
         url = reverse("authentication_login")
         url += "?referrer=" + request.get_full_path()
         return redirect(url)
@@ -296,8 +298,8 @@ def events(request):  # affichage des events
     )
     queryset = queryset.filter(is_draft=False)
     if not request.user.is_authenticated():
-        queryset = queryset.filter(broadcaster__is_restricted=False)
-    #     queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+        queryset = queryset.filter(is_restricted=False)
+        # queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
     # elif not request.user.is_superuser:
     #     queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
     #     queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
@@ -510,8 +512,21 @@ def broadcasters_from_building(request):
 
     response_data = {}
     for broadcaster in broadcasters:
-        response_data[broadcaster.id] = {"id": broadcaster.id, "name": broadcaster.name}
+        response_data[broadcaster.id] = {"id": broadcaster.id, "name": broadcaster.name, "restricted": broadcaster.is_restricted}
     return JsonResponse(response_data)
+
+
+def broadcaster_restriction(request):
+    if request.method == "GET" :
+        # and request.is_ajax():
+
+        broadcaster_id = request.GET.get("idbroadcaster")
+        if not broadcaster_id:
+            return HttpResponseBadRequest()
+        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+        return JsonResponse({"restricted": broadcaster.is_restricted})
+
+    return HttpResponseNotAllowed(["GET"])
 
 
 @csrf_protect

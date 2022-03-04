@@ -19,6 +19,7 @@ from .views import (
     event_video_transform,
     event_get_video_cards,
     ajax_event_info_record,
+    broadcaster_restriction,
 )
 
 app_name = "live"
@@ -40,6 +41,11 @@ else:
             r"^ajax_calls/getbroadcastersfrombuiding/$",
             broadcasters_from_building,
             name="broadcasters_from_building",
+        ),
+        url(
+            r"^ajax_calls/getbroadcasterrestriction/$",
+            broadcaster_restriction,
+            name="ajax_broadcaster_restriction",
         ),
         url(
             r"^ajax_calls/geteventvideocards/$",
