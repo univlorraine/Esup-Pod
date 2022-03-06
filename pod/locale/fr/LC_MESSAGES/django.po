@@ -3039,14 +3039,14 @@ msgstr "Bonjour,"
 #: pod/live/utils.py:44
 #, python-format
 msgid ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour "
-"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de "
-"l'Université de Lorraine : %(url_event)s)Vous pouvez retrouver les autres "
-"options de partage dans l'onglet dédié."
-msgstr "Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour "
-"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de "
-"l'Université de Lorraine : %(url_event)s)Vous pouvez retrouver les autres "
-"options de partage dans l'onglet dédié."
+"You have scheduled a new live event labelled  “%(content_title)s” "
+"the %(start_date)s from %(start_time)s to %(end_time)s on video server : "
+"%(url_event)s). You can view other informations in shared tabs."
+msgstr ""
+"Vous venez de programmer un nouveau live intitulé “%(content_title)s” "
+"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo : "
+"%(url_event)s). Vous pouvez retrouver les autres informations dans l'onglet"
+" de partage."
 
 #: pod/live/utils.py:49 pod/live/utils.py:62 pod/video/utils.py:198
 #: pod/video/utils.py:225 pod/video/utils.py:288 pod/video/utils.py:315
@@ -3056,15 +3056,15 @@ msgstr "Cordialement."
 #: pod/live/utils.py:55
 #, python-format
 msgid ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour "
-"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de "
-"l'Université de Lorraine : <a href=\"%(url_event)s\">%(url_event)s)</a>Vous "
-"pouvez retrouver les autres options de partage dans l'onglet dédié."
+"You have scheduled a new live event labelled  “%(content_title)s” "
+"the %(start_date)s from %(start_time)s to %(end_time)s on video server :"
+"<a href=\"%(url_event)s\">%(url_event)s)</a>. You can view other "
+"informations in shared tabs."
 msgstr ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour "
-"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de "
-"l'Université de Lorraine : <a href=\"%(url_event)s\">%(url_event)s)</a>Vous "
-"pouvez retrouver les autres options de partage dans l'onglet dédié."
+"Vous venez de programmer un nouveau live intitulé “%(content_title)s” "
+"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo : "
+"<a href=\"%(url_event)s\">%(url_event)s)</a>. Vous pouvez retrouver les "
+"autres informations dans l'onglet de partage."
 
 #: pod/live/utils.py:67
 #, python-format
