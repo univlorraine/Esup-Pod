@@ -18,7 +18,7 @@ def get_next_events(context: object):
     )
     queryset = queryset.filter(is_draft=False)
     if not request.user.is_authenticated():
-        queryset = queryset.filter(broadcaster__is_restricted=False)
+        queryset = queryset.filter(is_restricted=False)
     #     queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
     # elif not request.user.is_superuser:
     #     queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
