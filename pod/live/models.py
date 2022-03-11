@@ -260,7 +260,7 @@ class Broadcaster(models.Model):
             return False
 
     is_recording.boolean = True
-    is_recording.short_description = _("Broadcaster")
+    is_recording.short_description = _("Is recording ?")
 
 
 class HeartBeat(models.Model):
