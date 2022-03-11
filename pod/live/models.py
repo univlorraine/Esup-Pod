@@ -355,7 +355,7 @@ class Event(models.Model):
     )
 
     start_date = models.DateField(
-        _("Date of Event"),
+        _("Date of event"),
         default=date.today,
         help_text=_("Start date of the live."),
         validators=[present_or_future_date],

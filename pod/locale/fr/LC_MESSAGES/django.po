@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-11 18:17+0100\n"
+"POT-Creation-Date: 2022-03-11 20:03+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -2506,19 +2506,16 @@ msgid "Additional owners"
 msgstr "Propriétaires additionels"
 
 #: pod/live/models.py:351
-#, fuzzy
-#| msgid ""
-#| "You can add additional owners to the video. They will have the same "
-#| "rights as you except that they can't delete this video."
 msgid ""
 "You can add additional owners to the event. They will have the same rights "
 "as you except that they can't delete this event."
 msgstr ""
-"Vous pouvez ajouter des propriétaires additionnels à la vidéo. Ils auront "
-"les mêmes droits que vous sauf qu'ils ne peuvent pas supprimer cette vidéo."
+"Vous pouvez ajouter des propriétaires additionnels à l'évènement'. Ils "
+"auront les mêmes droits que vous sauf qu'ils ne peuvent pas supprimer cet "
+"évènement."
 
-#: pod/live/models.py:358
-msgid "Date of Event"
+#: pod/live/models.py:358 pod/video/models.py:680
+msgid "Date of event"
 msgstr "Date de l'évènement"
 
 #: pod/live/models.py:366
@@ -2530,10 +2527,8 @@ msgid "End time of the live event."
 msgstr "Heure de fin du direct."
 
 #: pod/live/models.py:377
-#, fuzzy
-#| msgid "Broadcaster"
 msgid "Broadcaster name."
-msgstr "Diffuseur"
+msgstr "Nom du diffuseur"
 
 #: pod/live/models.py:387 pod/recorder/models.py:156 pod/video/forms.py:273
 #: pod/video/models.py:741
@@ -2541,32 +2536,24 @@ msgid "Draft"
 msgstr "Brouillon"
 
 #: pod/live/models.py:389
-#, fuzzy
-#| msgid ""
-#| "If this box is checked, the video will be visible and accessible only by "
-#| "you and the additional owners."
 msgid ""
 "If this box is checked, the event will be visible only by you and the "
 "additional owners but accessible to anyone having the url link."
 msgstr ""
-"Si la case est cochée, la vidéo sera visible et accessible uniquement par "
-"vous et les propriétaires additionnels."
+"Si la case est cochée, l'évènement sera visible uniquement par vous et les "
+"propriétaires additionnels mais accessible à quiconque dispose de l'URL."
 
 #: pod/live/models.py:398
-#, fuzzy
-#| msgid ""
-#| "If this box is checked, the video will only be accessible to "
-#| "authenticated users."
 msgid ""
 "If this box is checked, the event will only be accessible to authenticated "
 "users."
 msgstr ""
-"Si cette case est cochée, la vidéo sera uniquement accessible aux "
+"Si cette case est cochée, l'évènement sera uniquement accessible aux "
 "utilisateurs authentifiés."
 
 #: pod/live/models.py:405
 msgid "Auto start"
-msgstr "Démarrage automatique"
+msgstr "Démarrage automatique de l'enregistrement"
 
 #: pod/live/models.py:407
 msgid "If this box is checked, the record will start automatically."
@@ -2781,7 +2768,7 @@ msgstr "Le %(start_date)s de %(start_time)s à %(end_time)s"
 #: pod/live/templates/live/event_delete.html:17
 #, python-format
 msgid "Deleting the event \"%(vtitle)s\""
-msgstr "Supprimer la vidéo « %(vtitle)s »"
+msgstr "Supprimer l'évènement « %(vtitle)s »"
 
 #: pod/live/templates/live/event_delete.html:19
 msgid "View the event"
@@ -2841,7 +2828,7 @@ msgstr ""
 #: pod/live/templates/live/event_edit.html:90
 #: pod/live/templates/live/event_edit.html:153
 msgid "Display advanced options"
-msgstr "Options avancées"
+msgstr "Afficher les options avancées"
 
 #: pod/live/templates/live/event_edit.html:92
 #: pod/live/templates/live/filter_aside.html:13
@@ -3055,21 +3042,17 @@ msgid "Hello,"
 msgstr "Bonjour,"
 
 #: pod/live/utils.py:44
-#, fuzzy, python-format
-#| msgid ""
-#| "You have scheduled a new live event labelled  “%(content_title)s” the "
-#| "%(start_date)s from %(start_time)s to %(end_time)s on video server : "
-#| "%(url_event)s). You can view other informations in shared tabs."
+#, python-format
 msgid ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour "
-"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de "
-"l'Université de Lorraine : %(url_event)s)Vous pouvez retrouver les autres "
-"options de partage dans l'onglet dédié."
+"Vous venez de programmer un nouvel évènement direct intitulé "
+"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
+"sur le serveur vidéo de l'Université de Lorraine : %(url_event)s)Vous pouvez "
+"retrouver les autres options de partage dans l'onglet dédié."
 msgstr ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” le "
-"%(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo : "
-"%(url_event)s). Vous pouvez retrouver les autres informations dans l'onglet "
-"de partage."
+"Vous venez de programmer un nouvel évènement direct intitulé "
+"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
+"sur le serveur vidéo de l'Université de Lorraine : %(url_event)s). Vous "
+"pouvez retrouver les autres options de partage dans l'onglet dédié."
 
 #: pod/live/utils.py:49 pod/live/utils.py:62 pod/video/utils.py:198
 #: pod/video/utils.py:225 pod/video/utils.py:288 pod/video/utils.py:315
@@ -3077,27 +3060,24 @@ msgid "Regards."
 msgstr "Cordialement."
 
 #: pod/live/utils.py:55
-#, fuzzy, python-format
-#| msgid ""
-#| "You have scheduled a new live event labelled  “%(content_title)s” the "
-#| "%(start_date)s from %(start_time)s to %(end_time)s on video server :<a "
-#| "href=\"%(url_event)s\">%(url_event)s)</a>. You can view other "
-#| "informations in shared tabs."
+#, python-format
 msgid ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour "
-"le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de "
-"l'Université de Lorraine : <a href=\"%(url_event)s\">%(url_event)s)</a>Vous "
-"pouvez retrouver les autres options de partage dans l'onglet dédié."
+"Vous venez de programmer un nouvel évènement direct intitulé "
+"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
+"sur le serveur vidéo de l'Université de Lorraine : <a href=\"%(url_event)s\">"
+"%(url_event)s)</a>Vous pouvez retrouver les autres options de partage dans "
+"l'onglet dédié."
 msgstr ""
-"Vous venez de programmer un nouveau live intitulé “%(content_title)s” le "
-"%(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo : <a "
-"href=\"%(url_event)s\">%(url_event)s)</a>. Vous pouvez retrouver les autres "
-"informations dans l'onglet de partage."
+"Vous venez de programmer un nouvel évènement direct intitulé "
+"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
+"sur le serveur vidéo de l'Université de Lorraine : <a href=\"%(url_event)s\">"
+"%(url_event)s)</a>. Vous pouvez retrouver les autres options de partage dans "
+"l'onglet dédié."
 
 #: pod/live/utils.py:67
 #, python-format
 msgid "Registration of event #%(content_id)s"
-msgstr "Enregistrement de l'évènement #%(content_id)s"
+msgstr "Programmation de l'évènement #%(content_id)s"
 
 #: pod/live/views.py:99
 msgid "You cannot view this page."
@@ -5433,10 +5413,6 @@ msgstr ""
 "Vous pouvez ajouter des propriétaires additionnels à la vidéo. Ils auront "
 "les mêmes droits que vous sauf qu'ils ne peuvent pas supprimer cette vidéo."
 
-#: pod/video/models.py:680
-msgid "Date of event"
-msgstr "Date de l'évènement"
-
 #: pod/video/models.py:780
 msgid "Overview"
 msgstr "Vue d'ensemble"
@@ -6684,6 +6660,9 @@ msgstr "Désolé, la recherche de vidéos est limitée à 500 pages maximum."
 #: pod/video_search/views.py:261
 msgid "Search results"
 msgstr "Résultats de la recherche"
+
+#~ msgid "Date of Event"
+#~ msgstr "Date de l'évènement"
 
 #~ msgid "My event"
 #~ msgstr "Mon évènement direct"

@@ -41,7 +41,7 @@ def send_email_confirmation(event):
     message = "%s\n%s\n\n%s\n" % (
         _("Hello,"),
         _(
-            u"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de l'Université de Lorraine : %(url_event)s)"
+            u"Vous venez de programmer un nouvel évènement direct intitulé “%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de l'Université de Lorraine : %(url_event)s)"
             +"Vous pouvez retrouver les autres options de partage dans l'onglet dédié."
         )
         % {"content_title": event.title, "start_date": (event.start_date).strftime("%d/%m/%Y"), "start_time": event.start_time, "end_time": event.end_time,
@@ -52,7 +52,7 @@ def send_email_confirmation(event):
     html_message = '<p>%s</p><p>%s</p><p>%s</p>' % (
         _("Hello,"),
         _(
-             u"Vous venez de programmer un nouveau live intitulé “%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de l'Université de Lorraine : <a href=\"%(url_event)s\">%(url_event)s)</a>"
+             u"Vous venez de programmer un nouvel évènement direct intitulé “%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s sur le serveur vidéo de l'Université de Lorraine : <a href=\"%(url_event)s\">%(url_event)s)</a>"
             +"Vous pouvez retrouver les autres options de partage dans l'onglet dédié."
         )
         % {
