@@ -799,11 +799,11 @@ def checkFileSize(full_file_name, max_attempt=6):
     attempt_number = 1
     while not size_match and attempt_number <= max_attempt:
         # if attempt_number > 1:
-        sleep(0.5)
+        sleep(2)
         new_size = os.path.getsize(full_file_name)
         if file_size != new_size:
             logger.warning(
-                f"File size changing from {file_size} to {new_size}, attempt number {attempt_number} "
+                f"File size of {full_file_name} changing from {file_size} to {new_size}, attempt number {attempt_number} "
             )
             file_size = new_size
             attempt_number = attempt_number + 1
@@ -811,7 +811,7 @@ def checkFileSize(full_file_name, max_attempt=6):
                 logger.error(f"File: {full_file_name} is still changing")
                 raise Exception("checkFileSize aborted")
         else:
-            logger.info("Size checked")
+            logger.info(f"Size checked for {full_file_name} : {new_size}")
             size_match = True
 
 
@@ -826,7 +826,7 @@ def checkDirExists(dest_dir_name, max_attempt=6):
             raise Exception(f"Dir: {dest_dir_name} does not exists and can't be created")
 
         attempt_number = attempt_number + 1
-        sleep(0.5)
+        sleep(1)
 
     logger.info("Dir exists")
 
@@ -842,7 +842,7 @@ def checkFileExists(full_file_name, max_attempt=6):
             raise Exception(f"File: {full_file_name} does not exists")
 
         attempt_number = attempt_number + 1
-        sleep(0.5)
+        sleep(1)
 
     logger.info("File exists")
 
