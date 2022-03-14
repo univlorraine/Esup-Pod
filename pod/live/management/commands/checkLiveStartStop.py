@@ -1,4 +1,3 @@
-import os
 from datetime import date, datetime
 
 from django.conf import settings
@@ -9,32 +8,33 @@ from django.utils import timezone
 from pod.live.models import Event
 from pod.live.views import (
     is_recording,
-    get_info_current_record,
     event_stoprecord,
     event_startrecord,
 )
 
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
+DEBUG = getattr(settings, "DEBUG", "")
 
 
 class Command(BaseCommand):
     help = "start or stop broadcaster recording based on live events "
 
-    is_prod = False
+    debug_mode = DEBUG
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "-p",
-            "--prod",
+            "-f",
+            "--force",
             action="store_true",
             help="Start and stop recording FOR REAL",
         )
 
     def handle(self, *args, **options):
 
-        self.is_prod = options["prod"]
+        if options["force"]:
+            self.debug_mode = False
 
-        if self.is_prod:
+        if not self.debug_mode:
             self.stderr.write(" RUN FOR REAL ")
         else:
             self.stderr.write(" RUN ONLY FOR DEBUGGING PURPOSE ")
@@ -53,34 +53,17 @@ class Command(BaseCommand):
             Q(start_date=date.today()) & Q(end_time__gte=endtime)
         )
 
-        self.stdout.write("-- Stopping finished events")
+        self.stdout.write("-- Stopping finished events (if started with Pod)")
         for event in events:
-            if not is_recording(event.broadcaster):
+            if not is_recording(event.broadcaster, True):
                 continue
 
             self.stdout.write(
                 f"Broadcaster {event.broadcaster.name} should be stopped : ", ending=""
             )
 
-            if not self.is_prod:
+            if self.debug_mode:
                 self.stdout.write("... but not tried (debug mode) ")
-                continue
-
-            # Récupération du fichier associé à l'enregistrement du broadcaster
-            current_record_info = get_info_current_record(event.broadcaster)
-
-            if not current_record_info.get("currentFile"):
-                self.stderr.write(" ... impossible to get recording file name")
-                continue
-
-            filename = current_record_info.get("currentFile")
-            full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
-
-            # Vérification qu'il existe bien pour cette instance ce Pod
-            if not os.path.exists(full_file_name):
-                self.stdout.write(
-                    " ...  is not a on POD recording filesystem : " + full_file_name
-                )
                 continue
 
             if event_stoprecord(event.id, event.broadcaster.id):
@@ -111,7 +94,7 @@ class Command(BaseCommand):
                 f"Broadcaster {event.broadcaster.name} should be started : ", ending=""
             )
 
-            if not self.is_prod:
+            if self.debug_mode:
                 self.stdout.write("... but not tried (debug mode) ")
                 continue
 
