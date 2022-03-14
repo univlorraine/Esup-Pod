@@ -66,7 +66,7 @@ class BroadcasterAdmin(admin.ModelAdmin):
         "building",
         "url",
         "status",
-        "is_recording",
+        "is_recording_admin",
         "is_restricted",
         "piloting_conf",
     )
