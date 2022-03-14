@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-11 20:03+0100\n"
+"POT-Creation-Date: 2022-03-14 11:45+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team pod@esup-portail.org\n"
@@ -3036,48 +3036,37 @@ msgstr "Evènements à venir"
 msgid "Past events"
 msgstr "Evènements passés"
 
-#: pod/live/utils.py:42 pod/live/utils.py:53 pod/video/utils.py:190
+#: pod/live/utils.py:52
+#, python-format
+msgid "Registration of event #%(content_id)s"
+msgstr "Programmation de l'évènement #%(content_id)s"
+
+#: pod/live/utils.py:62 pod/live/utils.py:78 pod/video/utils.py:190
 #: pod/video/utils.py:213 pod/video/utils.py:280 pod/video/utils.py:303
 msgid "Hello,"
 msgstr "Bonjour,"
 
-#: pod/live/utils.py:44
+#: pod/live/utils.py:64 pod/live/utils.py:80
 #, python-format
 msgid ""
-"Vous venez de programmer un nouvel évènement direct intitulé "
-"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
-"sur le serveur vidéo de l'Université de Lorraine : %(url_event)s)Vous pouvez "
-"retrouver les autres options de partage dans l'onglet dédié."
+"You have just scheduled a new event called “%(content_title)s” in date of "
+"%(start_date)s from %(start_time)s to %(end_time)s on video server : "
+"%(url_event)s). You can find the other sharing options in the dedicated tab."
 msgstr ""
 "Vous venez de programmer un nouvel évènement direct intitulé "
 "“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
 "sur le serveur vidéo de l'Université de Lorraine : %(url_event)s). Vous "
 "pouvez retrouver les autres options de partage dans l'onglet dédié."
 
-#: pod/live/utils.py:49 pod/live/utils.py:62 pod/video/utils.py:198
+#: pod/live/utils.py:69 pod/live/utils.py:87 pod/video/utils.py:198
 #: pod/video/utils.py:225 pod/video/utils.py:288 pod/video/utils.py:315
 msgid "Regards."
 msgstr "Cordialement."
 
-#: pod/live/utils.py:55
-#, python-format
-msgid ""
-"Vous venez de programmer un nouvel évènement direct intitulé "
-"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
-"sur le serveur vidéo de l'Université de Lorraine : <a href=\"%(url_event)s\">"
-"%(url_event)s)</a>Vous pouvez retrouver les autres options de partage dans "
-"l'onglet dédié."
-msgstr ""
-"Vous venez de programmer un nouvel évènement direct intitulé "
-"“%(content_title)s” pour le %(start_date)s de %(start_time)s à %(end_time)s "
-"sur le serveur vidéo de l'Université de Lorraine : <a href=\"%(url_event)s\">"
-"%(url_event)s)</a>. Vous pouvez retrouver les autres options de partage dans "
-"l'onglet dédié."
-
-#: pod/live/utils.py:67
-#, python-format
-msgid "Registration of event #%(content_id)s"
-msgstr "Programmation de l'évènement #%(content_id)s"
+#: pod/live/utils.py:73 pod/live/utils.py:91 pod/video/utils.py:201
+#: pod/video/utils.py:228 pod/video/utils.py:291 pod/video/utils.py:318
+msgid "Post by:"
+msgstr "Posté par :"
 
 #: pod/live/views.py:99
 msgid "You cannot view this page."
@@ -6470,11 +6459,6 @@ msgstr ""
 msgid "You will find it here:"
 msgstr "Vous la retrouverez ici :"
 
-#: pod/video/utils.py:201 pod/video/utils.py:228 pod/video/utils.py:291
-#: pod/video/utils.py:318
-msgid "Post by:"
-msgstr "Posté par :"
-
 #: pod/video/utils.py:203 pod/video/utils.py:230 pod/video/utils.py:293
 #: pod/video/utils.py:320
 msgid "the:"
@@ -6660,6 +6644,19 @@ msgstr "Désolé, la recherche de vidéos est limitée à 500 pages maximum."
 #: pod/video_search/views.py:261
 msgid "Search results"
 msgstr "Résultats de la recherche"
+
+#~ msgid ""
+#~ "Vous venez de programmer un nouvel évènement direct intitulé "
+#~ "“%(content_title)s” pour le %(start_date)s de %(start_time)s à "
+#~ "%(end_time)s sur le serveur vidéo de l'Université de Lorraine : <a href="
+#~ "\"%(url_event)s\">%(url_event)s)</a>Vous pouvez retrouver les autres "
+#~ "options de partage dans l'onglet dédié."
+#~ msgstr ""
+#~ "Vous venez de programmer un nouvel évènement direct intitulé "
+#~ "“%(content_title)s” pour le %(start_date)s de %(start_time)s à "
+#~ "%(end_time)s sur le serveur vidéo de l'Université de Lorraine : <a href="
+#~ "\"%(url_event)s\">%(url_event)s)</a>. Vous pouvez retrouver les autres "
+#~ "options de partage dans l'onglet dédié."
 
 #~ msgid "Date of Event"
 #~ msgstr "Date de l'évènement"
