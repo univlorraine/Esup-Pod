@@ -64,6 +64,7 @@ VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 logger = logging.getLogger("pod.live")
 
+EMAIL_ON_EVENT_SCHEDULING = getattr(settings,"EMAIL_ON_EVENT_SCHEDULING",False)
 
 def lives(request):  # affichage des directs
     site = get_current_site(request)
@@ -458,7 +459,8 @@ def event_edit(request, slug=None):
         )
         if form.is_valid():
             event = form.save()
-            send_email_confirmation(event)
+            if EMAIL_ON_EVENT_SCHEDULING:
+                send_email_confirmation(event)
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )

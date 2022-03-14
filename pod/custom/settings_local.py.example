@@ -1359,3 +1359,16 @@ DEFAULT_EVENT_THUMBNAIL = "/static/img/default-event.svg"
 #  (en général, le type ayant pour identifiant '1' est 'Other')
 """
 DEFAULT_EVENT_TYPE_ID = 1
+
+
+"""
+# Si True, un courriel est envoyé aux managers
+#  et à l'auteur (si DEBUG est à False) à la création/modification d'un event
+"""
+EMAIL_ON_EVENT_SCHEDULING = True
+
+"""
+# Si True, un courriel est également envoyé à l'admin (si DEBUG est à False)
+#  à la création/modification d'un event
+"""
+EMAIL_ADMIN_ON_EVENT_SCHEDULING = True
