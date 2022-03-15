@@ -20,6 +20,12 @@ nav {
     padding: 0 !important;
     margin: 0 !important;
 }
+.back-to-top {
+     display:none !important;
+}
+#event_add {
+     display:none !important;
+}
 #navbar_collapse {
     display:none !important;
 }

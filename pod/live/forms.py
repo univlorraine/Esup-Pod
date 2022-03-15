@@ -213,10 +213,12 @@ class EventForm(forms.ModelForm):
             self.remove_field("start_time")
             self.remove_field("is_draft")
             self.remove_field("is_auto_start")
+            self.remove_field("is_restricted")
+            self.remove_field("type")
+            self.remove_field("description")
             self.remove_field("building")
             self.remove_field("broadcaster")
             self.remove_field("owner")
-            self.remove_field("additional_owners")
             self.remove_field("thumbnail")
 
     def remove_field(self, field):
