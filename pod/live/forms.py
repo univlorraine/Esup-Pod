@@ -12,6 +12,8 @@ from pod.live.models import (
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
 
+import logging
+
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
@@ -140,6 +142,8 @@ class EventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         is_current_event = kwargs.pop("is_current_event", None)
+        broadcaster_id = kwargs.pop("broadcaster_id", None)
+        building_id = kwargs.pop("building_id", None)
         super(EventForm, self).__init__(*args, **kwargs)
         self.auto_id="event_%s"
         self.fields["owner"].initial = self.user
@@ -182,15 +186,23 @@ class EventForm(forms.ModelForm):
             self.initial["building"] = broadcaster.building.name
         elif not self.instance.pk:
             # à la création
-            query_buildings = get_building_having_available_broadcaster(self.user)
-            if query_buildings:
+            if broadcaster_id is not None and building_id is not None:
+                query_buildings = get_building_having_available_broadcaster(self.user, building_id)
                 self.fields["building"].queryset = query_buildings.all()
-                self.initial["building"] = query_buildings.first().name
-                self.fields[
-                    "broadcaster"
-                ].queryset = get_available_broadcasters_of_building(
-                    self.user, query_buildings.first()
-                )
+                self.initial["building"] = Building.objects.filter(Q(id=building_id)).first().name
+                query_broadcaster = get_available_broadcasters_of_building(self.user, building_id, broadcaster_id)
+                self.fields["broadcaster"].queryset = query_broadcaster.all()
+                self.initial["broadcaster"] = broadcaster_id
+            else:
+                query_buildings = get_building_having_available_broadcaster(self.user)
+                if query_buildings:
+                    self.fields["building"].queryset = query_buildings.all()
+                    self.initial["building"] = query_buildings.first().name
+                    self.fields[
+                        "broadcaster"
+                    ].queryset = get_available_broadcasters_of_building(
+                        self.user, query_buildings.first()
+                    )
 
     def initFields(self, is_current_event):
         if not self.user.is_superuser:
