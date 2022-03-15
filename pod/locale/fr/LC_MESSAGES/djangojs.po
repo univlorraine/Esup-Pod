@@ -324,7 +324,7 @@ msgstr "Si cette case est cochée l'évènement ne sera accessible qu'aux utilis
 #: pod/live/static/js/broadcaster_from_building.js:39
 #: pod/static/js/broadcaster_from_building.js:39
 msgid "an error occurred on broadcaster fetch ..."
-msgstr "Une erreur s'est produite lors du changement des diffuseurs"
+msgstr "Une erreur s'est produite lors du chargement des diffuseurs"
 
 #: pod/live/static/js/broadcaster_from_building.js:62
 #: pod/static/js/broadcaster_from_building.js:62
@@ -334,7 +334,7 @@ msgstr "Pas de diffuseur pour ce bâtiment"
 #: pod/live/static/js/broadcaster_from_building.js:77
 #: pod/static/js/broadcaster_from_building.js:77
 msgid "an error occurred during broadcasters load ..."
-msgstr "Une erreur s'est produite lors du changement des diffuseurs"
+msgstr "Une erreur s'est produite lors du chargement des diffuseurs"
 
 #: pod/main/static/js/jquery.jqgrid.min.js:10
 #: pod/static/js/jquery.jqgrid.min.js:10
