@@ -66,6 +66,7 @@ VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 logger = logging.getLogger("pod.live")
 
+EMAIL_ON_EVENT_SCHEDULING = getattr(settings,"EMAIL_ON_EVENT_SCHEDULING",False)
 
 def lives(request):  # affichage des directs
     if USE_EVENT and not (
@@ -479,7 +480,8 @@ def event_edit(request, slug=None):
         )
         if form.is_valid():
             event = form.save()
-            send_email_confirmation(event)
+            if EMAIL_ON_EVENT_SCHEDULING:
+                send_email_confirmation(event)
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )
@@ -567,7 +569,7 @@ def event_isstreamavailabletorecord(request):
                 }
             )
 
-        if is_recording(broadcaster):
+        if is_recording(broadcaster, True):
             return JsonResponse({"available": True, "recording": True})
 
         available = is_available_to_record(broadcaster)
@@ -622,7 +624,7 @@ def event_splitrecord(event_id, broadcaster_id):
     if not check_piloting_conf(broadcaster):
         return JsonResponse({"success": False, "error": "implementation error"})
 
-    if not is_recording(broadcaster):
+    if not is_recording(broadcaster, True):
         return JsonResponse(
             {"success": False, "error": "the broadcaster is not recording"}
         )
@@ -657,7 +659,7 @@ def event_stoprecord(event_id, broadcaster_id):
     if not check_piloting_conf(broadcaster):
         return JsonResponse({"success": False, "error": "implementation error"})
 
-    if not is_recording(broadcaster):
+    if not is_recording(broadcaster, True):
         return JsonResponse(
             {"success": False, "error": "the broadcaster is not recording"}
         )
@@ -915,8 +917,8 @@ def is_available_to_record(broadcaster: Broadcaster) -> bool:
     return impl_class.is_available_to_record()
 
 
-def is_recording(broadcaster: Broadcaster) -> bool:
+def is_recording(broadcaster: Broadcaster, with_file_check = False) -> bool:
     impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
-    return impl_class.is_recording()
+    return impl_class.is_recording(with_file_check)
