@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers import serialize
@@ -272,7 +272,12 @@ def event(request, slug, slug_private=None):  # affichage d'un event
     # modif de l'url d'appel pour compatibilité avec le template link_video.html (variable : urleditapp)
     request.resolver_match.namespace = ""
 
-    event = get_object_or_404(Event, slug=slug)
+    try:
+        id = int(slug[: slug.find("-")])
+    except ValueError:
+        raise SuspiciousOperation("Invalid video id")
+
+    event = get_object_or_404(Event, id=id)
 
     if event.is_restricted and not request.user.is_authenticated():
         url = reverse("authentication_login")
