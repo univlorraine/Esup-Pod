@@ -6,6 +6,7 @@ Django version : 1.11.16.
 import os
 import sys
 from pod.main.settings import BASE_DIR
+import django.conf.global_settings
 
 ##
 # Version of the project
