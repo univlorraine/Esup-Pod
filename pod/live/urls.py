@@ -28,14 +28,7 @@ USE_EVENT = getattr(settings, "USE_EVENT", False)
 
 urlpatterns = []
 
-if not USE_EVENT:
-    urlpatterns += [
-        url(r"^$", lives, name="lives"),
-        url(r"^ajax_calls/heartbeat/", heartbeat),
-        url(r"^building/(?P<building_id>[\d]+)/$", building, name="building"),
-        url(r"^(?P<slug>[\-\d\w]+)/$", video_live, name="video_live"),
-    ]
-else:
+if USE_EVENT:
     urlpatterns += [
         url(
             r"^ajax_calls/getbroadcastersfrombuiding/$",
@@ -72,7 +65,6 @@ else:
             ajax_event_info_record,
             name="ajax_event_info_record",
         ),
-        url(r"^ajax_calls/heartbeat/", heartbeat),
         url(r"^event/(?P<slug>[\-\d\w]+)/$", event, name="event"),
         url(
             r"^event/(?P<slug>[\-\d\w]+)/(?P<slug_private>[\-\d\w]+)/$",
@@ -95,3 +87,11 @@ else:
         url(r"^events/$", events, name="events"),
         url(r"^my_events/$", my_events, name="my_events"),
     ]
+
+urlpatterns += [
+    url(r"^ajax_calls/heartbeat/", heartbeat),
+    url(r"^$", lives, name="lives"),
+    url(r"^building/(?P<building_id>[\d]+)/$", building, name="building"),
+    url(r"^(?P<slug>[\-\d\w]+)/$", video_live, name="video_live"),
+]
+

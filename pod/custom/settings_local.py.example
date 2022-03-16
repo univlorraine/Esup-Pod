@@ -1315,6 +1315,11 @@ COOKIE_LEARN_MORE = ""
 USE_EVENT = False
 
 """
+# Si True, seule les personnes "Staff" peuvent programmer des évènements
+"""
+RESTRICT_EDIT_EVENT_ACCESS_TO_STAFF_ONLY = True
+
+"""
 # Chemin racine du répertoire où sont déposés temporairement les
 # enregistrements des évènements éffectués depuis POD pour
 # converstion en ressource vidéo (VOD)
@@ -1340,3 +1345,16 @@ DEFAULT_EVENT_THUMBNAIL = "/static/img/default-event.svg"
 #  (en général, le type ayant pour identifiant '1' est 'Other')
 """
 DEFAULT_EVENT_TYPE_ID = 1
+
+
+"""
+# Si True, un courriel est envoyé aux managers
+#  et à l'auteur (si DEBUG est à False) à la création/modification d'un event
+"""
+EMAIL_ON_EVENT_SCHEDULING = True
+
+"""
+# Si True, un courriel est également envoyé à l'admin (si DEBUG est à False)
+#  à la création/modification d'un event
+"""
+EMAIL_ADMIN_ON_EVENT_SCHEDULING = True

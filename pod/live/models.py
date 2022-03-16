@@ -251,16 +251,20 @@ class Broadcaster(models.Model):
     def sites(self):
         return self.building.sites
 
-    def is_recording(self):
+    def is_recording_admin(self):
         from pod.live.pilotingInterface import get_piloting_implementation
         impl = get_piloting_implementation(self)
-        if impl:
-            return impl.is_recording() != False
-        else:
-            return False
+        try:
+            if impl:
+                if impl.is_recording():
+                    return format_html('<img src="/static/admin/img/icon-yes.svg" alt="Yes">')
+                else:
+                    return format_html('<img src="/static/admin/img/icon-no.svg" alt="No">')
+        except Exception:
+            pass
+        return format_html('<img src="/static/admin/img/icon-alert.svg" alt="Error">')
 
-    is_recording.boolean = True
-    is_recording.short_description = _("Broadcaster")
+    is_recording_admin.short_description = _("Is recording ?")
 
 
 class HeartBeat(models.Model):
@@ -355,7 +359,7 @@ class Event(models.Model):
     )
 
     start_date = models.DateField(
-        _("Date of Event"),
+        _("Date of event"),
         default=date.today,
         help_text=_("Start date of the live."),
         validators=[present_or_future_date],

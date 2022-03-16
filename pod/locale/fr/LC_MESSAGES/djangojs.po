@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Esup-Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-14 19:18+0000\n"
+"POT-Creation-Date: 2022-03-15 17:07+0100\n"
 "PO-Revision-Date: 2021-03-26 17:58+0100\n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: \n"
@@ -55,10 +55,6 @@ msgstr "Le formulaire ne peut pas être récupéré."
 msgid "You are no longer authenticated. Please log in again."
 msgstr "Vous n'êtes plus authentifié. Veuillez vous reconnectez."
 
-#: pod/playlist/static/js/playlist.js:168
-msgid "The video can not be added from this page."
-msgstr "La vidéo ne peut être ajoutée depuis cette page"
-
 #: pod/chapter/static/js/chapters.js:199
 #: pod/enrichment/static/js/enrichment.js:193 pod/main/static/js/main.js:415
 #: pod/main/static/js/main.js:501
@@ -88,7 +84,7 @@ msgstr "commencent au même moment."
 msgid "Chapters"
 msgstr "Chapitres"
 
-#: pod/completion/static/js/caption_maker.js:26
+#: pod/completion/static/js/caption_maker.js:29
 msgid ""
 "WEBVTT\n"
 "\n"
@@ -100,45 +96,45 @@ msgstr ""
 "temps début(00:00.000) --> temps fin(00:00.000)\n"
 "texte de sous-titre"
 
-#: pod/completion/static/js/caption_maker.js:42
-#: pod/completion/static/js/caption_maker.js:740
+#: pod/completion/static/js/caption_maker.js:48
+#: pod/completion/static/js/caption_maker.js:902
 msgid "Unrecognized caption file format."
 msgstr "Format de fichier de traduction non reconnu"
 
-#: pod/completion/static/js/caption_maker.js:54
+#: pod/completion/static/js/caption_maker.js:59
 msgid "There is no captions to save"
 msgstr "Il n’y a aucun sous-titre à sauvegarder"
 
-#: pod/completion/static/js/caption_maker.js:85
-#: pod/completion/static/js/caption_maker.js:754
+#: pod/completion/static/js/caption_maker.js:94
+#: pod/completion/static/js/caption_maker.js:916
 msgid "Not a valid time track file."
 msgstr "Fichier de traduction invalide"
 
-#: pod/completion/static/js/caption_maker.js:106
+#: pod/completion/static/js/caption_maker.js:115
 msgid "error during exchange"
 msgstr "erreur durant le téléversement"
 
-#: pod/completion/static/js/caption_maker.js:110
+#: pod/completion/static/js/caption_maker.js:119
 msgid "no data could be stored."
 msgstr "aucune donnée ne peut être stockée."
 
-#: pod/completion/static/js/caption_maker.js:162
+#: pod/completion/static/js/caption_maker.js:181
 msgid "Are you sure you want to delete all caption?"
 msgstr "Êtes-vous sûr(e) de vouloir supprimer les sous-titre ?"
 
-#: pod/completion/static/js/caption_maker.js:713
+#: pod/completion/static/js/caption_maker.js:867
 msgid "Error reading caption file. Code = "
 msgstr "Erreur durant la lecture du fichier de traduction, Code = "
 
-#: pod/completion/static/js/caption_maker.js:719
+#: pod/completion/static/js/caption_maker.js:874
 msgid "Exception thrown reading caption file. Code = "
 msgstr "Une exception a été levée durant la lecture du fichier. Code = "
 
-#: pod/completion/static/js/caption_maker.js:722
+#: pod/completion/static/js/caption_maker.js:878
 msgid "Your browser does not support FileReader."
 msgstr "Votre navigateur ne supporte pas FileReader"
 
-#: pod/completion/static/js/caption_maker.js:729
+#: pod/completion/static/js/caption_maker.js:885
 #, fuzzy
 #| msgid "Error during exchange"
 msgid "Error loading caption file: "
@@ -278,6 +274,33 @@ msgstr "Il y a un chevauchement avec l'enrichissement "
 #: pod/enrichment/static/js/enrichment.js:507
 msgid "please change start and/or end values."
 msgstr "veuillez changer de valeur de début et/ou de fin."
+
+#: pod/live/static/js/broadcaster_from_building.js:12
+#: pod/static/js/broadcaster_from_building.js:12
+msgid "Restricted because the broadcaster is restricted"
+msgstr "Obligatoirement restreint car le diffuseur est restreint"
+
+#: pod/live/static/js/broadcaster_from_building.js:16
+#: pod/static/js/broadcaster_from_building.js:16
+msgid ""
+"If this box is checked, the event will only be accessible to authenticated "
+"users."
+msgstr "Si cette case est cochée l'évènement ne sera accessible qu'aux utilisateurs authentifiés"
+
+#: pod/live/static/js/broadcaster_from_building.js:39
+#: pod/static/js/broadcaster_from_building.js:39
+msgid "an error occurred on broadcaster fetch ..."
+msgstr "Une erreur s'est produite lors du chargement des diffuseurs"
+
+#: pod/live/static/js/broadcaster_from_building.js:62
+#: pod/static/js/broadcaster_from_building.js:62
+msgid "No broadcaster set for this building"
+msgstr "Pas de diffuseur pour ce bâtiment"
+
+#: pod/live/static/js/broadcaster_from_building.js:77
+#: pod/static/js/broadcaster_from_building.js:77
+msgid "an error occurred during broadcasters load ..."
+msgstr "Une erreur s'est produite lors du chargement des diffuseurs"
 
 #: pod/main/static/js/jquery.jqgrid.min.js:10
 msgid "gView"
@@ -439,6 +462,16 @@ msgid "The file extension not in the allowed extension:"
 msgstr ""
 "Cette extension de fichier n'est pas présente dans les extensions "
 "autorisées :"
+
+#: pod/playlist/static/js/playlist.js:172
+msgid "The video can not be added from this page."
+msgstr "La vidéo ne peut être ajoutée depuis cette page"
+
+#: pod/playlist/static/js/playlist.js:179
+#, fuzzy
+#| msgid "videos found"
+msgid "The video slug not found."
+msgstr "vidéos trouvées"
 
 #: pod/podfile/static/podfile/js/filewidget.js:11
 msgid "Change image"

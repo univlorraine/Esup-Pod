@@ -53,6 +53,8 @@ HEARTBEAT_DELAY = getattr(settings, "HEARTBEAT_DELAY", 45)
 USE_BBB = getattr(settings, "USE_BBB", False)
 USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
+USE_EVENT = getattr(settings, "USE_EVENT", False)
+
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 DEFAULT_EVENT_THUMBNAIL = getattr(
     settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg"
@@ -64,8 +66,16 @@ VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 logger = logging.getLogger("pod.live")
 
+EMAIL_ON_EVENT_SCHEDULING = getattr(settings,"EMAIL_ON_EVENT_SCHEDULING",False)
 
 def lives(request):  # affichage des directs
+    if USE_EVENT and not (
+        request.user.is_superuser
+        or request.user.has_perm("live.view_building_supervisor")
+    ):
+        messages.add_message(request, messages.ERROR, _("You cannot view this page."))
+        raise PermissionDenied
+
     site = get_current_site(request)
     buildings = (
         Building.objects.all()
@@ -115,6 +125,13 @@ def get_broadcaster_by_slug(slug, site):
 
 
 def video_live(request, slug):  # affichage des directs
+    if USE_EVENT and not (
+        request.user.is_superuser
+        or request.user.has_perm("live.view_building_supervisor")
+    ):
+        messages.add_message(request, messages.ERROR, _("You cannot view this page."))
+        raise PermissionDenied
+
     site = get_current_site(request)
     broadcaster = get_broadcaster_by_slug(slug, site)
     if broadcaster.is_restricted and not request.user.is_authenticated():
@@ -143,6 +160,7 @@ def video_live(request, slug):  # affichage des directs
                 "broadcaster": broadcaster,
                 "form": form,
                 "heartbeat_delay": HEARTBEAT_DELAY,
+                "use_event": USE_EVENT,
             },
         )
     # Search if broadcaster is used to display a BBB streaming live
@@ -159,6 +177,7 @@ def video_live(request, slug):  # affichage des directs
             "display_chat": display_chat,
             "broadcaster": broadcaster,
             "heartbeat_delay": HEARTBEAT_DELAY,
+            "use_event": USE_EVENT,
         },
     )
 
@@ -404,6 +423,7 @@ def my_events(request):
             "coming_events_url_page": NEXT_EVENT_URL_NAME + "=" + str(pageN),
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
             "display_broadcaster_name": True,
+            "display_direct_button": request.user.is_superuser or request.user.has_perm("live.view_building_supervisor"),
         },
     )
 
@@ -447,6 +467,8 @@ def event_edit(request, slug=None):
         instance=event,
         user=request.user,
         is_current_event=event.is_current() if slug else None,
+        broadcaster_id= request.GET.get("broadcaster_id"),
+        building_id=request.GET.get("building_id"),
     )
 
     if request.POST:
@@ -458,7 +480,8 @@ def event_edit(request, slug=None):
         )
         if form.is_valid():
             event = form.save()
-            send_email_confirmation(event)
+            if EMAIL_ON_EVENT_SCHEDULING:
+                send_email_confirmation(event)
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )
@@ -546,7 +569,7 @@ def event_isstreamavailabletorecord(request):
                 }
             )
 
-        if is_recording(broadcaster):
+        if is_recording(broadcaster, True):
             return JsonResponse({"available": True, "recording": True})
 
         available = is_available_to_record(broadcaster)
@@ -601,7 +624,7 @@ def event_splitrecord(event_id, broadcaster_id):
     if not check_piloting_conf(broadcaster):
         return JsonResponse({"success": False, "error": "implementation error"})
 
-    if not is_recording(broadcaster):
+    if not is_recording(broadcaster, True):
         return JsonResponse(
             {"success": False, "error": "the broadcaster is not recording"}
         )
@@ -636,7 +659,7 @@ def event_stoprecord(event_id, broadcaster_id):
     if not check_piloting_conf(broadcaster):
         return JsonResponse({"success": False, "error": "implementation error"})
 
-    if not is_recording(broadcaster):
+    if not is_recording(broadcaster, True):
         return JsonResponse(
             {"success": False, "error": "the broadcaster is not recording"}
         )
@@ -894,8 +917,8 @@ def is_available_to_record(broadcaster: Broadcaster) -> bool:
     return impl_class.is_available_to_record()
 
 
-def is_recording(broadcaster: Broadcaster) -> bool:
+def is_recording(broadcaster: Broadcaster, with_file_check = False) -> bool:
     impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
-    return impl_class.is_recording()
+    return impl_class.is_recording(with_file_check)

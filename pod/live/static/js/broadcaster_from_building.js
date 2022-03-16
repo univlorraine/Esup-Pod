@@ -20,7 +20,7 @@ $(document).ready(function () {
 
     let getBroadcasterRestriction = () => {
         let broadcaster_id = broadcastField.find(':selected').val();
-        if (broadcaster_id === 'undefined' || broadcaster_id === '')
+        if (typeof broadcaster_id === 'undefined' || broadcaster_id === '')
             return;
 
         $.ajax({
