@@ -11,7 +11,7 @@ from django.conf import settings
 
 from .models import Broadcaster
 
-BROADCASTER_IMPLEMENTATION = ["Wowza"]
+EXISTING_BROADCASTER_IMPLEMENTATIONS = ["Wowza"]
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 
 logger = logging.getLogger("pod.live")
@@ -322,14 +322,14 @@ def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
         )
         return None
 
-    if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
+    if not piloting_impl.lower() in map(str.lower, EXISTING_BROADCASTER_IMPLEMENTATIONS):
         logger.warning(
             "'piloting_implementation' : "
             + piloting_impl
             + " is not know for '"
             + broadcaster.name
             + "' broadcaster. Available piloting_implementations are '"
-            + "','".join(BROADCASTER_IMPLEMENTATION)
+            + "','".join(EXISTING_BROADCASTER_IMPLEMENTATIONS)
             + "'"
         )
         return None
