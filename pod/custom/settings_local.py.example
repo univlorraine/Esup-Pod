@@ -1343,9 +1343,9 @@ DEFAULT_EVENT_PATH = ""
 """
 # Types de logiciel de serveur de streaming utilisés.
 # Actuellement disponible Wowza.
-# Si vous utilisez une autre logiciel, il faut développer une interface
+# Si vous utilisez une autre logiciel, il faut développer une interface dans pod/live/pilotingInterface.py
 """
-BROADCASTER_PILOTING_SOFTWARE = ('Wowza')
+BROADCASTER_PILOTING_SOFTWARE = ['Wowza',]
 
 """
 # Image par défaut affichée comme poster ou vignette,

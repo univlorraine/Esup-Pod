@@ -19,6 +19,7 @@ if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
     from pod.podfile.widgets import CustomFileWidget
 
+PILOTING_CHOICES = getattr(settings, "BROADCASTER_PILOTING_SOFTWARE")
 
 class BuildingAdminForm(forms.ModelForm):
     required_css_class = "required"
@@ -46,6 +47,17 @@ class BroadcasterAdminForm(forms.ModelForm):
         super(BroadcasterAdminForm, self).__init__(*args, **kwargs)
         if FILEPICKER:
             self.fields["poster"].widget = CustomFileWidget(type="image")
+
+        impl_choices = [[None, ""]]
+        for val in PILOTING_CHOICES:
+            impl_choices.append([val, val])
+
+        self.fields['piloting_implementation'] = forms.ChoiceField(
+            choices=impl_choices,
+            required=False,
+            label=_("Piloting implementation"),
+            help_text=_("Select the piloting implementation for to this broadcaster."),
+        )
 
     def clean(self):
         super(BroadcasterAdminForm, self).clean()
