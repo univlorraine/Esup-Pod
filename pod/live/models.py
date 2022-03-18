@@ -402,7 +402,7 @@ class Event(models.Model):
             "If this box is checked, "
             "the event will only be accessible to authenticated users."
         ),
-        default=False,
+        default=True,
     )
 
     is_auto_start = models.BooleanField(
