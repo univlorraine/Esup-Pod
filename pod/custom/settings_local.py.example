@@ -1352,7 +1352,7 @@ BROADCASTER_PILOTING_SOFTWARE = ['Wowza',]
 #  utilisée pour présenter l'évènement'.
 # Cette image doit se situer dans le répertoire static.
 """
-DEFAULT_EVENT_THUMBNAIL = "/static/img/default-event.svg"
+DEFAULT_EVENT_THUMBNAIL = "/img/default-event.svg"
 
 """
 # Type par défaut affecté à un évènement direct
