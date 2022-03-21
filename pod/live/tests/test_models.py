@@ -186,29 +186,27 @@ def add_video(event):
 
 
 class EventTestCase(TestCase):
-    fixtures = ["test_live.json"]
 
-    # def setUp(self):
-    #     building = Building.objects.create(name="building1")
-    #     e_broad = Broadcaster.objects.create(
-    #         name="broadcaster1",
-    #         url="http://test.live",
-    #         status=True,
-    #         is_restricted=True,
-    #         building=building,
-    #         iframe_url="http://iframe.live",
-    #         iframe_height=120,
-    #         public=False,
-    #     )
-    #     e_user = User.objects.create(username="pod")
-    #     e_type = Type.objects.create(title="type1")
-    #     Event.objects.create(
-    #         title="event1",
-    #         owner=e_user,
-    #         broadcaster=e_broad,
-    #         type=e_type,
-    #     )
-    #     print(" --->  SetUp of EventTestCase : OK !")
+    def setUp(self):
+        building = Building.objects.create(name="building1")
+        e_broad = Broadcaster.objects.create(
+            name="broadcaster1",
+            building=building,
+        )
+        e_user = User.objects.create(username="user1")
+        e_type = Type.objects.create(title="type1")
+        e_video = Video.objects.create(
+            video="event_video.mp4",
+            owner=e_user,
+            type=e_type,
+        )
+        Event.objects.create(
+            title="event1",
+            owner=e_user,
+            broadcaster=e_broad,
+            type=e_type,
+        )
+        print("--->  SetUp of EventTestCase : OK !")
 
     def test_create(self):
         e_broad = Broadcaster.objects.get(id=1)
@@ -230,13 +228,12 @@ class EventTestCase(TestCase):
         self.assertFalse(event.is_restricted)
         self.assertFalse(event.is_auto_start)
         self.assertEqual(event.description, "")
-        event.start_date = date.today()
         self.assertTrue(event.is_current())
         self.assertFalse(event.is_past())
         self.assertFalse(event.is_coming())
         self.assertEqual(event.videos.count(), 0)
         event.save()
-        print("   --->  test_attributs of EventTestCase : OK !")
+        print(" --->  test_attributs of EventTestCase : OK !")
 
     def test_add_thumbnail(self):
         event = Event.objects.get(id=1)
@@ -251,7 +248,7 @@ class EventTestCase(TestCase):
         event.thumbnail = thumb
         event.save()
         self.assertTrue("blabla" in event.thumbnail.name)
-        print("   --->  test_add_thumbnail of EventTestCase : OK !")
+        print(" --->  test_add_thumbnail of EventTestCase : OK !")
 
     def test_add_video(self):
         event = Event.objects.get(id=1)
@@ -259,13 +256,13 @@ class EventTestCase(TestCase):
         event.save()
 
         self.assertEquals(event.videos.count(), 1)
-        print("   --->  test_add_video of EventTestCase : OK !")
+        print(" --->  test_add_video of EventTestCase : OK !")
 
     def test_delete_object(self):
         event = Event.objects.get(id=1)
         event.delete()
         self.assertEquals(Event.objects.all().count(), 0)
-        print("   --->  test_delete_object of EventTestCase : OK !")
+        print(" --->  test_delete_object of EventTestCase : OK !")
 
     def test_delete_object_keep_video(self):
         event = Event.objects.get(id=1)
@@ -273,5 +270,5 @@ class EventTestCase(TestCase):
         event.delete()
         # video is not deleted with event
         self.assertEquals(Video.objects.all().count(), 1)
-        print("   --->  test_delete_object_keep_video of EventTestCase : OK !")
+        print(" --->  test_delete_object_keep_video of EventTestCase : OK !")
 
