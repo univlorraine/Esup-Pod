@@ -19,7 +19,7 @@ if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
     from pod.podfile.widgets import CustomFileWidget
 
-PILOTING_CHOICES = getattr(settings, "BROADCASTER_PILOTING_SOFTWARE")
+PILOTING_CHOICES = getattr(settings, "BROADCASTER_PILOTING_SOFTWARE", [])
 
 class BuildingAdminForm(forms.ModelForm):
     required_css_class = "required"
