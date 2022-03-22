@@ -225,7 +225,7 @@ class EventTestCase(TestCase):
         event = Event.objects.get(id=1)
         self.assertEqual(event.title, "event1")
         self.assertTrue(event.is_draft)
-        self.assertFalse(event.is_restricted)
+        self.assertTrue(event.is_restricted)
         self.assertFalse(event.is_auto_start)
         self.assertEqual(event.description, "")
         self.assertTrue(event.is_current())

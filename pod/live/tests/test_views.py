@@ -2,10 +2,11 @@
 Unit tests for live views
 """
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from django.test import Client
 from django.contrib.auth.models import User
-from pod.live.models import Building, Broadcaster, HeartBeat
+from pod.live.models import Building, Broadcaster, HeartBeat, Event
 from pod.video.models import Video
 from pod.video.models import Type
 from django.core.management import call_command
@@ -64,6 +65,15 @@ class LiveViewsTestCase(TestCase):
             video_on_hold=video_on_hold,
             building=building,
         )
+        Event.objects.create(
+            title="event1",
+            owner=user,
+            is_restricted=True,
+            is_draft=True,
+            broadcaster=Broadcaster.objects.get(id=1),
+            type=Type.objects.get(id=1),
+        )
+
 
         print(" --->  SetUp of liveViewsTestCase : OK !")
 
@@ -250,3 +260,95 @@ class LiveViewsTestCase(TestCase):
         self.assertTrue(response.context["form"])
 
         print("   --->  test_video_live of liveViewsTestCase : OK !")
+
+
+    def test_events(self):
+        self.client = Client()
+        self.user = User.objects.get(username="pod")
+
+        # User not logged in
+        response = self.client.get("/live/events/")
+        self.assertTemplateUsed(response, "live/events.html")
+        print("   --->  test_events of live/events : OK !")
+
+        response = self.client.get("/live/my_events/")
+        self.assertRedirects(
+            response,
+            "%s?referrer=%s" % (settings.LOGIN_URL, "/live/my_events/"),
+            status_code=302,
+            target_status_code=302,
+        )
+        print("   --->  test_events of live/my_events : OK !")
+
+        # event restricted and draft
+        self.event = Event.objects.get(title="event1")
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertRedirects(
+            response,
+            "%s?referrer=%s" % (settings.LOGIN_URL, "/live/event/%s/" % self.event.slug),
+            status_code=302,
+            target_status_code=302,
+        )
+        print("   --->  test_events access restricted event : OK !")
+
+        # event not restricted but draft (permission denied)
+        self.event.is_restricted = False
+        self.event.save()
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertTrue(403, response.status_code)
+        print("   --->  test_events access not restricted but draft event : OK !")
+
+        # event not restricted but draft (public link)
+        response = self.client.get("/live/event/%s/%s/" % (self.event.slug, self.event.get_hashkey()))
+        self.assertTemplateUsed(response, "live/event.html")
+        print("   --->  test_events access not restricted but draft with public link event : OK !")
+
+        # event not restricted nor draft
+        self.event.is_draft = False
+        self.event.save()
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event.html")
+        print("   --->  test_events access not restricted nor draft event : OK !")
+
+        # User logged in
+        johndoe = User.objects.create(username="johndoe", password="johnpwd")
+        self.client.force_login(johndoe)
+
+        response = self.client.get("/live/my_events/")
+        self.assertTemplateUsed(response, "live/my_events.html")
+        print("   --->  test_events of live/my_events : OK !")
+
+        # event restricted and draft (permission denied)
+        self.event = Event.objects.get(title="event1")
+        self.event.is_restricted = True
+        self.event.is_draft = True
+        self.event.save()
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertTrue(403, response.status_code)
+        print("   --->  test_events access restricted and draft with logged user : OK !")
+
+        # event restricted but not draft
+        self.event.is_draft = False
+        self.event.save()
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event.html")
+        print("   --->  test_events access restricted not draft with logged user : OK !")
+
+        # User is event's owner
+        self.client.force_login(self.user)
+
+        self.event = Event.objects.get(title="event1")
+        self.event.is_restricted = True
+        self.event.is_draft = True
+        self.event.save()
+
+        # myevents contains the event
+        response = self.client.get("/live/my_events/")
+        self.assertTemplateUsed(response, "live/my_events.html")
+        self.assertTemplateUsed(response, "live/events_list.html")
+        print("   --->  test_events owner sees his event's list: OK !")
+
+        # user's event (restricted and draft)
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event.html")
+        print("   --->  test_events access of restricted event for owner: OK !")
