@@ -3,7 +3,7 @@ Unit tests for live views
 """
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test import Client
 from django.contrib.auth.models import User
 from pod.live.models import Building, Broadcaster, HeartBeat, Event
@@ -78,10 +78,25 @@ class LiveViewsTestCase(TestCase):
         print(" --->  SetUp of liveViewsTestCase : OK !")
 
     def test_lives(self):
-        self.client = Client()
+        # User not logged in
+        with self.settings(USE_EVENT=False):
+            response = self.client.get("/live/")
+            self.assertTemplateUsed(response, "live/lives.html")
+            print("   --->  test_lives of liveViewsTestCase : OK !")
+
+        with self.settings(USE_EVENT=True):
+            self.client = Client()
+            response = self.client.get("/live/")
+            self.assertEqual(response.status_code, 403)
+            print("   --->  test_lives of liveViewsTestCase : OK !")
+
+        # Admin
+        self.superuser = User.objects.create_superuser(
+            "myuser", "myemail@test.com", "superpassword"
+        )
+        self.client.force_login(self.superuser)
         response = self.client.get("/live/")
         self.assertTemplateUsed(response, "live/lives.html")
-
         print("   --->  test_lives of liveViewsTestCase : OK !")
 
     def test_building(self):
@@ -223,12 +238,18 @@ class LiveViewsTestCase(TestCase):
 
         print("   --->  test_heartbeat of liveViewsTestCase : OK !")
 
+    @override_settings(USE_EVENT=False)
     def test_video_live(self):
         self.client = Client()
         self.user = User.objects.get(username="pod")
 
         # User not logged in
         # Broadcaster restricted
+        with self.settings(USE_EVENT=True):
+            self.broadcaster = Broadcaster.objects.get(name="broadcaster1")
+            response = self.client.get("/live/%s/" % self.broadcaster.slug)
+            self.assertEqual(response.status_code, 403)
+
         self.broadcaster = Broadcaster.objects.get(name="broadcaster1")
         response = self.client.get("/live/%s/" % self.broadcaster.slug)
         self.assertRedirects(
@@ -261,10 +282,8 @@ class LiveViewsTestCase(TestCase):
 
         print("   --->  test_video_live of liveViewsTestCase : OK !")
 
-
     def test_events(self):
         self.client = Client()
-        self.user = User.objects.get(username="pod")
 
         # User not logged in
         response = self.client.get("/live/events/")
@@ -310,9 +329,20 @@ class LiveViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access not restricted nor draft event : OK !")
 
+        # event creation
+        response = self.client.get("/live/event_edit/")
+        self.assertRedirects(
+            response,
+            "%s?referrer=%s" % (settings.LOGIN_URL, "/live/event_edit/"),
+            status_code=302,
+            target_status_code=302,
+        )
+        print("   --->  test_events creation event : OK !")
+
+
         # User logged in
-        johndoe = User.objects.create(username="johndoe", password="johnpwd")
-        self.client.force_login(johndoe)
+        self.user = User.objects.create(username="johndoe", password="johnpwd")
+        self.client.force_login(self.user)
 
         response = self.client.get("/live/my_events/")
         self.assertTemplateUsed(response, "live/my_events.html")
@@ -334,7 +364,18 @@ class LiveViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access restricted not draft with logged user : OK !")
 
+        # event creation
+        response = self.client.get("/live/event_edit/")
+        self.assertTemplateUsed(response, "live/event_edit.html")
+        print("   --->  test_events creation event : OK !")
+
+        # event delete  (permission denied)
+        response = self.client.get("/live/event_delete/%s/" % self.event.slug)
+        self.assertTrue(403, response.status_code)
+        print("   --->  test_events delete event : OK !")
+
         # User is event's owner
+        self.user = User.objects.get(username="pod")
         self.client.force_login(self.user)
 
         self.event = Event.objects.get(title="event1")
@@ -352,3 +393,8 @@ class LiveViewsTestCase(TestCase):
         response = self.client.get("/live/event/%s/" % self.event.slug)
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access of restricted event for owner: OK !")
+
+        # event delete
+        response = self.client.get("/live/event_delete/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event_delete.html")
+        print("   --->  test_events delete event : OK !")

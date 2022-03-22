@@ -5,7 +5,6 @@ import re
 from datetime import date, datetime, timedelta
 from time import sleep
 
-from ckeditor.widgets import LazyEncoder
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,7 +12,6 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.core.serializers import serialize
 from django.db.models import Prefetch
 from django.db.models import Q
 from django.http import (
@@ -53,8 +51,6 @@ HEARTBEAT_DELAY = getattr(settings, "HEARTBEAT_DELAY", 45)
 USE_BBB = getattr(settings, "USE_BBB", False)
 USE_BBB_LIVE = getattr(settings, "USE_BBB_LIVE", False)
 
-USE_EVENT = getattr(settings, "USE_EVENT", False)
-
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
 DEFAULT_EVENT_THUMBNAIL = getattr(
     settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg"
@@ -68,8 +64,10 @@ logger = logging.getLogger("pod.live")
 
 EMAIL_ON_EVENT_SCHEDULING = getattr(settings,"EMAIL_ON_EVENT_SCHEDULING",False)
 
+
 def lives(request):  # affichage des directs
-    if USE_EVENT and not (
+    use_event = getattr(settings, "USE_EVENT", False)
+    if use_event and not (
         request.user.is_superuser
         or request.user.has_perm("live.view_building_supervisor")
     ):
@@ -125,7 +123,8 @@ def get_broadcaster_by_slug(slug, site):
 
 
 def video_live(request, slug):  # affichage des directs
-    if USE_EVENT and not (
+    use_event = getattr(settings, "USE_EVENT", False)
+    if use_event and not (
         request.user.is_superuser
         or request.user.has_perm("live.view_building_supervisor")
     ):
@@ -160,7 +159,7 @@ def video_live(request, slug):  # affichage des directs
                 "broadcaster": broadcaster,
                 "form": form,
                 "heartbeat_delay": HEARTBEAT_DELAY,
-                "use_event": USE_EVENT,
+                "use_event": use_event,
             },
         )
     # Search if broadcaster is used to display a BBB streaming live
@@ -177,7 +176,7 @@ def video_live(request, slug):  # affichage des directs
             "display_chat": display_chat,
             "broadcaster": broadcaster,
             "heartbeat_delay": HEARTBEAT_DELAY,
-            "use_event": USE_EVENT,
+            "use_event": use_event,
         },
     )
 
