@@ -35,9 +35,9 @@ class Command(BaseCommand):
             self.debug_mode = False
 
         if not self.debug_mode:
-            self.stderr.write(" RUN FOR REAL ")
+            self.stdout.write(" RUN FOR REAL ")
         else:
-            self.stderr.write(" RUN ONLY FOR DEBUGGING PURPOSE ")
+            self.stdout.write(" RUN ONLY FOR DEBUGGING PURPOSE ")
 
         self.stop_finished()
 
