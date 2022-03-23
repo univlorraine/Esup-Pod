@@ -34,18 +34,18 @@ class Command(BaseCommand):
         if options["force"]:
             self.debug_mode = False
 
-        if not self.debug_mode:
-            self.stdout.write(" RUN FOR REAL ")
-        else:
-            self.stdout.write(" RUN ONLY FOR DEBUGGING PURPOSE ")
-
-        self.stop_finished()
+        self.stdout.write(f"- Beginning at {datetime.now().strftime('%H:%M:%S')}", ending="")
+        self.stdout.write(" - IN DEBUG MODE -" if self.debug_mode else "")
 
         self.start_new()
 
-        self.stdout.write("- Done -")
+        self.stop_finished()
+
+        self.stdout.write("- End -")
 
     def stop_finished(self):
+        self.stdout.write("-- Stopping finished events (if started with Pod) :")
+
         # finished events in the last 5 minutes
         endtime = datetime.now() + timezone.timedelta(minutes=-5)
 
@@ -53,7 +53,6 @@ class Command(BaseCommand):
             Q(start_date=date.today()) & Q(end_time__gte=endtime)
         )
 
-        self.stdout.write("-- Stopping finished events (if started with Pod)")
         for event in events:
             if not is_recording(event.broadcaster, True):
                 continue
@@ -73,13 +72,13 @@ class Command(BaseCommand):
 
     def start_new(self):
 
-        self.stdout.write("-- Starting new events")
+        self.stdout.write("-- Starting new events :")
 
         events = Event.objects.filter(
             Q(is_auto_start=True)
             & Q(start_date=date.today())
             & Q(start_time__lte=datetime.now())
-            & Q(end_time__gte=datetime.now())
+            & Q(end_time__gt=datetime.now())
         )
 
         for event in events:
