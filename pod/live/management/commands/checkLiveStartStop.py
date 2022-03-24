@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -46,14 +46,21 @@ class Command(BaseCommand):
     def stop_finished(self):
         self.stdout.write("-- Stopping finished events (if started with Pod) :")
 
-        # finished events in the last 5 minutes
-        endtime = datetime.now() + timezone.timedelta(minutes=-5)
+        now = datetime.now().replace(second=0, microsecond=0)
 
+        # started events of the days
         events = Event.objects.filter(
-            Q(start_date=date.today()) & Q(end_time__gte=endtime)
+            Q(start_date=date.today()) & Q(start_time__lt=now)
         )
 
         for event in events:
+            end = now.replace(hour=event.end_time.hour, minute=event.end_time.minute)
+            end_plus_five = end + timedelta(minutes=5)
+
+            # if not finished or finished more than 5 minutes ago
+            if not (end <= now <= end_plus_five):
+                continue
+
             if not is_recording(event.broadcaster, True):
                 continue
 
