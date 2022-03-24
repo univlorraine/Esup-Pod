@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime, timedelta
 
 from django.conf import settings
@@ -65,7 +66,8 @@ class Command(BaseCommand):
                 self.stdout.write("... but not tried (debug mode) ")
                 continue
 
-            if event_stoprecord(event.id, event.broadcaster.id):
+            response = event_stoprecord(event.id, event.broadcaster.id)
+            if json.loads(response.content)['success']:
                 self.stdout.write(" ...  stopped ")
             else:
                 self.stderr.write(" ... fail to stop recording")
