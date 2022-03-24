@@ -37,9 +37,9 @@ class Command(BaseCommand):
         self.stdout.write(f"- Beginning at {datetime.now().strftime('%H:%M:%S')}", ending="")
         self.stdout.write(" - IN DEBUG MODE -" if self.debug_mode else "")
 
-        self.start_new()
-
         self.stop_finished()
+
+        self.start_new()
 
         self.stdout.write("- End -")
 
@@ -48,19 +48,12 @@ class Command(BaseCommand):
 
         now = datetime.now().replace(second=0, microsecond=0)
 
-        # started events of the days
+        # events ending now
         events = Event.objects.filter(
-            Q(start_date=date.today()) & Q(start_time__lt=now)
+            Q(start_date=date.today()) & Q(end_time=now)
         )
 
         for event in events:
-            end = now.replace(hour=event.end_time.hour, minute=event.end_time.minute)
-            end_plus_five = end + timedelta(minutes=5)
-
-            # if not finished or finished more than 5 minutes ago
-            if not (end <= now <= end_plus_five):
-                continue
-
             if not is_recording(event.broadcaster, True):
                 continue
 

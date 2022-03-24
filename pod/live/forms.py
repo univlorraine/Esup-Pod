@@ -118,14 +118,15 @@ def check_event_date_and_hour(form):
         form.add_error("end_time", _("Start should not be after end"))
         raise forms.ValidationError("Date error.")
 
+    print('sousousuos')
     events = Event.objects.filter(
         Q(broadcaster_id=brd.id)
         & Q(start_date=d_deb)
         & (
             (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
             | (Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
-            | (Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
-            | (Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+            | (Q(start_time__lte=h_deb) & Q(end_time__gt=h_deb))
+            | (Q(start_time__lt=h_fin) & Q(end_time__gte=h_fin))
         )
     )
     if form.instance.id:
