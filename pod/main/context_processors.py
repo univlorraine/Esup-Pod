@@ -95,8 +95,6 @@ USE_BBB = getattr(django_settings, "USE_BBB", False)
 
 USE_BBB_LIVE = getattr(django_settings, "USE_BBB_LIVE", False)
 
-USE_VIDEO_RECORD = getattr(django_settings, "USE_VIDEO_RECORD", False)
-
 COOKIE_LEARN_MORE = getattr(django_settings, "COOKIE_LEARN_MORE", "")
 
 USE_EVENT = getattr(django_settings, "USE_EVENT", False)
@@ -104,6 +102,8 @@ USE_EVENT = getattr(django_settings, "USE_EVENT", False)
 DEFAULT_EVENT_THUMBNAIL = getattr(
     django_settings, "DEFAULT_EVENT_THUMBNAIL", "/img/default-event.svg"
 )
+
+USE_OPENCAST_STUDIO = getattr(django_settings, "USE_OPENCAST_STUDIO", False)
 
 
 def context_settings(request):
@@ -164,7 +164,7 @@ def context_settings(request):
     new_settings["USE_BBB_LIVE"] = USE_BBB_LIVE
     new_settings["DARKMODE_ENABLED"] = DARKMODE_ENABLED
     new_settings["DYSLEXIAMODE_ENABLED"] = DYSLEXIAMODE_ENABLED
-    new_settings["USE_VIDEO_RECORD"] = USE_VIDEO_RECORD
+    new_settings["USE_OPENCAST_STUDIO"] = USE_OPENCAST_STUDIO
     new_settings["COOKIE_LEARN_MORE"] = COOKIE_LEARN_MORE
     new_settings["USE_EVENT"] = USE_EVENT
     new_settings["DEFAULT_EVENT_THUMBNAIL"] = DEFAULT_EVENT_THUMBNAIL
@@ -232,7 +232,7 @@ def context_navbar(request):
         .annotate(video_count=Count("video", distinct=True))
     )
 
-    linkFooter = LinkFooter.objects.all().filter(page__sites=get_current_site(request))
+    linkFooter = LinkFooter.objects.all().filter(sites=get_current_site(request))
 
     list_videos = Video.objects.filter(
         encoding_in_progress=False,

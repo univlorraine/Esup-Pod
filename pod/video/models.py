@@ -1,6 +1,7 @@
 """Esup-Pod Video models."""
 
 import os
+import re
 import time
 import unicodedata
 import json
@@ -218,7 +219,7 @@ def select_video_owner():
 def remove_accents(input_str):
     """Remove diacritics in input string."""
     nkfd_form = unicodedata.normalize("NFKD", input_str)
-    return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
+    return "".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
 
 def get_storage_path_video(instance, filename):
@@ -268,7 +269,7 @@ class Channel(models.Model):
         unique=True,
         max_length=100,
         help_text=_(
-            u'Used to access this instance, the "slug" is a short label '
+            'Used to access this instance, the "slug" is a short label '
             + "containing only letters, numbers, underscore or dash top."
         ),
         editable=False,
@@ -329,7 +330,7 @@ class Channel(models.Model):
     visible = models.BooleanField(
         verbose_name=_("Visible"),
         help_text=_(
-            u"If checked, the channel appear in a list of available "
+            "If checked, the channel appear in a list of available "
             + "channels on the platform."
         ),
         default=False,
@@ -420,7 +421,7 @@ class Theme(models.Model):
         _("Slug"),
         max_length=100,
         help_text=_(
-            u'Used to access this instance, the "slug" is a short label '
+            'Used to access this instance, the "slug" is a short label '
             + "containing only letters, numbers, underscore or dash top."
         ),
         editable=False,
@@ -546,7 +547,7 @@ class Type(models.Model):
         unique=True,
         max_length=100,
         help_text=_(
-            u'Used to access this instance, the "slug" is a short label '
+            'Used to access this instance, the "slug" is a short label '
             + "containing only letters, numbers, underscore or dash top."
         ),
     )
@@ -573,6 +574,12 @@ class Type(models.Model):
         verbose_name_plural = _("Types")
 
 
+@receiver(post_save, sender=Type)
+def default_site_type(sender, instance, created, **kwargs):
+    if len(instance.sites.all()) == 0:
+        instance.sites.add(Site.objects.get_current())
+
+
 class Discipline(models.Model):
     title = models.CharField(_("title"), max_length=100, unique=True)
     slug = models.SlugField(
@@ -580,7 +587,7 @@ class Discipline(models.Model):
         unique=True,
         max_length=100,
         help_text=_(
-            u'Used to access this instance, the "slug" is a short label '
+            'Used to access this instance, the "slug" is a short label '
             + "containing only letters, numbers, underscore or dash top."
         ),
     )
@@ -881,6 +888,8 @@ class Video(models.Model):
     @property
     def get_thumbnail_admin(self):
         thumbnail_url = ""
+        # fix title for xml description
+        title = re.sub(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]", "", self.title)
         if self.thumbnail and self.thumbnail.file_exist():
             im = get_thumbnail(self.thumbnail.file, "100x100", crop="center", quality=72)
             thumbnail_url = im.url
@@ -893,7 +902,7 @@ class Video(models.Model):
             'src="%s" alt="%s" loading="lazy"/>'
             % (
                 thumbnail_url,
-                self.title.replace("{", "").replace("}", "").replace('"', "'"),
+                title.replace("{", "").replace("}", "").replace('"', "'"),
             )
         )
 
@@ -1096,18 +1105,18 @@ class Video(models.Model):
             current_site = Site.objects.get_current()
             data_to_dump = {
                 "id": self.id,
-                "title": u"%s" % self.title,
-                "owner": u"%s" % self.owner.username,
-                "owner_full_name": u"%s" % self.owner.get_full_name(),
-                "date_added": u"%s" % self.date_added.strftime("%Y-%m-%dT%H:%M:%S")
+                "title": "%s" % self.title,
+                "owner": "%s" % self.owner.username,
+                "owner_full_name": "%s" % self.owner.get_full_name(),
+                "date_added": "%s" % self.date_added.strftime("%Y-%m-%dT%H:%M:%S")
                 if self.date_added
                 else None,
-                "date_evt": u"%s" % self.date_evt.strftime("%Y-%m-%dT%H:%M:%S")
+                "date_evt": "%s" % self.date_evt.strftime("%Y-%m-%dT%H:%M:%S")
                 if self.date_evt
                 else None,
-                "description": u"%s" % self.description,
-                "thumbnail": u"%s" % self.get_thumbnail_url(),
-                "duration": u"%s" % self.duration,
+                "description": "%s" % self.description,
+                "thumbnail": "%s" % self.get_thumbnail_url(),
+                "duration": "%s" % self.duration,
                 "tags": list(
                     [
                         {"name": name[0], "slug": slugify(name)}
@@ -1237,11 +1246,14 @@ class Video(models.Model):
                 "dc.title": "%s" % self.title,
                 "dc.creator": "%s" % self.owner.get_full_name(),
                 "dc.description": "%s" % self.description,
-                "dc.subject": "%s"
-                % ", ".join(
-                    self.discipline.all()
-                    .filter(sites=current_site)
-                    .values_list("title", flat=True)
+                "dc.subject": "%s, %s"
+                % (
+                    self.type.title,
+                    ", ".join(
+                        self.discipline.all()
+                        .filter(sites=current_site)
+                        .values_list("title", flat=True)
+                    ),
                 ),
                 "dc.publisher": TITLE_ETB,
                 "dc.contributor": ", ".join(contributors),
@@ -1312,7 +1324,7 @@ def video_files_removal(sender, instance, using, **kwargs):
 
 class ViewCount(models.Model):
     video = models.ForeignKey(Video, verbose_name=_("Video"), editable=False)
-    date = models.DateField(_(u"Date"), default=date.today, editable=False)
+    date = models.DateField(_("Date"), default=date.today, editable=False)
     count = models.IntegerField(_("Number of view"), default=0, editable=False)
 
     @property
@@ -1509,6 +1521,10 @@ class EncodingVideo(models.Model):
     def sites(self):
         return self.video.sites
 
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
+
     def clean(self):
         if self.name:
             if self.name not in dict(ENCODING_CHOICES):
@@ -1579,6 +1595,10 @@ class EncodingAudio(models.Model):
     def sites(self):
         return self.video.sites
 
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
+
     class Meta:
         ordering = ["name"]
         verbose_name = _("Encoding audio")
@@ -1644,6 +1664,10 @@ class PlaylistVideo(models.Model):
     def sites(self):
         return self.video.sites
 
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
+
     def clean(self):
         if self.name:
             if self.name not in dict(ENCODING_CHOICES):
@@ -1682,6 +1706,10 @@ class EncodingLog(models.Model):
     def sites(self):
         return self.video.sites
 
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
+
     class Meta:
         ordering = ["video"]
         verbose_name = _("Encoding log")
@@ -1712,6 +1740,10 @@ class VideoVersion(models.Model):
     def sites(self):
         return self.video.sites
 
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
+
     def __str__(self):
         return "Choice for default video version: %s - %s" % (
             self.video.id,
@@ -1730,6 +1762,10 @@ class EncodingStep(models.Model):
     def sites(self):
         return self.video.sites
 
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
+
     class Meta:
         ordering = ["video"]
         verbose_name = _("Encoding step")
@@ -1747,6 +1783,10 @@ class Notes(models.Model):
     @property
     def sites(self):
         return self.video.sites
+
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
 
     class Meta:
         verbose_name = _("Note")
@@ -1780,6 +1820,10 @@ class AdvancedNotes(models.Model):
     @property
     def sites(self):
         return self.video.sites
+
+    @property
+    def sites_all(self):
+        return self.video.sites_set.all()
 
     def __str__(self):
         return "%s-%s-%s" % (self.user.username, self.video, self.timestamp)
@@ -1948,9 +1992,9 @@ class Category(models.Model):
     slug = models.SlugField(
         _("Slug"),
         unique=True,
-        max_length=100,
+        max_length=110,
         help_text=_(
-            u'Used to access this instance, the "slug" is a short label '
+            'Used to access this instance, the "slug" is a short label '
             + "containing only letters, numbers, underscore or dash top."
         ),
         editable=False,

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Esup-Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-15 13:40+0100\n"
+"POT-Creation-Date: 2022-03-25 17:10+0100\n"
 "PO-Revision-Date: 2021-03-26 17:58+0100\n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: \n"
@@ -52,9 +52,9 @@ msgstr "Le formulaire ne peut pas être récupéré."
 #: pod/enrichment/static/js/enrichment.js:111
 #: pod/enrichment/static/js/enrichment.js:141
 #: pod/enrichment/static/js/enrichment.js:174
-#: pod/enrichment/static/js/enrichment.js:215 pod/main/static/js/main.js:468
-#: pod/main/static/js/main.js:478 pod/main/static/js/main.js:492
-#: pod/main/static/js/main.js:512
+#: pod/enrichment/static/js/enrichment.js:215 pod/main/static/js/main.js:479
+#: pod/main/static/js/main.js:489 pod/main/static/js/main.js:503
+#: pod/main/static/js/main.js:523
 #: pod/podfile/static/podfile/js/filewidget.js:365
 #: pod/podfile/static/podfile/js/filewidget.js:398 pod/static/js/chapters.js:82
 #: pod/static/js/chapters.js:111 pod/static/js/chapters.js:141
@@ -71,8 +71,8 @@ msgid "You are no longer authenticated. Please log in again."
 msgstr "Vous n'êtes plus authentifié. Veuillez vous reconnectez."
 
 #: pod/chapter/static/js/chapters.js:199
-#: pod/enrichment/static/js/enrichment.js:193 pod/main/static/js/main.js:415
-#: pod/main/static/js/main.js:501 pod/static/js/chapters.js:199
+#: pod/enrichment/static/js/enrichment.js:193 pod/main/static/js/main.js:426
+#: pod/main/static/js/main.js:512 pod/static/js/chapters.js:199
 #: pod/static/js/enrichment.js:193 pod/static/js/main.js:415
 #: pod/static/js/main.js:501
 msgid "One or more errors have been found in the form."
@@ -189,7 +189,7 @@ msgstr "Êtes-vous sûr(e) de vouloir supprimer ce document ?"
 msgid "Are you sure you want to delete this overlay?"
 msgstr "Êtes-vous sûr(e) de vouloir supprimer cette superposition ?"
 
-#: pod/completion/static/js/completion.js:243 pod/main/static/js/main.js:419
+#: pod/completion/static/js/completion.js:243 pod/main/static/js/main.js:430
 #: pod/static/js/completion.js:243 pod/static/js/main.js:419
 msgid "Changes have been saved."
 msgstr "Les modifications ont été sauvegardées."
@@ -319,7 +319,9 @@ msgstr "Obligatoirement restreint car le diffuseur est restreint"
 msgid ""
 "If this box is checked, the event will only be accessible to authenticated "
 "users."
-msgstr "Si cette case est cochée l'évènement ne sera accessible qu'aux utilisateurs authentifiés"
+msgstr ""
+"Si cette case est cochée l'évènement ne sera accessible qu'aux utilisateurs "
+"authentifiés"
 
 #: pod/live/static/js/broadcaster_from_building.js:39
 #: pod/static/js/broadcaster_from_building.js:39
@@ -481,11 +483,11 @@ msgstr ""
 msgid "gridErrorText"
 msgstr ""
 
-#: pod/main/static/js/main.js:378 pod/static/js/main.js:378
+#: pod/main/static/js/main.js:389 pod/static/js/main.js:378
 msgid "Are you sure you want to delete this element?"
 msgstr "Êtes-vous sûr(e) de vouloir supprimer cet élément ?"
 
-#: pod/main/static/js/main.js:454
+#: pod/main/static/js/main.js:465
 #: pod/podfile/static/podfile/js/filewidget.js:114
 #: pod/podfile/static/podfile/js/filewidget.js:391 pod/static/js/main.js:454
 #: pod/static/podfile/js/filewidget.js:114
@@ -493,37 +495,37 @@ msgstr "Êtes-vous sûr(e) de vouloir supprimer cet élément ?"
 msgid "Error during exchange"
 msgstr "Erreur durant le téléversement"
 
-#: pod/main/static/js/main.js:458
+#: pod/main/static/js/main.js:469
 #: pod/podfile/static/podfile/js/filewidget.js:114 pod/static/js/main.js:458
 #: pod/static/podfile/js/filewidget.js:114
 msgid "No data could be stored."
 msgstr "Aucune donnée ne peut être stockée."
 
-#: pod/main/static/js/main.js:531 pod/static/js/main.js:531
+#: pod/main/static/js/main.js:542 pod/static/js/main.js:531
 msgid "Change your picture"
 msgstr "Changer votre image"
 
-#: pod/main/static/js/main.js:538 pod/static/js/main.js:538
+#: pod/main/static/js/main.js:549 pod/static/js/main.js:538
 msgid "Add your picture"
 msgstr "Ajouter votre image"
 
-#: pod/main/static/js/main.js:666 pod/static/js/main.js:666
+#: pod/main/static/js/main.js:677 pod/static/js/main.js:666
 msgid "text copied"
 msgstr "texte copié"
 
-#: pod/main/static/js/main.js:718 pod/static/js/main.js:718
+#: pod/main/static/js/main.js:729 pod/static/js/main.js:718
 msgid "Errors appear in the form, please correct them"
 msgstr "Des erreurs sont présentes dans le formulaire, veuillez les corriger"
 
-#: pod/main/static/js/main.js:750 pod/static/js/main.js:750
+#: pod/main/static/js/main.js:761 pod/static/js/main.js:750
 msgid "The file size exceeds the maximum allowed value:"
 msgstr "Le fichier dépasse la taille maximum autorisée :"
 
-#: pod/main/static/js/main.js:753 pod/static/js/main.js:753
+#: pod/main/static/js/main.js:764 pod/static/js/main.js:753
 msgid " GB."
 msgstr " Go."
 
-#: pod/main/static/js/main.js:771 pod/static/js/main.js:771
+#: pod/main/static/js/main.js:782 pod/static/js/main.js:771
 msgid "The file extension not in the allowed extension:"
 msgstr ""
 "Cette extension de fichier n'est pas présente dans les extensions "
@@ -920,7 +922,7 @@ msgid "Comment has been deleted successfully."
 msgstr "Commentaire a été supprimé avec succès."
 
 #: pod/static/js/filter_aside_video_list_refresh.js:58
-#: pod/video/static/js/filter_aside_video_list_refresh.js:58
+#: pod/video/static/js/filter_aside_video_list_refresh.js:60
 #, fuzzy
 #| msgid "An error occurred during the change of owner"
 msgid "An Error occurred while processing "
