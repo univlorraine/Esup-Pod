@@ -274,7 +274,7 @@ def event(request, slug, slug_private=None):  # affichage d'un event
     try:
         id = int(slug[: slug.find("-")])
     except ValueError:
-        raise SuspiciousOperation("Invalid video id")
+        raise SuspiciousOperation("Invalid event id")
 
     event = get_object_or_404(Event, id=id)
 
