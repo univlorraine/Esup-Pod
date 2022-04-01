@@ -281,8 +281,12 @@ class HeartBeat(models.Model):
         ordering = ["broadcaster"]
 
 
+def current_time():
+    return datetime.now().replace(second=0, microsecond=0)
+
+
 def one_hour_hence():
-    return datetime.now() + timezone.timedelta(hours=1)
+    return current_time() + timezone.timedelta(hours=1)
 
 
 def get_default_event_type():
@@ -366,7 +370,7 @@ class Event(models.Model):
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=datetime.now,
+        default=current_time,
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(

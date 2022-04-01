@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from django import forms
 from django.conf import settings
 from django.contrib.admin import widgets
@@ -112,6 +114,10 @@ def check_event_date_and_hour(form):
     h_deb = form.cleaned_data["start_time"]
     h_fin = form.cleaned_data["end_time"]
     brd = form.cleaned_data["broadcaster"]
+
+    if d_deb == date.today() and datetime.now().time() >= h_fin:
+        form.add_error("end_time", _("End should not be in the past"))
+        raise forms.ValidationError(_("An event cannot be planned in the past"))
 
     if h_deb >= h_fin:
         form.add_error("start_time", _("Start should not be after end"))
