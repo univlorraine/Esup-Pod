@@ -224,46 +224,42 @@ def heartbeat(request):
     return HttpResponseBadRequest()
 
 
+def is_in_event_groups(user, event):
+    return user.owner.accessgroup_set.filter(
+        code_name__in=[
+            name[0] for name in event.restrict_access_to_groups.values_list("code_name")
+        ]
+    ).exists()
+
+
 def get_event_access(request, event, slug_private):
     """Return True if access is granted to current user."""
-    is_draft = event.is_draft
-    is_restricted = event.is_restricted
-    is_restricted_to_group = False
-    # is_restricted_to_group = video.restrict_access_to_groups.all().exists()
+    # is_restricted_to_group = event.restrict_access_to_groups.all().exists()
 
-    is_access_protected = (
-        is_draft
-        or is_restricted
-        # or is_restricted_to_group
-    )
-    if is_access_protected:
-        access_granted_for_private = slug_private and slug_private == event.get_hashkey()
-        access_granted_for_draft = request.user.is_authenticated() and (
-            request.user == event.owner
-            or request.user in event.additional_owners.all()
-            or request.user.is_superuser
-            or request.user.has_perm("live.view_event")
-            # or (request.user in video.additional_owners.all())
-        )
-        access_granted_for_restricted = (
-            request.user.is_authenticated() and not is_restricted_to_group
-        )
-        # access_granted_for_group = (
-        #     (request.user.is_authenticated() and is_in_video_groups(request.user, video))
-        #     or request.user == video.owner
-        #     or request.user.is_superuser
-        #     or request.user.has_perm("live.view_event")
-        #     or (request.user in video.additional_owners.all())
-        # )
+    if event.is_draft:
+        if slug_private or slug_private == event.get_hashkey():
+            can_access_draft = True
+        else:
+            can_access_draft = (request.user == event.owner
+                or request.user in event.additional_owners.all()
+                or request.user.is_superuser)
+        if not can_access_draft:
+            return False
 
-        return (
-            access_granted_for_private
-            or (is_draft and access_granted_for_draft)
-            or (is_restricted and access_granted_for_restricted)
-            # or (is_restricted_to_group and access_granted_for_group)
-        )
-    else:
-        return True
+    # if is_restricted_to_group and not \
+    #         (request.user.is_authenticated()
+    #          or is_in_event_groups(request.user, event)
+    #          or request.user == event.owner
+    #          or (request.user in event.additional_owners.all())
+    #          or request.user.is_superuser
+    #          or request.user.has_perm("live.view_event")
+    #         ):
+    #     return False
+
+    if event.is_restricted and not request.user.is_authenticated():
+        return False
+
+    return True
 
 
 def event(request, slug, slug_private=None):  # affichage d'un event

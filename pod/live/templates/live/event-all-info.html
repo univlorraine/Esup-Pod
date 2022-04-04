@@ -28,7 +28,7 @@
       ><i data-feather="info" aria-hidden="true"></i></a>
     </li>
 
-    {% if event.is_draft == False or event.owner == request.user %}
+    {% if event.is_draft == False or event.owner == request.user or request.user in event.additional_owners.all or request.user.is_superuser %}
       <li class="nav-item">
         <a class="nav-link" id="share-tab" data-toggle="tab" href="#share" role="tab" aria-controls="share" aria-selected="false" title="{% trans 'Embed/Share' %}">
           <i data-feather="share-2" aria-hidden="true"></i>
