@@ -2539,7 +2539,7 @@ msgid ""
 "If this box is checked, the event will be visible only by you and the "
 "additional owners but accessible to anyone having the url link."
 msgstr ""
-"Si la case est cochée, la vidéo sera visible et accessible uniquement par "
+"Si la case est cochée, l'évènement sera visible et accessible uniquement par "
 "vous et les propriétaires additionnels mais accessible à quiconque dispose "
 "de l'URL."
 
