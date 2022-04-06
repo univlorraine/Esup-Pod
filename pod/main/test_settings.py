@@ -56,3 +56,4 @@ SHIBBOLETH_ATTRIBUTE_MAP = {
     "Shibboleth-unscoped-affiliation": (False, "affiliations"),
 }
 REMOTE_USER_HEADER = "REMOTE_USER"
+EXISTING_BROADCASTER_IMPLEMENTATIONS = ["Wowza", "Test"]
