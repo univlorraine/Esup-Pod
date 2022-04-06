@@ -2,16 +2,19 @@
 Unit tests for live views
 """
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation, DisallowedRedirect
 from django.test import TestCase, override_settings
 from django.test import Client
 from django.contrib.auth.models import User
+
+from pod.live.forms import EventForm
 from pod.live.models import Building, Broadcaster, HeartBeat, Event
+from pod.live.views import get_event_edition_access, get_event_access
 from pod.video.models import Video
 from pod.video.models import Type
 from django.core.management import call_command
 
-# from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied
 import ast
 from django.http import JsonResponse
 import datetime
@@ -97,6 +100,11 @@ class LiveViewsTestCase(TestCase):
         self.client.force_login(self.superuser)
         response = self.client.get("/live/")
         self.assertTemplateUsed(response, "live/lives.html")
+        print("   --->  test_lives of liveViewsTestCase : OK !")
+
+        broad = Broadcaster.objects.get(name="broadcaster1")
+        response = self.client.get("/live/%s/" % broad.slug)
+        self.assertTemplateUsed(response, "live/events_list.html")
         print("   --->  test_lives of liveViewsTestCase : OK !")
 
     def test_building(self):
@@ -286,6 +294,10 @@ class LiveViewsTestCase(TestCase):
         self.client = Client()
 
         # User not logged in
+        response = self.client.get("/")
+        self.assertTemplateUsed(response, "live/events_next.html")
+        print("   --->  test_events of / : OK !")
+
         response = self.client.get("/live/events/")
         self.assertTemplateUsed(response, "live/events.html")
         print("   --->  test_events of live/events : OK !")
@@ -312,22 +324,41 @@ class LiveViewsTestCase(TestCase):
 
         # event not restricted but draft (permission denied)
         self.event.is_restricted = False
+        self.event.is_draft = True
         self.event.save()
         response = self.client.get("/live/event/%s/" % self.event.slug)
-        self.assertTrue(403, response.status_code)
+        self.assertEqual(response.status_code, 403)
         print("   --->  test_events access not restricted but draft event : OK !")
 
-        # event not restricted but draft (public link)
+        # event not restricted but draft (shared link)
         response = self.client.get("/live/event/%s/%s/" % (self.event.slug, self.event.get_hashkey()))
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access not restricted but draft with public link event : OK !")
 
+        # event restricted and not draft (permission denied)
+        self.event.is_restricted = True
+        self.event.is_draft = False
+        self.event.save()
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertRedirects(
+            response,
+            "%s?referrer=%s" % (settings.LOGIN_URL, "/live/event/%s/" % self.event.slug),
+            status_code=302,
+            target_status_code=302,
+        )
+        print("   --->  test_events access restricted and not draft event : OK !")
+
         # event not restricted nor draft
+        self.event.is_restricted = False
         self.event.is_draft = False
         self.event.save()
         response = self.client.get("/live/event/%s/" % self.event.slug)
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access not restricted nor draft event : OK !")
+
+        response = self.client.get("/live/event/%s/" % self.event.slug, {"is_iframe": True})
+        self.assertTemplateUsed(response, "live/event-iframe.html")
+        print("   --->  test_events access not restricted nor draft iframe event : OK !")
 
         # event creation
         response = self.client.get("/live/event_edit/")
@@ -339,8 +370,7 @@ class LiveViewsTestCase(TestCase):
         )
         print("   --->  test_events creation event : OK !")
 
-
-        # User logged in
+        # User logged in (and Staff)
         self.user = User.objects.create(username="johndoe", password="johnpwd")
         self.client.force_login(self.user)
 
@@ -354,7 +384,7 @@ class LiveViewsTestCase(TestCase):
         self.event.is_draft = True
         self.event.save()
         response = self.client.get("/live/event/%s/" % self.event.slug)
-        self.assertTrue(403, response.status_code)
+        self.assertEqual(response.status_code, 403)
         print("   --->  test_events access restricted and draft with logged user : OK !")
 
         # event restricted but not draft
@@ -364,14 +394,25 @@ class LiveViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access restricted not draft with logged user : OK !")
 
+        # wrong event id
+        response = self.client.get("/live/event/what-ever/")
+        self.assertEqual(400, response.status_code)
+        print("  --->  test_events access nonexistent event : OK !")
+
         # event creation
         response = self.client.get("/live/event_edit/")
         self.assertTemplateUsed(response, "live/event_edit.html")
         print("   --->  test_events creation event : OK !")
 
-        # event delete  (permission denied)
+        # event edition (access_not_allowed)
+        response = self.client.get("/live/event_edit/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event_edit.html")
+        self.assertEqual(response.context["access_not_allowed"], True)
+        print("   --->  test_events edit event access_not_allowed : OK !")
+
+        # event delete (permission denied)
         response = self.client.get("/live/event_delete/%s/" % self.event.slug)
-        self.assertTrue(403, response.status_code)
+        self.assertEqual(response.status_code, 403)
         print("   --->  test_events delete event : OK !")
 
         # User is event's owner
@@ -394,7 +435,42 @@ class LiveViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access of restricted event for owner: OK !")
 
+        # user's event edition
+        response = self.client.get("/live/event_edit/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event_edit.html")
+        self.assertIsInstance(response.context["form"], EventForm)
+        print("   --->  test_events edit event for owner : OK !")
+
+        #User is now staff
+        self.user.is_staff = True
+        self.user.save()
+
+        response = self.client.get("/live/event_edit/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event_edit.html")
+        self.assertIsInstance(response.context["form"], EventForm)
+        print("   --->  test_events edit event for staff : OK !")
+
+        response = self.client.get("/live/event/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event.html")
+        self.assertTrue(response.context['need_piloting_buttons'])
+        print("   --->  test_events need_piloting_buttons event for staff: OK !")
+
+        # Superuser logged in
+        self.superuser = User.objects.create_superuser(
+            "myuser", "myemail@test.com", "superpassword"
+        )
+        self.client.force_login(self.superuser)
+
+        # response = self.client.get("/")
+        # self.assertTemplateUsed(response, "live/events_next.html")
+
+        # event edition
+        response = self.client.get("/live/event_edit/%s/" % self.event.slug)
+        self.assertTemplateUsed(response, "live/event_edit.html")
+        self.assertIsInstance(response.context["form"], EventForm)
+        print("   --->  test_events edit event for superuser : OK !")
+
         # event delete
         response = self.client.get("/live/event_delete/%s/" % self.event.slug)
         self.assertTemplateUsed(response, "live/event_delete.html")
-        print("   --->  test_events delete event : OK !")
+        print("   --->  test_events delete event for superuser : OK !")

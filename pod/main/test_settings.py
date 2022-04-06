@@ -38,6 +38,7 @@ THIRD_PARTY_APPS = ["enrichment", "live"]
 USE_PODFILE = True
 USE_STATS_VIEW = True
 ACCOMMODATION_YEARS = {"faculty": 1}
+DEBUG = False
 USE_OBSOLESCENCE = True
 USE_EVENT = True
 ACTIVE_VIDEO_COMMENT = True

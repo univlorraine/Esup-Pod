@@ -224,12 +224,12 @@ def heartbeat(request):
     return HttpResponseBadRequest()
 
 
-def is_in_event_groups(user, event):
-    return user.owner.accessgroup_set.filter(
-        code_name__in=[
-            name[0] for name in event.restrict_access_to_groups.values_list("code_name")
-        ]
-    ).exists()
+# def is_in_event_groups(user, event):
+#     return user.owner.accessgroup_set.filter(
+#         code_name__in=[
+#             name[0] for name in event.restrict_access_to_groups.values_list("code_name")
+#         ]
+#     ).exists()
 
 
 def get_event_access(request, event, slug_private):
