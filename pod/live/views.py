@@ -112,7 +112,7 @@ def building(request, building_id):  # affichage des directs
 
 def get_broadcaster_by_slug(slug, site):
     broadcaster = None
-    if slug.isnumeric():
+    if type(slug) == int:
         try:
             broadcaster = Broadcaster.objects.get(id=slug, building__sites=site)
         except ObjectDoesNotExist:
