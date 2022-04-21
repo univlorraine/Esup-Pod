@@ -41,6 +41,7 @@ from .models import (
     get_available_broadcasters_of_building,
 )
 from .utils import send_email_confirmation
+from ..main.decorators import ajax_required
 from ..main.views import in_maintenance
 from ..video.models import Video
 
@@ -728,7 +729,7 @@ def event_get_video_cards(request):
             )
         return JsonResponse({"content": html})
 
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 def event_video_transform(event_id, current_file, segment_number):

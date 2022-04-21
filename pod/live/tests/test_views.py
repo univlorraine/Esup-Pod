@@ -1,25 +1,24 @@
 """
 Unit tests for live views
 """
+import ast
+from datetime import datetime
+
+import pytz
+import requests
 from django.conf import settings
-from django.core.exceptions import PermissionDenied, SuspiciousOperation, DisallowedRedirect
-from django.test import TestCase, override_settings
-from django.test import Client
 from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.http import JsonResponse, Http404
+from django.test import Client
+from django.test import TestCase, override_settings
 
 from pod.live.forms import EventForm
 from pod.live.models import Building, Broadcaster, HeartBeat, Event
-from pod.live.views import get_event_edition_access, get_event_access
-from pod.video.models import Video
 from pod.video.models import Type
-from django.core.management import call_command
+from pod.video.models import Video
 
-from django.core.exceptions import PermissionDenied
-import ast
-from django.http import JsonResponse
-import datetime
-import pytz
-
+# from httmock import urlmatch, HTTMock
 
 if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
@@ -76,7 +75,6 @@ class LiveViewsTestCase(TestCase):
             broadcaster=Broadcaster.objects.get(id=1),
             type=Type.objects.get(id=1),
         )
-
 
         print(" --->  SetUp of liveViewsTestCase : OK !")
 
@@ -234,9 +232,9 @@ class LiveViewsTestCase(TestCase):
 
         paris_tz = pytz.timezone("Europe/Paris")
         # make heartbeat expire now
-        hb1.last_heartbeat = paris_tz.localize(datetime.datetime(2012, 3, 3, 1, 30))
+        hb1.last_heartbeat = paris_tz.localize(datetime(2012, 3, 3, 1, 30))
         hb1.save()
-        hb2.last_heartbeat = paris_tz.localize(datetime.datetime(2012, 3, 3, 1, 30))
+        hb2.last_heartbeat = paris_tz.localize(datetime(2012, 3, 3, 1, 30))
         hb2.save()
 
         call_command("live_viewcounter")
@@ -301,6 +299,14 @@ class LiveViewsTestCase(TestCase):
         response = self.client.get("/live/events/")
         self.assertTemplateUsed(response, "live/events.html")
         print("   --->  test_events of live/events : OK !")
+
+        response = self.client.get("/live/events/?page=100")
+        self.assertTemplateUsed(response, "live/events.html")
+        print("   --->  test_events of live/events paginator empty: OK !")
+
+        response = self.client.get("/live/events/?page=notint")
+        self.assertTemplateUsed(response, "live/events.html")
+        print("   --->  test_events of live/events paginator not integer: OK !")
 
         response = self.client.get("/live/my_events/")
         self.assertRedirects(
@@ -378,6 +384,14 @@ class LiveViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "live/my_events.html")
         print("   --->  test_events of live/my_events : OK !")
 
+        response = self.client.get("/live/my_events/?ppage=100")
+        self.assertTemplateUsed(response, "live/my_events.html")
+        print("   --->  test_events of live/my_events paginator empty: OK !")
+
+        response = self.client.get("/live/my_events/?ppage=notint")
+        self.assertTemplateUsed(response, "live/my_events.html")
+        print("   --->  test_events of live/my_events paginator not integer: OK !")
+
         # event restricted and draft (permission denied)
         self.event = Event.objects.get(title="event1")
         self.event.is_restricted = True
@@ -411,7 +425,7 @@ class LiveViewsTestCase(TestCase):
         print("   --->  test_events edit event access_not_allowed : OK !")
 
         # event delete (permission denied)
-        response = self.client.get("/live/event_delete/%s/" % self.event.slug)
+        response = self.client.post("/live/event_delete/%s/" % self.event.slug)
         self.assertEqual(response.status_code, 403)
         print("   --->  test_events delete event : OK !")
 
@@ -465,12 +479,238 @@ class LiveViewsTestCase(TestCase):
         # self.assertTemplateUsed(response, "live/events_next.html")
 
         # event edition
-        response = self.client.get("/live/event_edit/%s/" % self.event.slug)
+        response = self.client.post("/live/event_edit/%s/" % self.event.slug)
         self.assertTemplateUsed(response, "live/event_edit.html")
         self.assertIsInstance(response.context["form"], EventForm)
         print("   --->  test_events edit event for superuser : OK !")
 
         # event delete
-        response = self.client.get("/live/event_delete/%s/" % self.event.slug)
+        response = self.client.post("/live/event_delete/%s/" % self.event.slug)
         self.assertTemplateUsed(response, "live/event_delete.html")
         print("   --->  test_events delete event for superuser : OK !")
+
+    def test_get_broadcaster_by_slug(self):
+        from pod.live.views import get_broadcaster_by_slug
+
+        broadcaster = Broadcaster.objects.get(id=1)
+        site = broadcaster.building.sites.first()
+
+        broad = get_broadcaster_by_slug(1, site)
+        self.assertEqual(broad, broadcaster)
+        print("   --->  test get_broadcaster_by_slug : OK !")
+
+        with self.assertRaises(Http404):
+            get_broadcaster_by_slug(1, None)
+        print("   --->  test get_broadcaster_by_slug No Site : OK !")
+
+        with self.assertRaises(Http404):
+            get_broadcaster_by_slug(-1, site)
+        print("   --->  test get_broadcaster_by_slug Http404 : OK !")
+
+    def test_broadcasters_from_building(self):
+        url = "/live/ajax_calls/getbroadcastersfrombuiding/"
+        response = self.client.get(url, {})
+        self.assertEqual(response.status_code, 400)
+        print("   --->  test broadcasters_from_building HttpResponseBadRequest : OK !")
+
+        response = self.client.get(url, {'building': 'nonexistant'})
+        self.assertEqual(response.status_code, 404)
+        print("   --->  test broadcasters_from_building HttpResponseBadRequest : OK !")
+
+        response = self.client.get(url, {'building': 'bulding1'})
+        self.assertEqual(response.status_code, 200)
+        print("   --->  test broadcasters_from_building : OK !")
+
+        # log as superUser to get all Broadcaster of building1
+        self.superuser = User.objects.create_superuser(
+            "myuser", "myemail@test.com", "superpassword"
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(url, {'building': 'bulding1'})
+        self.assertEqual(response.status_code, 200)
+        expected = {
+            '1': {'id': 1, 'name': 'broadcaster1', 'restricted': True},
+            '2': {'id': 2, 'name': 'broadcaster2', 'restricted': False}
+        }
+        self.assertEqual(response.json(), expected)
+        print("   --->  test broadcasters_from_building all : OK !")
+
+    def test_broadcaster_restriction(self):
+        url = "/live/ajax_calls/getbroadcasterrestriction/"
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 405)
+        print("   --->  test broadcaster_restriction HttpResponseNotAllowed : OK !")
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+        print("   --->  test broadcaster_restriction HttpResponseBadRequest : OK !")
+
+        response = self.client.get(url, {'idbroadcaster': 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'restricted': True})
+        print("   --->  test broadcaster_restriction : OK !")
+
+    def test_isstreamavailabletorecord(self):
+        url = "/live/event_isstreamavailabletorecord/"
+        #not logged
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+        print("   --->  test isstreamavailabletorecord user not logged : OK !")
+
+        # user logged
+        self.user = User.objects.get(username="pod")
+        self.client.force_login(self.user)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 405)
+        print("   --->  test isstreamavailabletorecord HttpResponseNotAllowed : OK !")
+
+        response = self.client.get(url, {'idbroadcaster': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        # self.assertEqual(response.json(), {'available': False, 'recording': False, 'message': 'implementation error'})
+        print("   --->  test isstreamavailabletorecord implementation error : OK !")
+
+    def test_start_record(self):
+        url = "/live/ajax_calls/event_startrecord/"
+
+        #not logged
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        print("   --->  test startrecord user not logged : OK !")
+
+        self.user = User.objects.get(username="pod")
+        self.client.force_login(self.user)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)
+        print("   --->  test startrecord HttpResponseNotAllowed : OK !")
+
+        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        # self.assertEqual(response.json(), {'success': False, 'message': 'implementation error'})
+        print("   --->  test startrecord implementation error : OK !")
+
+    def test_split_record(self):
+        url = "/live/ajax_calls/event_splitrecord/"
+
+        #not logged
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        print("   --->  test splitrecord user not logged : OK !")
+
+        self.user = User.objects.get(username="pod")
+        self.client.force_login(self.user)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)
+        print("   --->  test splitrecord HttpResponseNotAllowed : OK !")
+
+        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        print("   --->  test splitrecord implementation error : OK !")
+
+    def test_stop_record(self):
+        url = "/live/ajax_calls/event_stoprecord/"
+
+        #not logged
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        print("   --->  test stoprecord user not logged : OK !")
+
+        self.user = User.objects.get(username="pod")
+        self.client.force_login(self.user)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)
+        print("   --->  test stoprecord HttpResponseNotAllowed : OK !")
+
+        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        print("   --->  test stoprecord implementation error : OK !")
+
+    def test_event_info_record(self):
+        url = "/live/ajax_calls/geteventinforcurrentecord/"
+
+        #not logged
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        print("   --->  test event_info_record user not logged : OK !")
+
+        self.user = User.objects.get(username="pod")
+        self.client.force_login(self.user)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 405)
+        print("   --->  test event_info_record HttpResponseNotAllowed : OK !")
+
+        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        print("   --->  test event_info_record implementation error : OK !")
+
+    def test_misc_broadcaster(self):
+        from pod.live.views import is_recording, is_available_to_record, start_record, split_record, stop_record, get_info_current_record
+
+        broadcaster = Broadcaster.objects.get(id=1)
+
+        response = is_recording(broadcaster)
+        self.assertFalse(response)
+        print("   --->  test misc_broadcaster is_recording : OK !")
+
+        response = is_available_to_record(broadcaster)
+        self.assertFalse(response)
+        print("   --->  test misc_broadcaster is_available_to_record : OK !")
+
+        response = start_record(broadcaster, 1)
+        self.assertFalse(response)
+        print("   --->  test misc_broadcaster start_record : OK !")
+
+        response = split_record(broadcaster)
+        self.assertFalse(response)
+        print("   --->  test misc_broadcaster split_record : OK !")
+
+        response = stop_record(broadcaster)
+        self.assertFalse(response)
+        print("   --->  test misc_broadcaster stop_record : OK !")
+
+        response = get_info_current_record(broadcaster)
+        self.assertEqual(response, {"currentFile": "", "segmentNumber": "", "outputPath": "", "segmentDuration": "", })
+        print("   --->  test misc_broadcaster get_info_current_record : OK !")
+
+
+    def test_event_video_cards(self):
+        url = "/live/ajax_calls/geteventvideocards/"
+
+        #not ajax
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+        print("   --->  test event_video_cards not ajax : OK !")
+
+        response = self.client.get(url, {'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json(), {"content": ""})
+        print("   --->  test event_video_cards empty : OK !")
+
+        video = Video.objects.get(id=1)
+        event = Event.objects.get(id=1)
+        event.videos.add(video)
+        event.save()
+
+        response = self.client.get(url, {'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.json(), {"content": ""})
+        print("   --->  test event_video_cards with videos : OK !")
+
+    # def fake_api(self):
+    #     print(" --->  fake_api : OK !")
+    #
+    #     @urlmatch(netloc=r'(.*\.)?fakeApi\.com$')
+    #     def fake_mock(url, request):
+    #         return 'Feeling lucky, punk?'
+    #
+    #     with HTTMock(fake_mock):
+    #         r = requests.get('http://fakeApi.com/')
+    #
+    #     print(r.content)  # 'Feeling lucky, punk?'
+    #     self.assertNotEqual(r.content, "")
+    #
+    #     print(" --->  fake_api : OK !")
