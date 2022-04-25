@@ -44,7 +44,7 @@ class PilotingInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def start(self, event_id, login) -> bool:
+    def start(self, event_id, login=None) -> bool:
         """Start the recording"""
         raise NotImplementedError
 
