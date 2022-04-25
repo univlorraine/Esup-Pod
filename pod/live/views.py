@@ -41,7 +41,6 @@ from .models import (
     get_available_broadcasters_of_building,
 )
 from .utils import send_email_confirmation
-from ..main.decorators import ajax_required
 from ..main.views import in_maintenance
 from ..video.models import Video
 

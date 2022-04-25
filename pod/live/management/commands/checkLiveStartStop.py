@@ -1,10 +1,9 @@
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
-from django.utils import timezone
 
 from pod.live.models import Event
 from pod.live.views import (
