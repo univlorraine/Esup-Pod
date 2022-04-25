@@ -12,5 +12,8 @@ omit = pod/*settings*.py
        */tests/*
        */commands/*
        */migrations/*
+       pod/recorder/plugins/type_*.py
+       pod/*/forms.py
        pod/video/bbb.py
        scripts/bbb-pod-live/*.*
+       pod/live/pilotingInterface.py

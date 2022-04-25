@@ -1,3 +1,5 @@
+from datetime import date, datetime
+
 from django import forms
 from django.conf import settings
 from django.contrib.admin import widgets
@@ -12,11 +14,14 @@ from pod.live.models import (
 from pod.live.models import Building, Event
 from pod.main.forms import add_placeholder_and_asterisk
 
+import logging
+
 FILEPICKER = False
 if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
     from pod.podfile.widgets import CustomFileWidget
 
+PILOTING_CHOICES = getattr(settings, "BROADCASTER_PILOTING_SOFTWARE", [])
 
 class BuildingAdminForm(forms.ModelForm):
     required_css_class = "required"
@@ -44,6 +49,17 @@ class BroadcasterAdminForm(forms.ModelForm):
         super(BroadcasterAdminForm, self).__init__(*args, **kwargs)
         if FILEPICKER:
             self.fields["poster"].widget = CustomFileWidget(type="image")
+
+        impl_choices = [[None, ""]]
+        for val in PILOTING_CHOICES:
+            impl_choices.append([val, val])
+
+        self.fields['piloting_implementation'] = forms.ChoiceField(
+            choices=impl_choices,
+            required=False,
+            label=_("Piloting implementation"),
+            help_text=_("Select the piloting implementation for to this broadcaster."),
+        )
 
     def clean(self):
         super(BroadcasterAdminForm, self).clean()
@@ -99,6 +115,10 @@ def check_event_date_and_hour(form):
     h_fin = form.cleaned_data["end_time"]
     brd = form.cleaned_data["broadcaster"]
 
+    if d_deb == date.today() and datetime.now().time() >= h_fin:
+        form.add_error("end_time", _("End should not be in the past"))
+        raise forms.ValidationError(_("An event cannot be planned in the past"))
+
     if h_deb >= h_fin:
         form.add_error("start_time", _("Start should not be after end"))
         form.add_error("end_time", _("Start should not be after end"))
@@ -110,8 +130,8 @@ def check_event_date_and_hour(form):
         & (
             (Q(start_time__lte=h_deb) & Q(end_time__gte=h_fin))
             | (Q(start_time__gte=h_deb) & Q(end_time__lte=h_fin))
-            | (Q(start_time__lte=h_deb) & Q(end_time__gte=h_deb))
-            | (Q(start_time__lte=h_fin) & Q(end_time__gte=h_fin))
+            | (Q(start_time__lte=h_deb) & Q(end_time__gt=h_deb))
+            | (Q(start_time__lt=h_fin) & Q(end_time__gte=h_fin))
         )
     )
     if form.instance.id:
@@ -140,14 +160,17 @@ class EventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         is_current_event = kwargs.pop("is_current_event", None)
+        broadcaster_id = kwargs.pop("broadcaster_id", None)
+        building_id = kwargs.pop("building_id", None)
         super(EventForm, self).__init__(*args, **kwargs)
+        self.auto_id="event_%s"
         self.fields["owner"].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
         # Manage fields to display
         self.initFields(is_current_event)
 
-        # mise a jour dynamique de la liste
+        # mise a jour dynamique de la liste des diffuseurs
         if "building" in self.data:
             # à la sauvegarde
             try:
@@ -177,15 +200,23 @@ class EventForm(forms.ModelForm):
             self.initial["building"] = broadcaster.building.name
         elif not self.instance.pk:
             # à la création
-            query_buildings = get_building_having_available_broadcaster(self.user)
-            if query_buildings:
+            if broadcaster_id is not None and building_id is not None:
+                query_buildings = get_building_having_available_broadcaster(self.user, building_id)
                 self.fields["building"].queryset = query_buildings.all()
-                self.initial["building"] = query_buildings.first().name
-                self.fields[
-                    "broadcaster"
-                ].queryset = get_available_broadcasters_of_building(
-                    self.user, query_buildings.first()
-                )
+                self.initial["building"] = Building.objects.filter(Q(id=building_id)).first().name
+                query_broadcaster = get_available_broadcasters_of_building(self.user, building_id, broadcaster_id)
+                self.fields["broadcaster"].queryset = query_broadcaster.all()
+                self.initial["broadcaster"] = broadcaster_id
+            else:
+                query_buildings = get_building_having_available_broadcaster(self.user)
+                if query_buildings:
+                    self.fields["building"].queryset = query_buildings.all()
+                    self.initial["building"] = query_buildings.first().name
+                    self.fields[
+                        "broadcaster"
+                    ].queryset = get_available_broadcasters_of_building(
+                        self.user, query_buildings.first()
+                    )
 
     def initFields(self, is_current_event):
         if not self.user.is_superuser:
@@ -196,10 +227,12 @@ class EventForm(forms.ModelForm):
             self.remove_field("start_time")
             self.remove_field("is_draft")
             self.remove_field("is_auto_start")
+            self.remove_field("is_restricted")
+            self.remove_field("type")
+            self.remove_field("description")
             self.remove_field("building")
             self.remove_field("broadcaster")
             self.remove_field("owner")
-            self.remove_field("additional_owners")
             self.remove_field("thumbnail")
 
     def remove_field(self, field):
@@ -223,6 +256,7 @@ class EventForm(forms.ModelForm):
             "broadcaster",
             "type",
             "is_draft",
+            "is_restricted",
             "is_auto_start",
         ]
         widgets = {

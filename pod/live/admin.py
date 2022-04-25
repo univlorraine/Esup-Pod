@@ -66,6 +66,7 @@ class BroadcasterAdmin(admin.ModelAdmin):
         "building",
         "url",
         "status",
+        "is_recording_admin",
         "is_restricted",
         "piloting_conf",
     )
@@ -130,6 +131,7 @@ class EventAdmin(admin.ModelAdmin):
         "end_time",
         "broadcaster",
         "is_draft",
+        "is_restricted",
         "is_auto_start",
         "get_thumbnail_admin",
     ]
@@ -144,6 +146,7 @@ class EventAdmin(admin.ModelAdmin):
         "type",
         "broadcaster",
         "is_draft",
+        "is_restricted",
         "is_auto_start",
     ]
 

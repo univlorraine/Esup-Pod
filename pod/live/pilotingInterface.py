@@ -1,69 +1,128 @@
 import http
 import json
 import logging
+import os
 import re
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Optional
 
 import requests
 from django.conf import settings
 
 from .models import Broadcaster
 
-BROADCASTER_IMPLEMENTATION = ["Wowza"]
+EXISTING_BROADCASTER_IMPLEMENTATIONS = ["Wowza"]
 DEFAULT_EVENT_PATH = getattr(settings, "DEFAULT_EVENT_PATH", "")
+
+logger = logging.getLogger("pod.live")
 
 
 class PilotingInterface(ABC):
-    @classmethod
-    def __subclasshook__(cls, subclass):
-        return (
-            hasattr(subclass, "check_piloting_conf")
-            and callable(subclass.check_piloting_conf)
-            and hasattr(subclass, "is_available_to_record")
-            and callable(subclass.is_available_to_record)
-            and hasattr(subclass, "is_recording")
-            and callable(subclass.is_recording)
-            and hasattr(subclass, "start")
-            and callable(subclass.start)
-            and hasattr(subclass, "split")
-            and callable(subclass.split)
-            and hasattr(subclass, "stop")
-            and callable(subclass.stop)
-            and hasattr(subclass, "get_info_current_record")
-            and callable(subclass.get_info_current_record)
-            or NotImplemented
-        )
 
+    @abstractmethod
+    def __init__(self, broadcaster: Broadcaster):
+        """ Initialize the PilotingInterface
+        :param broadcaster: the broadcaster to pilot """
+        self.broadcaster = broadcaster
+        raise NotImplementedError
+
+    @abstractmethod
     def check_piloting_conf(self) -> bool:
         """Checks the piloting conf value"""
         raise NotImplementedError
 
+    @abstractmethod
     def is_available_to_record(self) -> bool:
         """Checks if the broadcaster is available"""
         raise NotImplementedError
 
-    def is_recording(self) -> bool:
-        """Checks if the broadcaster is being recorded"""
+    @abstractmethod
+    def is_recording(self, with_file_check=False) -> bool:
+        """Checks if the broadcaster is being recorded
+        :param with_file_check: checks if tmp recording file is present on the filesystem (recording could have been launch from somewhere else)
+        """
         raise NotImplementedError
 
-    def start(self, event_id, login) -> bool:
+    @abstractmethod
+    def start(self, event_id, login=None) -> bool:
         """Start the recording"""
         raise NotImplementedError
 
+    @abstractmethod
     def split(self) -> bool:
         """Split the current record"""
         raise NotImplementedError
 
+    @abstractmethod
     def stop(self) -> bool:
         """Stop the recording"""
         raise NotImplementedError
 
+    @abstractmethod
     def get_info_current_record(self) -> dict:
         """Get info of current record"""
         raise NotImplementedError
 
 
-class Wowza(PilotingInterface, ABC):
+def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
+    logger.debug("get_piloting_implementation")
+    piloting_impl = broadcaster.piloting_implementation
+    if not piloting_impl:
+        logger.info(
+            "'piloting_implementation' value is not set for '"
+            + broadcaster.name
+            + "' broadcaster."
+        )
+        return None
+
+    if not piloting_impl.lower() in map(str.lower, EXISTING_BROADCASTER_IMPLEMENTATIONS):
+        logger.warning(
+            "'piloting_implementation' : "
+            + piloting_impl
+            + " is not know for '"
+            + broadcaster.name
+            + "' broadcaster. Available piloting_implementations are '"
+            + "','".join(EXISTING_BROADCASTER_IMPLEMENTATIONS)
+            + "'"
+        )
+        return None
+
+    if piloting_impl.lower() == "wowza":
+        logger.debug(
+            "'piloting_implementation' found : "
+            + piloting_impl.lower()
+            + " for '"
+            + broadcaster.name
+            + "' broadcaster."
+        )
+        return Wowza(broadcaster)
+
+    logger.warning("->get_piloting_implementation - This should not happen.")
+    return None
+
+
+def is_recording_launched_by_pod(self) -> bool:
+    # Récupération du fichier associé à l'enregistrement du broadcaster
+    current_record_info = self.get_info_current_record()
+    if not current_record_info.get("currentFile"):
+        logging.error(" ... impossible to get recording file name")
+        return False
+
+    filename = current_record_info.get("currentFile")
+    full_file_name = os.path.join(DEFAULT_EVENT_PATH, filename)
+
+    # Vérification qu'il existe bien pour cette instance ce Pod
+    if not os.path.exists(full_file_name):
+        logging.debug(
+            " ...  is not on this POD recording filesystem : " + full_file_name
+        )
+        return False
+
+    return True
+
+
+class Wowza(PilotingInterface):
+
     def __init__(self, broadcaster: Broadcaster):
         self.broadcaster = broadcaster
         self.url = None
@@ -98,7 +157,7 @@ class Wowza(PilotingInterface, ABC):
                 "'piloting_conf' format value for '"
                 + self.broadcaster.name
                 + "' broadcaster must be like : "
-                "{'server_url':'...','application':'...','livestream':'...'}"
+                  "{'server_url':'...','application':'...','livestream':'...'}"
             )
             return False
 
@@ -110,7 +169,7 @@ class Wowza(PilotingInterface, ABC):
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_state_live_stream_recording = (
-            self.url + "/instances/_definst_/incomingstreams/" + conf["livestream"]
+                self.url + "/instances/_definst_/incomingstreams/" + conf["livestream"]
         )
 
         response = requests.get(
@@ -119,21 +178,17 @@ class Wowza(PilotingInterface, ABC):
         )
 
         if response.status_code == http.HTTPStatus.OK:
-            if (
-                response.json().get("isConnected") is True
-                and response.json().get("isRecordingSet") is False
-            ):
+            if response.json().get("isConnected") is True and response.json().get("isRecordingSet") is False:
                 return True
 
-        logging.error(response.json().get("message"))
         return False
 
-    def is_recording(self) -> bool:
+    def is_recording(self, with_file_check=False) -> bool:
         logging.debug("Wowza - Check if is being recorded")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_state_live_stream_recording = (
-            self.url + "/instances/_definst_/incomingstreams/" + conf["livestream"]
+                self.url + "/instances/_definst_/incomingstreams/" + conf["livestream"]
         )
 
         response = requests.get(
@@ -141,20 +196,22 @@ class Wowza(PilotingInterface, ABC):
             headers={"Accept": "application/json", "Content-Type": "application/json"},
         )
 
-        if response.status_code == http.HTTPStatus.OK:
-            return response.json().get("isConnected") and response.json().get(
-                "isRecordingSet"
-            )
+        if response.status_code != http.HTTPStatus.OK \
+                or not response.json().get("isConnected") \
+                or not response.json().get("isRecordingSet"):
+            return False
 
-        logging.error(response.json().get("message"))
-        return False
+        if with_file_check:
+            return is_recording_launched_by_pod(self)
+        else:
+            return True
 
     def start(self, event_id=None, login=None) -> bool:
         logging.debug("Wowza - Start record")
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_start_record = (
-            self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"]
+                self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"]
         )
         filename = self.broadcaster.slug
         if event_id is not None:
@@ -202,7 +259,6 @@ class Wowza(PilotingInterface, ABC):
             if response.json().get("success"):
                 return True
 
-        logging.error(response.json().get("message"))
         return False
 
     def split(self) -> bool:
@@ -210,10 +266,10 @@ class Wowza(PilotingInterface, ABC):
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_split_record = (
-            self.url
-            + "/instances/_definst_/streamrecorders/"
-            + conf["livestream"]
-            + "/actions/splitRecording"
+                self.url
+                + "/instances/_definst_/streamrecorders/"
+                + conf["livestream"]
+                + "/actions/splitRecording"
         )
         response = requests.put(
             url_split_record,
@@ -224,7 +280,6 @@ class Wowza(PilotingInterface, ABC):
             if response.json().get("success"):
                 return True
 
-        logging.error(response.json().get("message"))
         return False
 
     def stop(self) -> bool:
@@ -232,10 +287,10 @@ class Wowza(PilotingInterface, ABC):
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_stop_record = (
-            self.url
-            + "/instances/_definst_/streamrecorders/"
-            + conf["livestream"]
-            + "/actions/stopRecording"
+                self.url
+                + "/instances/_definst_/streamrecorders/"
+                + conf["livestream"]
+                + "/actions/stopRecording"
         )
         response = requests.put(
             url_stop_record,
@@ -246,7 +301,6 @@ class Wowza(PilotingInterface, ABC):
             if response.json().get("success"):
                 return True
 
-        logging.error(response.json().get("message"))
         return False
 
     def get_info_current_record(self):
@@ -254,7 +308,7 @@ class Wowza(PilotingInterface, ABC):
         json_conf = self.broadcaster.piloting_conf
         conf = json.loads(json_conf)
         url_state_live_stream_recording = (
-            self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"]
+                self.url + "/instances/_definst_/streamrecorders/" + conf["livestream"]
         )
 
         response = requests.get(
@@ -289,3 +343,4 @@ class Wowza(PilotingInterface, ABC):
             "outputPath": response.json().get("outputPath"),
             "segmentDuration": response.json().get("segmentDuration"),
         }
+

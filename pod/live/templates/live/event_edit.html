@@ -62,7 +62,7 @@
         {% endfor %}
         {% for field in form.visible_fields %}
             {% spaceless %}
-                <div class="field_{{ field.name }} {% with 'description owner additional_owners type is_draft is_auto_start' as res %}{% if field.name in res.split %}collapse advanced_options{% endif %}{% endwith %}">
+                <div class="field_{{ field.name }} {% with 'description owner additional_owners type is_draft is_auto_start is_restricted thumbnail' as res %}{% if field.name in res.split %}collapse advanced_options{% endif %}{% endwith %}">
                     <div class="form-group {% if field.field.required %}form-group-required {% endif %}">
                         {{ field.errors }}
                         {% if "form-check-input" in field.field.widget.attrs.class %}

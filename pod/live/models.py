@@ -253,6 +253,21 @@ class Broadcaster(models.Model):
     def sites(self):
         return self.building.sites
 
+    def is_recording_admin(self):
+        from pod.live.pilotingInterface import get_piloting_implementation
+        impl = get_piloting_implementation(self)
+        try:
+            if impl:
+                if impl.is_recording():
+                    return format_html('<img src="/static/admin/img/icon-yes.svg" alt="Yes">')
+                else:
+                    return format_html('<img src="/static/admin/img/icon-no.svg" alt="No">')
+        except Exception:
+            pass
+        return format_html('<img src="/static/admin/img/icon-alert.svg" alt="Error">')
+
+    is_recording_admin.short_description = _("Is recording ?")
+
 
 class HeartBeat(models.Model):
     user = models.ForeignKey(User, null=True, verbose_name=_("Viewer"))
@@ -268,8 +283,16 @@ class HeartBeat(models.Model):
         ordering = ["broadcaster"]
 
 
+def current_time():
+    return datetime.now().replace(second=0, microsecond=0)
+
+
 def one_hour_hence():
-    return datetime.now() + timezone.timedelta(hours=1)
+    return current_time() + timezone.timedelta(hours=1)
+
+
+def get_default_event_type():
+    return DEFAULT_EVENT_TYPE_ID
 
 
 def present_or_future_date(value):
@@ -303,7 +326,7 @@ class Event(models.Model):
         help_text=_(
             "Please choose a title as short and accurate as "
             "possible, reflecting the main subject / context "
-            "of the content.(max length: 250 characters)"
+            "of the content. (max length: 250 characters)"
         ),
     )
 
@@ -342,14 +365,14 @@ class Event(models.Model):
     )
 
     start_date = models.DateField(
-        _("Date of Event"),
+        _("Date of event"),
         default=date.today,
         help_text=_("Start date of the live."),
         validators=[present_or_future_date],
     )
     start_time = models.TimeField(
         _("Start time"),
-        default=datetime.now,
+        default=current_time,
         help_text=_("Start time of the live event."),
     )
     end_time = models.TimeField(
@@ -361,11 +384,7 @@ class Event(models.Model):
     broadcaster = models.ForeignKey(
         Broadcaster,
         verbose_name=_("Broadcaster"),
-        help_text=_(
-            "If this box is checked, "
-            "the video will be visible and accessible only by you "
-            "and the additional owners."
-        ),
+        help_text=_("Broadcaster name."),
     )
 
     type = models.ForeignKey(Type, default=DEFAULT_EVENT_TYPE_ID, verbose_name=_("Type"))
@@ -373,9 +392,9 @@ class Event(models.Model):
     is_draft = models.BooleanField(
         verbose_name=_("Draft"),
         help_text=_(
-            "If this box is checked, "
-            "the video will be visible and accessible only by you "
-            "and the additional owners."
+            "If this box is checked, the event will be visible "
+            "only by you and the additional owners "
+            "but accessible to anyone having the url link."
         ),
         default=True,
     )
@@ -383,9 +402,9 @@ class Event(models.Model):
         verbose_name=_("Restricted access"),
         help_text=_(
             "If this box is checked, "
-            "the video will only be accessible to authenticated users."
+            "the event will only be accessible to authenticated users."
         ),
-        default=False,
+        default=True,
     )
 
     is_auto_start = models.BooleanField(
@@ -444,6 +463,13 @@ class Event(models.Model):
 
     def get_absolute_url(self):
         return reverse("live:event", args=[str(self.slug)])
+
+    def get_full_url(self, request=None):
+        """Get the video full URL."""
+        full_url = "".join(
+            ["//", get_current_site(request).domain, self.get_absolute_url()]
+        )
+        return full_url
 
     def get_hashkey(self):
         return hashlib.sha256(

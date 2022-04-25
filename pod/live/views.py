@@ -4,13 +4,12 @@ import os.path
 import re
 from datetime import date, datetime, timedelta
 from time import sleep
-from typing import Optional
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, SuspiciousOperation
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Prefetch
@@ -32,6 +31,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from pod.bbb.models import Livestream
+from . import pilotingInterface
 from .forms import LivePasswordForm, EventForm, EventDeleteForm
 from .models import (
     Building,
@@ -40,7 +40,8 @@ from .models import (
     Event,
     get_available_broadcasters_of_building,
 )
-from .pilotingInterface import Wowza, PilotingInterface, BROADCASTER_IMPLEMENTATION
+from .utils import send_email_confirmation
+from ..main.decorators import ajax_required
 from ..main.views import in_maintenance
 from ..video.models import Video
 
@@ -62,8 +63,18 @@ VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 logger = logging.getLogger("pod.live")
 
+EMAIL_ON_EVENT_SCHEDULING = getattr(settings,"EMAIL_ON_EVENT_SCHEDULING",False)
+
 
 def lives(request):  # affichage des directs
+    use_event = getattr(settings, "USE_EVENT", False)
+    if use_event and not (
+        request.user.is_superuser
+        or request.user.has_perm("live.view_building_supervisor")
+    ):
+        messages.add_message(request, messages.ERROR, _("You cannot view this page."))
+        raise PermissionDenied
+
     site = get_current_site(request)
     buildings = (
         Building.objects.all()
@@ -102,7 +113,7 @@ def building(request, building_id):  # affichage des directs
 
 def get_broadcaster_by_slug(slug, site):
     broadcaster = None
-    if slug.isnumeric():
+    if type(slug) == int:
         try:
             broadcaster = Broadcaster.objects.get(id=slug, building__sites=site)
         except ObjectDoesNotExist:
@@ -113,6 +124,14 @@ def get_broadcaster_by_slug(slug, site):
 
 
 def video_live(request, slug):  # affichage des directs
+    use_event = getattr(settings, "USE_EVENT", False)
+    if use_event and not (
+        request.user.is_superuser
+        or request.user.has_perm("live.view_building_supervisor")
+    ):
+        messages.add_message(request, messages.ERROR, _("You cannot view this page."))
+        raise PermissionDenied
+
     site = get_current_site(request)
     broadcaster = get_broadcaster_by_slug(slug, site)
     if broadcaster.is_restricted and not request.user.is_authenticated():
@@ -141,6 +160,7 @@ def video_live(request, slug):  # affichage des directs
                 "broadcaster": broadcaster,
                 "form": form,
                 "heartbeat_delay": HEARTBEAT_DELAY,
+                "use_event": use_event,
             },
         )
     # Search if broadcaster is used to display a BBB streaming live
@@ -157,6 +177,7 @@ def video_live(request, slug):  # affichage des directs
             "display_chat": display_chat,
             "broadcaster": broadcaster,
             "heartbeat_delay": HEARTBEAT_DELAY,
+            "use_event": use_event,
         },
     )
 
@@ -204,46 +225,42 @@ def heartbeat(request):
     return HttpResponseBadRequest()
 
 
+# def is_in_event_groups(user, event):
+#     return user.owner.accessgroup_set.filter(
+#         code_name__in=[
+#             name[0] for name in event.restrict_access_to_groups.values_list("code_name")
+#         ]
+#     ).exists()
+
+
 def get_event_access(request, event, slug_private):
     """Return True if access is granted to current user."""
-    is_draft = event.is_draft
-    is_restricted = event.broadcaster.is_restricted
-    is_restricted_to_group = False
-    # is_restricted_to_group = video.restrict_access_to_groups.all().exists()
+    # is_restricted_to_group = event.restrict_access_to_groups.all().exists()
 
-    is_access_protected = (
-        is_draft
-        or is_restricted
-        # or is_restricted_to_group
-    )
-    if is_access_protected:
-        access_granted_for_private = slug_private and slug_private == event.get_hashkey()
-        access_granted_for_draft = request.user.is_authenticated() and (
-            request.user == event.owner
-            or request.user in event.additional_owners.all()
-            or request.user.is_superuser
-            or request.user.has_perm("live.view_event")
-            # or (request.user in video.additional_owners.all())
-        )
-        access_granted_for_restricted = (
-            request.user.is_authenticated() and not is_restricted_to_group
-        )
-        # access_granted_for_group = (
-        #     (request.user.is_authenticated() and is_in_video_groups(request.user, video))
-        #     or request.user == video.owner
-        #     or request.user.is_superuser
-        #     or request.user.has_perm("live.view_event")
-        #     or (request.user in video.additional_owners.all())
-        # )
+    if event.is_draft:
+        if slug_private or slug_private == event.get_hashkey():
+            can_access_draft = True
+        else:
+            can_access_draft = (request.user == event.owner
+                or request.user in event.additional_owners.all()
+                or request.user.is_superuser)
+        if not can_access_draft:
+            return False
 
-        return (
-            access_granted_for_private
-            or (is_draft and access_granted_for_draft)
-            or (is_restricted and access_granted_for_restricted)
-            # or (is_restricted_to_group and access_granted_for_group)
-        )
-    else:
-        return True
+    # if is_restricted_to_group and not \
+    #         (request.user.is_authenticated()
+    #          or is_in_event_groups(request.user, event)
+    #          or request.user == event.owner
+    #          or (request.user in event.additional_owners.all())
+    #          or request.user.is_superuser
+    #          or request.user.has_perm("live.view_event")
+    #         ):
+    #     return False
+
+    if event.is_restricted and not request.user.is_authenticated():
+        return False
+
+    return True
 
 
 def event(request, slug, slug_private=None):  # affichage d'un event
@@ -251,9 +268,14 @@ def event(request, slug, slug_private=None):  # affichage d'un event
     # modif de l'url d'appel pour compatibilité avec le template link_video.html (variable : urleditapp)
     request.resolver_match.namespace = ""
 
-    event = get_object_or_404(Event, slug=slug)
+    try:
+        id = int(slug[: slug.find("-")])
+    except ValueError:
+        raise SuspiciousOperation("Invalid event id")
 
-    if event.broadcaster.is_restricted and not request.user.is_authenticated():
+    event = get_object_or_404(Event, id=id)
+
+    if event.is_restricted and not request.user.is_authenticated():
         url = reverse("authentication_login")
         url += "?referrer=" + request.get_full_path()
         return redirect(url)
@@ -296,8 +318,8 @@ def events(request):  # affichage des events
     )
     queryset = queryset.filter(is_draft=False)
     if not request.user.is_authenticated():
-        queryset = queryset.filter(broadcaster__is_restricted=False)
-    #     queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
+        queryset = queryset.filter(is_restricted=False)
+        # queryset = queryset.filter(broadcaster__restrict_access_to_groups__isnull=True)
     # elif not request.user.is_superuser:
     #     queryset = queryset.filter(Q(is_draft=False) | Q(owner=request.user))
     #     queryset = queryset.filter(Q(broadcaster__restrict_access_to_groups__isnull=True) |
@@ -402,6 +424,7 @@ def my_events(request):
             "coming_events_url_page": NEXT_EVENT_URL_NAME + "=" + str(pageN),
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
             "display_broadcaster_name": True,
+            "display_direct_button": request.user.is_superuser or request.user.has_perm("live.view_building_supervisor"),
         },
     )
 
@@ -445,6 +468,8 @@ def event_edit(request, slug=None):
         instance=event,
         user=request.user,
         is_current_event=event.is_current() if slug else None,
+        broadcaster_id= request.GET.get("broadcaster_id"),
+        building_id=request.GET.get("building_id"),
     )
 
     if request.POST:
@@ -456,6 +481,8 @@ def event_edit(request, slug=None):
         )
         if form.is_valid():
             event = form.save()
+            if EMAIL_ON_EVENT_SCHEDULING:
+                send_email_confirmation(event)
             messages.add_message(
                 request, messages.INFO, _("The changes have been saved.")
             )
@@ -510,8 +537,21 @@ def broadcasters_from_building(request):
 
     response_data = {}
     for broadcaster in broadcasters:
-        response_data[broadcaster.id] = {"id": broadcaster.id, "name": broadcaster.name}
+        response_data[broadcaster.id] = {"id": broadcaster.id, "name": broadcaster.name, "restricted": broadcaster.is_restricted}
     return JsonResponse(response_data)
+
+
+def broadcaster_restriction(request):
+    if request.method == "GET" :
+        # and request.is_ajax():
+
+        broadcaster_id = request.GET.get("idbroadcaster")
+        if not broadcaster_id:
+            return HttpResponseBadRequest()
+        broadcaster = Broadcaster.objects.get(pk=broadcaster_id)
+        return JsonResponse({"restricted": broadcaster.is_restricted})
+
+    return HttpResponseNotAllowed(["GET"])
 
 
 @csrf_protect
@@ -530,7 +570,7 @@ def event_isstreamavailabletorecord(request):
                 }
             )
 
-        if is_recording(broadcaster):
+        if is_recording(broadcaster, True):
             return JsonResponse({"available": True, "recording": True})
 
         available = is_available_to_record(broadcaster)
@@ -585,7 +625,7 @@ def event_splitrecord(event_id, broadcaster_id):
     if not check_piloting_conf(broadcaster):
         return JsonResponse({"success": False, "error": "implementation error"})
 
-    if not is_recording(broadcaster):
+    if not is_recording(broadcaster, True):
         return JsonResponse(
             {"success": False, "error": "the broadcaster is not recording"}
         )
@@ -620,7 +660,7 @@ def event_stoprecord(event_id, broadcaster_id):
     if not check_piloting_conf(broadcaster):
         return JsonResponse({"success": False, "error": "implementation error"})
 
-    if not is_recording(broadcaster):
+    if not is_recording(broadcaster, True):
         return JsonResponse(
             {"success": False, "error": "the broadcaster is not recording"}
         )
@@ -689,7 +729,7 @@ def event_get_video_cards(request):
             )
         return JsonResponse({"content": html})
 
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 def event_video_transform(event_id, current_file, segment_number):
@@ -783,11 +823,11 @@ def checkFileSize(full_file_name, max_attempt=6):
     attempt_number = 1
     while not size_match and attempt_number <= max_attempt:
         # if attempt_number > 1:
-        sleep(0.5)
+        sleep(2)
         new_size = os.path.getsize(full_file_name)
         if file_size != new_size:
             logger.warning(
-                f"File size changing from {file_size} to {new_size}, attempt number {attempt_number} "
+                f"File size of {full_file_name} changing from {file_size} to {new_size}, attempt number {attempt_number} "
             )
             file_size = new_size
             attempt_number = attempt_number + 1
@@ -795,7 +835,7 @@ def checkFileSize(full_file_name, max_attempt=6):
                 logger.error(f"File: {full_file_name} is still changing")
                 raise Exception("checkFileSize aborted")
         else:
-            logger.info("Size checked")
+            logger.info(f"Size checked for {full_file_name} : {new_size}")
             size_match = True
 
 
@@ -810,9 +850,7 @@ def checkDirExists(dest_dir_name, max_attempt=6):
             raise Exception(f"Dir: {dest_dir_name} does not exists and can't be created")
 
         attempt_number = attempt_number + 1
-        sleep(0.5)
-
-    logger.info("Dir exists")
+        sleep(1)
 
 
 def checkFileExists(full_file_name, max_attempt=6):
@@ -826,78 +864,39 @@ def checkFileExists(full_file_name, max_attempt=6):
             raise Exception(f"File: {full_file_name} does not exists")
 
         attempt_number = attempt_number + 1
-        sleep(0.5)
-
-    logger.info("File exists")
-
-
-def get_piloting_implementation(broadcaster) -> Optional[PilotingInterface]:
-    logger.debug("get_piloting_implementation")
-    piloting_impl = broadcaster.piloting_implementation
-    if not piloting_impl:
-        logger.info(
-            "'piloting_implementation' value is not set for '"
-            + broadcaster.name
-            + "' broadcaster."
-        )
-        return None
-
-    if not piloting_impl.lower() in map(str.lower, BROADCASTER_IMPLEMENTATION):
-        logger.warning(
-            "'piloting_implementation' : "
-            + piloting_impl
-            + " is not know for '"
-            + broadcaster.name
-            + "' broadcaster. Available piloting_implementations are '"
-            + "','".join(BROADCASTER_IMPLEMENTATION)
-            + "'"
-        )
-        return None
-
-    if piloting_impl.lower() == "wowza":
-        logger.debug(
-            "'piloting_implementation' found : "
-            + piloting_impl.lower()
-            + " for '"
-            + broadcaster.name
-            + "' broadcaster."
-        )
-        return Wowza(broadcaster)
-
-    logger.warning("->get_piloting_implementation - This should not happen.")
-    return None
+        sleep(1)
 
 
 def check_piloting_conf(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.check_piloting_conf()
 
 
 def start_record(broadcaster: Broadcaster, event_id) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.start(event_id)
 
 
 def split_record(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.split()
 
 
 def stop_record(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.stop()
 
 
 def get_info_current_record(broadcaster: Broadcaster) -> dict:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return {
             "currentFile": "",
@@ -909,14 +908,14 @@ def get_info_current_record(broadcaster: Broadcaster) -> dict:
 
 
 def is_available_to_record(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
     return impl_class.is_available_to_record()
 
 
-def is_recording(broadcaster: Broadcaster) -> bool:
-    impl_class = get_piloting_implementation(broadcaster)
+def is_recording(broadcaster: Broadcaster, with_file_check = False) -> bool:
+    impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False
-    return impl_class.is_recording()
+    return impl_class.is_recording(with_file_check)
