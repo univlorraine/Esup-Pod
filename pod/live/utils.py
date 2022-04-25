@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import EmailMultiAlternatives, mail_managers
@@ -38,6 +37,7 @@ MANAGERS = getattr(settings, "MANAGERS", {})
 
 DEBUG = getattr(settings, "DEBUG", True)
 
+
 def send_email_confirmation(event):
     """Send an email on creation/modification event."""
     if DEBUG:
@@ -49,8 +49,7 @@ def send_email_confirmation(event):
 
     subject = "[%s] %s" % (
         TITLE_SITE,
-        _(u"Registration of event #%(content_id)s")
-        % {"content_id": event.id},
+        _("Registration of event #%(content_id)s") % {"content_id": event.id},
     )
 
     from_email = DEFAULT_FROM_EMAIL
@@ -61,11 +60,16 @@ def send_email_confirmation(event):
     message = "%s\n%s\n\n%s\n" % (
         _("Hello,"),
         _(
-            u"You have just scheduled a new event called “%(content_title)s” in date of %(start_date)s from %(start_time)s to %(end_time)s on video server : %(url_event)s)"
-            +". You can find the other sharing options in the dedicated tab."
+            "You have just scheduled a new event called “%(content_title)s” in date of %(start_date)s from %(start_time)s to %(end_time)s on video server : %(url_event)s)"
+            + ". You can find the other sharing options in the dedicated tab."
         )
-        % {"content_title": event.title, "start_date": (event.start_date).strftime("%d/%m/%Y"), "start_time": event.start_time, "end_time": event.end_time,
-           "url_event": url_event},
+        % {
+            "content_title": event.title,
+            "start_date": (event.start_date).strftime("%d/%m/%Y"),
+            "start_time": event.start_time,
+            "end_time": event.end_time,
+            "url_event": url_event,
+        },
         _("Regards."),
     )
 
@@ -74,15 +78,18 @@ def send_email_confirmation(event):
         event.owner,
     )
 
-    html_message = '<p>%s</p><p>%s</p><p>%s</p>' % (
+    html_message = "<p>%s</p><p>%s</p><p>%s</p>" % (
         _("Hello,"),
         _(
-             u"You have just scheduled a new event called “%(content_title)s” in date of %(start_date)s from %(start_time)s to %(end_time)s on video server : %(url_event)s)"
-            +". You can find the other sharing options in the dedicated tab."
+            "You have just scheduled a new event called “%(content_title)s” in date of %(start_date)s from %(start_time)s to %(end_time)s on video server : %(url_event)s)"
+            + ". You can find the other sharing options in the dedicated tab."
         )
         % {
-            "content_title": event.title, "start_date": (event.start_date).strftime("%d/%m/%Y"), "start_time": event.start_time, "end_time": event.end_time,
-           "url_event": url_event
+            "content_title": event.title,
+            "start_date": (event.start_date).strftime("%d/%m/%Y"),
+            "start_time": event.start_time,
+            "end_time": event.end_time,
+            "url_event": url_event,
         },
         _("Regards."),
     )
@@ -93,9 +100,9 @@ def send_email_confirmation(event):
     )
 
     if (
-            USE_ESTABLISHMENT
-            and MANAGERS
-            and event.owner.owner.establishment.lower() in dict(MANAGERS)
+        USE_ESTABLISHMENT
+        and MANAGERS
+        and event.owner.owner.establishment.lower() in dict(MANAGERS)
     ):
         bcc_email = []
         event_estab = event.owner.owner.establishment.lower()

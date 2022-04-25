@@ -94,4 +94,3 @@ urlpatterns += [
     url(r"^building/(?P<building_id>[\d]+)/$", building, name="building"),
     url(r"^(?P<slug>[\-\d\w]+)/$", video_live, name="video_live"),
 ]
-

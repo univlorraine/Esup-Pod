@@ -2,25 +2,20 @@
 Unit tests for live views
 """
 import ast
-import http
-from datetime import datetime
-
 import httmock
 import pytz
-import requests
+from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.http import JsonResponse, Http404
 from django.test import Client
 from django.test import TestCase, override_settings
-
+from httmock import HTTMock, all_requests
 from pod.live.forms import EventForm
 from pod.live.models import Building, Broadcaster, HeartBeat, Event
 from pod.video.models import Type
 from pod.video.models import Video
-
-from httmock import urlmatch, HTTMock, all_requests
 
 if getattr(settings, "USE_PODFILE", False):
     FILEPICKER = True
@@ -68,6 +63,8 @@ class LiveViewsTestCase(TestCase):
             is_restricted=False,
             video_on_hold=video_on_hold,
             building=building,
+            piloting_implementation="wowza",
+            piloting_conf='{"server_url": "http://mock_api.fr", "application": "mock_name", "livestream": "mock_livestream"}',
         )
         Event.objects.create(
             title="event1",
@@ -339,9 +336,13 @@ class LiveViewsTestCase(TestCase):
         print("   --->  test_events access not restricted but draft event : OK !")
 
         # event not restricted but draft (shared link)
-        response = self.client.get("/live/event/%s/%s/" % (self.event.slug, self.event.get_hashkey()))
+        response = self.client.get(
+            "/live/event/%s/%s/" % (self.event.slug, self.event.get_hashkey())
+        )
         self.assertTemplateUsed(response, "live/event.html")
-        print("   --->  test_events access not restricted but draft with public link event : OK !")
+        print(
+            "   --->  test_events access not restricted but draft with public link event : OK !"
+        )
 
         # event restricted and not draft (permission denied)
         self.event.is_restricted = True
@@ -364,7 +365,9 @@ class LiveViewsTestCase(TestCase):
         self.assertTemplateUsed(response, "live/event.html")
         print("   --->  test_events access not restricted nor draft event : OK !")
 
-        response = self.client.get("/live/event/%s/" % self.event.slug, {"is_iframe": True})
+        response = self.client.get(
+            "/live/event/%s/" % self.event.slug, {"is_iframe": True}
+        )
         self.assertTemplateUsed(response, "live/event-iframe.html")
         print("   --->  test_events access not restricted nor draft iframe event : OK !")
 
@@ -468,7 +471,7 @@ class LiveViewsTestCase(TestCase):
 
         response = self.client.get("/live/event/%s/" % self.event.slug)
         self.assertTemplateUsed(response, "live/event.html")
-        self.assertTrue(response.context['need_piloting_buttons'])
+        self.assertTrue(response.context["need_piloting_buttons"])
         print("   --->  test_events need_piloting_buttons event for staff: OK !")
 
         # Superuser logged in
@@ -515,11 +518,11 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         print("   --->  test broadcasters_from_building HttpResponseBadRequest : OK !")
 
-        response = self.client.get(url, {'building': 'nonexistant'})
+        response = self.client.get(url, {"building": "nonexistant"})
         self.assertEqual(response.status_code, 404)
         print("   --->  test broadcasters_from_building HttpResponseBadRequest : OK !")
 
-        response = self.client.get(url, {'building': 'bulding1'})
+        response = self.client.get(url, {"building": "bulding1"})
         self.assertEqual(response.status_code, 200)
         print("   --->  test broadcasters_from_building : OK !")
 
@@ -529,11 +532,11 @@ class LiveViewsTestCase(TestCase):
         )
         self.client.force_login(self.superuser)
 
-        response = self.client.get(url, {'building': 'bulding1'})
+        response = self.client.get(url, {"building": "bulding1"})
         self.assertEqual(response.status_code, 200)
         expected = {
-            '1': {'id': 1, 'name': 'broadcaster1', 'restricted': True},
-            '2': {'id': 2, 'name': 'broadcaster2', 'restricted': False}
+            "1": {"id": 1, "name": "broadcaster1", "restricted": True},
+            "2": {"id": 2, "name": "broadcaster2", "restricted": False},
         }
         self.assertEqual(response.json(), expected)
         print("   --->  test broadcasters_from_building all : OK !")
@@ -548,9 +551,9 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         print("   --->  test broadcaster_restriction HttpResponseBadRequest : OK !")
 
-        response = self.client.get(url, {'idbroadcaster': 1})
+        response = self.client.get(url, {"idbroadcaster": 1})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'restricted': True})
+        self.assertEqual(response.json(), {"restricted": True})
         print("   --->  test broadcaster_restriction : OK !")
 
     def test_isstreamavailabletorecord(self):
@@ -568,7 +571,9 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 405)
         print("   --->  test isstreamavailabletorecord HttpResponseNotAllowed : OK !")
 
-        response = self.client.get(url, {'idbroadcaster': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.get(
+            url, {"idbroadcaster": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
         self.assertEqual(response.status_code, 200)
         # self.assertEqual(response.json(), {'available': False, 'recording': False, 'message': 'implementation error'})
         print("   --->  test isstreamavailabletorecord implementation error : OK !")
@@ -588,7 +593,11 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 405)
         print("   --->  test startrecord HttpResponseNotAllowed : OK !")
 
-        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.post(
+            url,
+            {"idbroadcaster": 1, "idevent": 1},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
         self.assertEqual(response.status_code, 200)
         # self.assertEqual(response.json(), {'success': False, 'message': 'implementation error'})
         print("   --->  test startrecord implementation error : OK !")
@@ -608,7 +617,11 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 405)
         print("   --->  test splitrecord HttpResponseNotAllowed : OK !")
 
-        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.post(
+            url,
+            {"idbroadcaster": 1, "idevent": 1},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
         self.assertEqual(response.status_code, 200)
         print("   --->  test splitrecord implementation error : OK !")
 
@@ -627,7 +640,11 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 405)
         print("   --->  test stoprecord HttpResponseNotAllowed : OK !")
 
-        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.post(
+            url,
+            {"idbroadcaster": 1, "idevent": 1},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
         self.assertEqual(response.status_code, 200)
         print("   --->  test stoprecord implementation error : OK !")
 
@@ -646,67 +663,83 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 405)
         print("   --->  test event_info_record HttpResponseNotAllowed : OK !")
 
-        response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.post(
+            url,
+            {"idbroadcaster": 1, "idevent": 1},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
         self.assertEqual(response.status_code, 200)
         print("   --->  test event_info_record implementation error : OK !")
 
         # Brodacaster with implementation parameters
-
-        # TODO voir ça
-        broadcaster = Broadcaster.objects.get(id=1)
-        broadcaster.piloting_implementation = "wowza"
-        broadcaster.piloting_conf = '{"server_url": "http://mock_api.fr", "application": "mock_name", "livestream": "mock_livestream"}'
-        broadcaster.save()
-
         @all_requests
         def response_is_recording_ko(url, request):
-            return httmock.response(200, {
-                "isConnected": False,
-                "isRecordingSet": False,
-            })
+            return httmock.response(
+                200,
+                {
+                    "isConnected": False,
+                    "isRecordingSet": False,
+                },
+            )
 
         @all_requests
         def response_is_recording_ok(url, request):
-            return httmock.response(200, {
-                "isConnected": True,
-                "isRecordingSet": True,
-                "segmentDuration": 3000,
-            })
+            return httmock.response(
+                200,
+                {
+                    "isConnected": True,
+                    "isRecordingSet": True,
+                    "segmentDuration": 3000,
+                },
+            )
 
         with HTTMock(response_is_recording_ko):
-            response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.json(), {"success": False, "error": "the broadcaster is not recording"})
+            response = self.client.post(
+                url,
+                {"idbroadcaster": 2, "idevent": 1},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            )
+        self.assertEqual(
+            response.json(),
+            {"success": False, "error": "the broadcaster is not recording"},
+        )
         print("   --->  test event_info_record not recording : OK !")
 
         with HTTMock(response_is_recording_ok):
-            response = self.client.post(url, {'idbroadcaster': 1, 'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.json(), {'success': True, 'duration': 3})
+            response = self.client.post(
+                url,
+                {"idbroadcaster": 2, "idevent": 1},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            )
+        self.assertEqual(response.json(), {"success": True, "duration": 3})
         print("   --->  test event_info_record recording : OK !")
 
-    def test_misc_broadcaster(self):
-        from pod.live.views import is_recording, is_available_to_record, start_record, split_record, stop_record, \
-            get_info_current_record
+    def test_is_recording(self):
+        from pod.live.views import is_recording
 
         broadcaster = Broadcaster.objects.get(id=1)
-
         broad_with_impl = Broadcaster.objects.get(id=2)
-        broad_with_impl.piloting_implementation = "wowza"
-        broad_with_impl.piloting_conf = '{"server_url": "http://mock_api.fr", "application": "mock_name", "livestream": "mock_livestream"}'
 
         # is_recording
         @all_requests
         def response_is_recording_ko(url, request):
-            return httmock.response(200, {
-                "isConnected": False,
-                "isRecordingSet": False,
-            })
+            return httmock.response(
+                200,
+                {
+                    "isConnected": False,
+                    "isRecordingSet": False,
+                },
+            )
 
         @all_requests
         def response_is_recording_ok(url, request):
-            return httmock.response(200, {
-                "isConnected": True,
-                "isRecordingSet": True,
-            })
+            return httmock.response(
+                200,
+                {
+                    "isConnected": True,
+                    "isRecordingSet": True,
+                },
+            )
 
         response = is_recording(broadcaster)
         self.assertFalse(response)
@@ -722,13 +755,26 @@ class LiveViewsTestCase(TestCase):
         self.assertTrue(response)
         print("   --->  test misc_broadcaster is_recording yes : OK !")
 
+    def test_is_available_to_record(self):
+        from pod.live.views import is_available_to_record
+
+        broadcaster = Broadcaster.objects.get(id=1)
+        broad_with_impl = Broadcaster.objects.get(id=2)
+
         # is_available_to_record
         @all_requests
         def response_is_available_to_record_ok(url, request):
-            return httmock.response(200, {
-                "isConnected": True,
-                "isRecordingSet": False
-            })
+            return httmock.response(200, {"isConnected": True, "isRecordingSet": False})
+
+        @all_requests
+        def response_is_recording_ok(url, request):
+            return httmock.response(
+                200,
+                {
+                    "isConnected": True,
+                    "isRecordingSet": True,
+                },
+            )
 
         response = is_available_to_record(broadcaster)
         self.assertFalse(response)
@@ -744,14 +790,19 @@ class LiveViewsTestCase(TestCase):
         self.assertTrue(response)
         print("   --->  test misc_broadcaster is_available_to_record yes : OK !")
 
-        # start_record
+    def test_method_start_record(self):
+        from pod.live.views import start_record
+
+        broadcaster = Broadcaster.objects.get(id=1)
+        broad_with_impl = Broadcaster.objects.get(id=2)
+
         @all_requests
         def response_created_ko(url, request):
-            return httmock.response(201, {'success': False})
+            return httmock.response(201, {"success": False})
 
         @all_requests
         def response_created_ok(url, request):
-            return httmock.response(201, {'success': True})
+            return httmock.response(201, {"success": True})
 
         response = start_record(broadcaster, 1)
         self.assertFalse(response)
@@ -767,14 +818,19 @@ class LiveViewsTestCase(TestCase):
         self.assertTrue(response)
         print("   --->  test misc_broadcaster start_record yes  : OK !")
 
-        # split_record
+    def test_method_split_record(self):
+        from pod.live.views import split_record
+
+        broadcaster = Broadcaster.objects.get(id=1)
+        broad_with_impl = Broadcaster.objects.get(id=2)
+
         @all_requests
         def response_ko(url, request):
-            return httmock.response(200, {'success': False})
+            return httmock.response(200, {"success": False})
 
         @all_requests
         def response_ok(url, request):
-            return httmock.response(200, {'success': True})
+            return httmock.response(200, {"success": True})
 
         response = split_record(broadcaster)
         self.assertFalse(response)
@@ -790,7 +846,20 @@ class LiveViewsTestCase(TestCase):
         self.assertTrue(response)
         print("   --->  test misc_broadcaster split_record yes : OK !")
 
-        # stop_record
+    def test_method_stop_record(self):
+        from pod.live.views import stop_record
+
+        broadcaster = Broadcaster.objects.get(id=1)
+        broad_with_impl = Broadcaster.objects.get(id=2)
+
+        @all_requests
+        def response_ko(url, request):
+            return httmock.response(200, {"success": False})
+
+        @all_requests
+        def response_ok(url, request):
+            return httmock.response(200, {"success": True})
+
         response = stop_record(broadcaster)
         self.assertFalse(response)
         print("   --->  test misc_broadcaster stop_record no impl : OK !")
@@ -805,21 +874,34 @@ class LiveViewsTestCase(TestCase):
         self.assertTrue(response)
         print("   --->  test misc_broadcaster stop_record yes : OK !")
 
-        # get_info_current_record
+    def test_method_info_current_record(self):
+        from pod.live.views import get_info_current_record
+
+        broadcaster = Broadcaster.objects.get(id=1)
+        broad_with_impl = Broadcaster.objects.get(id=2)
+
         @all_requests
         def response_info_current_record_ko(url, request):
             return httmock.response(400, {"content": ""})
 
         @all_requests
         def response_info_current_record_ok(url, request):
-            return httmock.response(200, {
-                "currentFile": "file_10.mp3",
-                "segmentNumber": "23",
-                "outputPath": "aa",
-                "segmentDuration": "60",
-            })
+            return httmock.response(
+                200,
+                {
+                    "currentFile": "file_10.mp3",
+                    "segmentNumber": "23",
+                    "outputPath": "aa",
+                    "segmentDuration": "60",
+                },
+            )
 
-        expected_on_error = {"currentFile": "", "segmentNumber": "", "outputPath": "", "segmentDuration": "", }
+        expected_on_error = {
+            "currentFile": "",
+            "segmentNumber": "",
+            "outputPath": "",
+            "segmentDuration": "",
+        }
         response = get_info_current_record(broadcaster)
         self.assertEqual(response, expected_on_error)
         print("   --->  test misc_broadcaster get_info_current_record no impl: OK !")
@@ -831,8 +913,15 @@ class LiveViewsTestCase(TestCase):
 
         with HTTMock(response_info_current_record_ok):
             response = get_info_current_record(broad_with_impl)
-        self.assertEqual(response, {"currentFile": "file_10.mp3", "segmentNumber": "10", "outputPath": "aa",
-                                    "segmentDuration": "60", })
+        self.assertEqual(
+            response,
+            {
+                "currentFile": "file_10.mp3",
+                "segmentNumber": "10",
+                "outputPath": "aa",
+                "segmentDuration": "60",
+            },
+        )
         print("   --->  test misc_broadcaster get_info_current_record ok : OK !")
 
     def test_event_video_cards(self):
@@ -843,7 +932,9 @@ class LiveViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         print("   --->  test event_video_cards not ajax : OK !")
 
-        response = self.client.get(url, {'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.get(
+            url, {"idevent": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
         self.assertEqual(response.json(), {"content": ""})
         print("   --->  test event_video_cards empty : OK !")
 
@@ -852,7 +943,9 @@ class LiveViewsTestCase(TestCase):
         event.videos.add(video)
         event.save()
 
-        response = self.client.get(url, {'idevent': 1}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.get(
+            url, {"idevent": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(response.json(), {"content": ""})
         print("   --->  test event_video_cards with videos : OK !")
@@ -861,9 +954,9 @@ class LiveViewsTestCase(TestCase):
         from pod.live.views import checkDirExists, checkFileExists
 
         with self.assertRaises(Exception):
-            checkDirExists('dirname', 2)
+            checkDirExists("dirname", 2)
             print("   --->  test checkDirExists exception : OK !")
 
         with self.assertRaises(Exception):
-            checkFileExists('filename', 2)
+            checkFileExists("filename", 2)
             print("   --->  test checkFileExists exception : OK !")

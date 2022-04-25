@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -7,8 +7,16 @@ from django.contrib.auth.models import User
 
 from pod.video.models import Type
 from pod.video.models import Video
-from ..models import Building, Broadcaster, HeartBeat, Event, get_available_broadcasters_of_building, \
-    get_building_having_available_broadcaster, get_default_event_type, present_or_future_date
+from ..models import (
+    Building,
+    Broadcaster,
+    HeartBeat,
+    Event,
+    get_available_broadcasters_of_building,
+    get_building_having_available_broadcaster,
+    get_default_event_type,
+    present_or_future_date,
+)
 from django.utils import timezone
 
 if getattr(settings, "USE_PODFILE", False):
@@ -155,6 +163,7 @@ class BroadcasterTestCase(TestCase):
         expected_html = '<img src="/static/admin/img/icon-alert.svg" alt="Error">'
         self.assertEqual(html, expected_html)
 
+
 class HeartbeatTestCase(TestCase):
     def setUp(self):
         building = Building.objects.create(name="building1")
@@ -195,38 +204,25 @@ def add_video(event):
     return event
 
 
-class ClassMethodesTestCase(TestCase):
-
+class EventTestCase(TestCase):
     def setUp(self):
         building = Building.objects.create(name="building1")
         building2 = Building.objects.create(name="building2")
         e_broad = Broadcaster.objects.create(
-            name="broadcaster1",
-            building=building,
-            url="http://first.url",
-            status=True
+            name="broadcaster1", building=building, url="http://first.url", status=True
         )
-        broad2 = Broadcaster.objects.create(
-            name="broadcaster2",
-            building=building,
-            url="http://second.url",
-            status=True
+        Broadcaster.objects.create(
+            name="broadcaster2", building=building, url="http://second.url", status=True
         )
-        broad3 = Broadcaster.objects.create(
-            name="broadcaster3",
-            building=building,
-            url="http://third.url",
-            status=False
+        Broadcaster.objects.create(
+            name="broadcaster3", building=building, url="http://third.url", status=False
         )
-        broadb2 = Broadcaster.objects.create(
-            name="broad_b2",
-            building=building2,
-            url="http://firstb2.url",
-            status=False
+        Broadcaster.objects.create(
+            name="broad_b2", building=building2, url="http://firstb2.url", status=False
         )
         e_user = User.objects.create(username="user1")
         e_type = Type.objects.create(title="type1")
-        e_video = Video.objects.create(
+        Video.objects.create(
             video="event_video.mp4",
             owner=e_user,
             type=e_type,
@@ -241,7 +237,7 @@ class ClassMethodesTestCase(TestCase):
 
     def test_class_methods(self):
         self.assertEqual(get_default_event_type(), 1)
-        print(" --->  test_class_methodes default_event_type : OK !")
+        print(" --->  test_class_methods default_event_type : OK !")
 
         event = Event.objects.get(id=1)
         defaut_event_start_date = event.start_date
@@ -251,51 +247,6 @@ class ClassMethodesTestCase(TestCase):
         with self.assertRaises(ValidationError):
             present_or_future_date(yesterday)
         print(" --->  test_class_methods present_or_future_date : OK !")
-
-
-class EventTestCase(TestCase):
-
-    def setUp(self):
-        building = Building.objects.create(name="building1")
-        building2 = Building.objects.create(name="building2")
-        e_broad = Broadcaster.objects.create(
-            name="broadcaster1",
-            building=building,
-            url="http://first.url",
-            status=True
-        )
-        broad2 = Broadcaster.objects.create(
-            name="broadcaster2",
-            building=building,
-            url="http://second.url",
-            status=True
-        )
-        broad3 = Broadcaster.objects.create(
-            name="broadcaster3",
-            building=building,
-            url="http://third.url",
-            status=False
-        )
-        broadb2 = Broadcaster.objects.create(
-            name="broad_b2",
-            building=building2,
-            url="http://firstb2.url",
-            status=False
-        )
-        e_user = User.objects.create(username="user1")
-        e_type = Type.objects.create(title="type1")
-        e_video = Video.objects.create(
-            video="event_video.mp4",
-            owner=e_user,
-            type=e_type,
-        )
-        Event.objects.create(
-            title="event1",
-            owner=e_user,
-            broadcaster=e_broad,
-            type=e_type,
-        )
-        print("--->  SetUp of EventTestCase : OK !")
 
     def test_create(self):
         e_broad = Broadcaster.objects.get(id=1)
@@ -335,7 +286,9 @@ class EventTestCase(TestCase):
         event = Event.objects.get(id=1)
         if FILEPICKER:
             fp_user, created = User.objects.get_or_create(username="pod")
-            homedir, created = UserFolder.objects.get_or_create(name="Home", owner=fp_user)
+            homedir, created = UserFolder.objects.get_or_create(
+                name="Home", owner=fp_user
+            )
             thumb = CustomImageModel.objects.create(
                 folder=homedir, created_by=fp_user, file="blabla.jpg"
             )

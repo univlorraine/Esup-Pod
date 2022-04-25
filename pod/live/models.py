@@ -206,8 +206,10 @@ class Broadcaster(models.Model):
         Group,
         blank=True,
         verbose_name=_("Groups"),
-        help_text=_("Select one or more groups who can manage event to this broadcaster."),
-        related_name='managegroups'
+        help_text=_(
+            "Select one or more groups who can manage event to this broadcaster."
+        ),
+        related_name="managegroups",
     )
 
     piloting_implementation = models.CharField(
@@ -253,13 +255,18 @@ class Broadcaster(models.Model):
 
     def is_recording_admin(self):
         from pod.live.pilotingInterface import get_piloting_implementation
+
         impl = get_piloting_implementation(self)
         try:
             if impl:
                 if impl.is_recording():
-                    return format_html('<img src="/static/admin/img/icon-yes.svg" alt="Yes">')
+                    return format_html(
+                        '<img src="/static/admin/img/icon-yes.svg" alt="Yes">'
+                    )
                 else:
-                    return format_html('<img src="/static/admin/img/icon-no.svg" alt="No">')
+                    return format_html(
+                        '<img src="/static/admin/img/icon-no.svg" alt="No">'
+                    )
         except Exception:
             pass
         return format_html('<img src="/static/admin/img/icon-alert.svg" alt="Error">')
@@ -385,11 +392,7 @@ class Event(models.Model):
         help_text=_("Broadcaster name."),
     )
 
-    type = models.ForeignKey(
-        Type,
-        default=DEFAULT_EVENT_TYPE_ID,
-        verbose_name=_("Type")
-    )
+    type = models.ForeignKey(Type, default=DEFAULT_EVENT_TYPE_ID, verbose_name=_("Type"))
 
     is_draft = models.BooleanField(
         verbose_name=_("Draft"),
@@ -411,10 +414,7 @@ class Event(models.Model):
 
     is_auto_start = models.BooleanField(
         verbose_name=_("Auto start"),
-        help_text=_(
-            "If this box is checked, "
-            "the record will start automatically."
-        ),
+        help_text=_("If this box is checked, " "the record will start automatically."),
         default=False,
     )
 
