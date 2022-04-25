@@ -42,10 +42,8 @@ def send_email_confirmation(event):
     """Send an email on creation/modification event."""
     if DEBUG:
         print("SEND EMAIL ON EVENT SCHEDULING")
-    url_scheme = "https" if SECURE_SSL_REDIRECT else "http"
-    url_event = "%s:%s" % (url_scheme, event.get_full_url())
-    if event.is_draft:
-        url_event += event.get_hashkey() + "/"
+
+    url_event = get_event_url(event)
 
     subject = "[%s] %s" % (
         TITLE_SITE,
@@ -54,8 +52,7 @@ def send_email_confirmation(event):
 
     from_email = DEFAULT_FROM_EMAIL
 
-    to_email = []
-    to_email.append(event.owner.email)
+    to_email = [event.owner.email]
 
     message = "%s\n%s\n\n%s\n" % (
         _("Hello,"),
@@ -65,7 +62,7 @@ def send_email_confirmation(event):
         )
         % {
             "content_title": event.title,
-            "start_date": (event.start_date).strftime("%d/%m/%Y"),
+            "start_date": event.start_date.strftime("%d/%m/%Y"),
             "start_time": event.start_time,
             "end_time": event.end_time,
             "url_event": url_event,
@@ -86,7 +83,7 @@ def send_email_confirmation(event):
         )
         % {
             "content_title": event.title,
-            "start_date": (event.start_date).strftime("%d/%m/%Y"),
+            "start_date": event.start_date.strftime("%d/%m/%Y"),
             "start_time": event.start_time,
             "end_time": event.end_time,
             "url_event": url_event,
@@ -94,47 +91,81 @@ def send_email_confirmation(event):
         _("Regards."),
     )
 
-    full_html_message = html_message + "<br/>%s%s" % (
-        _("Post by:"),
-        event.owner,
-    )
-
+    # email establishment
     if (
         USE_ESTABLISHMENT
         and MANAGERS
         and event.owner.owner.establishment.lower() in dict(MANAGERS)
     ):
-        bcc_email = []
-        event_estab = event.owner.owner.establishment.lower()
-        manager = dict(MANAGERS)[event_estab]
-        if type(manager) in (list, tuple):
-            bcc_email = manager
-        elif type(manager) == str:
-            bcc_email.append(manager)
-        msg = EmailMultiAlternatives(
-            subject, message, from_email, to_email, bcc=bcc_email
-        )
-        msg.attach_alternative(html_message, "text/html")
+        send_establishment(event, subject, message, from_email, to_email, html_message)
+        return
+
+    # email to managers
+    send_managers(event.owner, subject, full_message, False, html_message)
+
+    # send email
+    cc_email = get_cc(event)
+    send_email(subject, message, from_email, to_email, cc_email, html_message)
+
+
+def get_event_url(event):
+    url_scheme = "https" if SECURE_SSL_REDIRECT else "http"
+    url_event = "%s:%s" % (url_scheme, event.get_full_url())
+
+    if event.is_draft:
+        url_event += event.get_hashkey() + "/"
+    return url_event
+
+
+def get_bcc(manager):
+    if type(manager) in (list, tuple):
+        return manager
+    elif type(manager) == str:
+        return [manager]
+    return []
+
+
+def get_cc(event):
+    to_cc = []
+    for additional_owners in event.additional_owners.all():
+        to_cc.append(additional_owners.email)
+    return to_cc
+
+
+def send_establishment(event, subject, message, from_email, to_email, html_message):
+    event_estab = event.owner.owner.establishment.lower()
+    manager = dict(MANAGERS)[event_estab]
+    bcc_email = get_bcc(manager)
+    msg = EmailMultiAlternatives(
+        subject, message, from_email, to_email, bcc=bcc_email
+    )
+    msg.attach_alternative(html_message, "text/html")
+    msg.send()
+
+
+def send_managers(owner, subject, full_message, fail, html_message):
+    full_html_message = html_message + "<br/>%s%s" % (
+        _("Post by:"),
+        owner,
+    )
+    mail_managers(
+        subject,
+        full_message,
+        fail_silently=fail,
+        html_message=full_html_message,
+    )
+
+
+def send_email(subject, message, from_email, to_email, cc_email, html_message):
+    msg = EmailMultiAlternatives(
+        subject,
+        message,
+        from_email,
+        to_email,
+        cc=cc_email,
+    )
+
+    msg.attach_alternative(html_message, "text/html")
+
+    if not DEBUG:
         msg.send()
-    else:
-        mail_managers(
-            subject,
-            full_message,
-            fail_silently=False,
-            html_message=full_html_message,
-        )
-        if not DEBUG:
-            to_cc = []
-            for additional_owners in event.additional_owners.all():
-                to_cc.append(additional_owners.email)
-
-            msg = EmailMultiAlternatives(
-                subject,
-                message,
-                from_email,
-                to_email,
-                cc=to_cc,
-            )
-
-            msg.attach_alternative(html_message, "text/html")
-            msg.send()
