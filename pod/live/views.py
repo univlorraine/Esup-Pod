@@ -852,8 +852,6 @@ def checkDirExists(dest_dir_name, max_attempt=6):
         attempt_number = attempt_number + 1
         sleep(1)
 
-    logger.info("Dir exists")
-
 
 def checkFileExists(full_file_name, max_attempt=6):
 
@@ -867,8 +865,6 @@ def checkFileExists(full_file_name, max_attempt=6):
 
         attempt_number = attempt_number + 1
         sleep(1)
-
-    logger.info("File exists")
 
 
 def check_piloting_conf(broadcaster: Broadcaster) -> bool:
