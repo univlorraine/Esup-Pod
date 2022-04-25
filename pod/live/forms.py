@@ -21,6 +21,7 @@ if getattr(settings, "USE_PODFILE", False):
 
 PILOTING_CHOICES = getattr(settings, "BROADCASTER_PILOTING_SOFTWARE", [])
 
+
 class BuildingAdminForm(forms.ModelForm):
     required_css_class = "required"
     is_staff = True
@@ -52,7 +53,7 @@ class BroadcasterAdminForm(forms.ModelForm):
         for val in PILOTING_CHOICES:
             impl_choices.append([val, val])
 
-        self.fields['piloting_implementation'] = forms.ChoiceField(
+        self.fields["piloting_implementation"] = forms.ChoiceField(
             choices=impl_choices,
             required=False,
             label=_("Piloting implementation"),
@@ -161,7 +162,7 @@ class EventForm(forms.ModelForm):
         broadcaster_id = kwargs.pop("broadcaster_id", None)
         building_id = kwargs.pop("building_id", None)
         super(EventForm, self).__init__(*args, **kwargs)
-        self.auto_id="event_%s"
+        self.auto_id = "event_%s"
         self.fields["owner"].initial = self.user
         # Manage required fields html
         self.fields = add_placeholder_and_asterisk(self.fields)
@@ -219,12 +220,10 @@ class EventForm(forms.ModelForm):
     def saving(self):
         try:
             build = Building.objects.filter(name=self.data.get("building")).first()
-            self.fields[
-                "broadcaster"
-            ].queryset = get_available_broadcasters_of_building(self.user, build.id)
-            self.fields[
-                "building"
-            ].queryset = get_building_having_available_broadcaster(
+            self.fields["broadcaster"].queryset = get_available_broadcasters_of_building(
+                self.user, build.id
+            )
+            self.fields["building"].queryset = get_building_having_available_broadcaster(
                 self.user, build.id
             )
             self.initial["building"] = build.name

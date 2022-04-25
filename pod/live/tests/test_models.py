@@ -7,8 +7,16 @@ from django.contrib.auth.models import User
 
 from pod.video.models import Type
 from pod.video.models import Video
-from ..models import Building, Broadcaster, HeartBeat, Event, get_available_broadcasters_of_building, \
-    get_building_having_available_broadcaster, get_default_event_type, present_or_future_date
+from ..models import (
+    Building,
+    Broadcaster,
+    HeartBeat,
+    Event,
+    get_available_broadcasters_of_building,
+    get_building_having_available_broadcaster,
+    get_default_event_type,
+    present_or_future_date,
+)
 from django.utils import timezone
 
 if getattr(settings, "USE_PODFILE", False):
@@ -201,10 +209,7 @@ class EventTestCase(TestCase):
         building = Building.objects.create(name="building1")
         building2 = Building.objects.create(name="building2")
         e_broad = Broadcaster.objects.create(
-            name="broadcaster1",
-            building=building,
-            url="http://first.url",
-            status=True
+            name="broadcaster1", building=building, url="http://first.url", status=True
         )
         Broadcaster.objects.create(
             name="broadcaster2", building=building, url="http://second.url", status=True

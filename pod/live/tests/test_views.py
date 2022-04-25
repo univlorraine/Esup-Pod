@@ -336,7 +336,9 @@ class LiveViewsTestCase(TestCase):
         print("   --->  test_events access not restricted but draft event : OK !")
 
         # event not restricted but draft (shared link)
-        response = self.client.get("/live/event/%s/%s/" % (self.event.slug, self.event.get_hashkey()))
+        response = self.client.get(
+            "/live/event/%s/%s/" % (self.event.slug, self.event.get_hashkey())
+        )
         self.assertTemplateUsed(response, "live/event.html")
         print(
             "   --->  test_events access not restricted but draft with public link event : OK !"
