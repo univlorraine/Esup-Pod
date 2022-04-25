@@ -35,7 +35,9 @@ class Command(BaseCommand):
         if options["force"]:
             self.debug_mode = False
 
-        self.stdout.write(f"- Beginning at {datetime.now().strftime('%H:%M:%S')}", ending="")
+        self.stdout.write(
+            f"- Beginning at {datetime.now().strftime('%H:%M:%S')}", ending=""
+        )
         self.stdout.write(" - IN DEBUG MODE -" if self.debug_mode else "")
 
         self.stop_finished()
@@ -50,9 +52,7 @@ class Command(BaseCommand):
         now = datetime.now().replace(second=0, microsecond=0)
 
         # events ending now
-        events = Event.objects.filter(
-            Q(start_date=date.today()) & Q(end_time=now)
-        )
+        events = Event.objects.filter(Q(start_date=date.today()) & Q(end_time=now))
 
         for event in events:
             if not is_recording(event.broadcaster, True):
@@ -67,7 +67,7 @@ class Command(BaseCommand):
                 continue
 
             response = event_stoprecord(event.id, event.broadcaster.id)
-            if json.loads(response.content)['success']:
+            if json.loads(response.content)["success"]:
                 self.stdout.write(" ...  stopped ")
             else:
                 self.stderr.write(" ... fail to stop recording")

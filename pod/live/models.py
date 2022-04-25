@@ -255,13 +255,18 @@ class Broadcaster(models.Model):
 
     def is_recording_admin(self):
         from pod.live.pilotingInterface import get_piloting_implementation
+
         impl = get_piloting_implementation(self)
         try:
             if impl:
                 if impl.is_recording():
-                    return format_html('<img src="/static/admin/img/icon-yes.svg" alt="Yes">')
+                    return format_html(
+                        '<img src="/static/admin/img/icon-yes.svg" alt="Yes">'
+                    )
                 else:
-                    return format_html('<img src="/static/admin/img/icon-no.svg" alt="No">')
+                    return format_html(
+                        '<img src="/static/admin/img/icon-no.svg" alt="No">'
+                    )
         except Exception:
             pass
         return format_html('<img src="/static/admin/img/icon-alert.svg" alt="Error">')

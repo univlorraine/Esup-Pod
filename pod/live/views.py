@@ -63,7 +63,7 @@ VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 logger = logging.getLogger("pod.live")
 
-EMAIL_ON_EVENT_SCHEDULING = getattr(settings,"EMAIL_ON_EVENT_SCHEDULING",False)
+EMAIL_ON_EVENT_SCHEDULING = getattr(settings, "EMAIL_ON_EVENT_SCHEDULING", False)
 
 
 def lives(request):  # affichage des directs
@@ -241,9 +241,11 @@ def get_event_access(request, event, slug_private):
         if slug_private or slug_private == event.get_hashkey():
             can_access_draft = True
         else:
-            can_access_draft = (request.user == event.owner
+            can_access_draft = (
+                request.user == event.owner
                 or request.user in event.additional_owners.all()
-                or request.user.is_superuser)
+                or request.user.is_superuser
+            )
         if not can_access_draft:
             return False
 
@@ -424,7 +426,8 @@ def my_events(request):
             "coming_events_url_page": NEXT_EVENT_URL_NAME + "=" + str(pageN),
             "DEFAULT_EVENT_THUMBNAIL": DEFAULT_EVENT_THUMBNAIL,
             "display_broadcaster_name": True,
-            "display_direct_button": request.user.is_superuser or request.user.has_perm("live.view_building_supervisor"),
+            "display_direct_button": request.user.is_superuser
+            or request.user.has_perm("live.view_building_supervisor"),
         },
     )
 
@@ -468,7 +471,7 @@ def event_edit(request, slug=None):
         instance=event,
         user=request.user,
         is_current_event=event.is_current() if slug else None,
-        broadcaster_id= request.GET.get("broadcaster_id"),
+        broadcaster_id=request.GET.get("broadcaster_id"),
         building_id=request.GET.get("building_id"),
     )
 
@@ -537,12 +540,16 @@ def broadcasters_from_building(request):
 
     response_data = {}
     for broadcaster in broadcasters:
-        response_data[broadcaster.id] = {"id": broadcaster.id, "name": broadcaster.name, "restricted": broadcaster.is_restricted}
+        response_data[broadcaster.id] = {
+            "id": broadcaster.id,
+            "name": broadcaster.name,
+            "restricted": broadcaster.is_restricted,
+        }
     return JsonResponse(response_data)
 
 
 def broadcaster_restriction(request):
-    if request.method == "GET" :
+    if request.method == "GET":
         # and request.is_ajax():
 
         broadcaster_id = request.GET.get("idbroadcaster")
@@ -914,7 +921,7 @@ def is_available_to_record(broadcaster: Broadcaster) -> bool:
     return impl_class.is_available_to_record()
 
 
-def is_recording(broadcaster: Broadcaster, with_file_check = False) -> bool:
+def is_recording(broadcaster: Broadcaster, with_file_check=False) -> bool:
     impl_class = pilotingInterface.get_piloting_implementation(broadcaster)
     if not impl_class:
         return False

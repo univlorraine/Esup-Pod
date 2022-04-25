@@ -11,8 +11,10 @@ class BuildingSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='broadcaster-detail', lookup_field='slug')
-    broadcaster_url = serializers.URLField(source='url')
+    url = serializers.HyperlinkedIdentityField(
+        view_name="broadcaster-detail", lookup_field="slug"
+    )
+    broadcaster_url = serializers.URLField(source="url")
 
     class Meta:
         model = Broadcaster
@@ -33,12 +35,17 @@ class BroadcasterSerializer(serializers.HyperlinkedModelSerializer):
         )
         lookup_field = "slug"
 
-class EventSerializer(serializers.HyperlinkedModelSerializer):
-   broadcaster = serializers.HyperlinkedRelatedField(view_name='broadcaster-detail', queryset=Broadcaster.objects.all(), many=False,
-                                                read_only=False,
-                                                lookup_field="slug")
 
-   class Meta:
+class EventSerializer(serializers.HyperlinkedModelSerializer):
+    broadcaster = serializers.HyperlinkedRelatedField(
+        view_name="broadcaster-detail",
+        queryset=Broadcaster.objects.all(),
+        many=False,
+        read_only=False,
+        lookup_field="slug",
+    )
+
+    class Meta:
         model = Event
         fields = (
             "id",
@@ -57,8 +64,9 @@ class EventSerializer(serializers.HyperlinkedModelSerializer):
             "is_restricted",
             "is_auto_start",
             "videos",
-            "thumbnail"
+            "thumbnail",
         )
+
 
 #############################################################################
 # ViewSets define the view behavior.

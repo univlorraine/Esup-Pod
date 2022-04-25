@@ -273,4 +273,4 @@ if "USE_OPENCAST_STUDIO" in globals() and eval("USE_OPENCAST_STUDIO") is True:
     # add dir to opencast studio static files i.e : pod/custom/static/opencast/
     TEMPLATES[0]["DIRS"].append(os.path.join(BASE_DIR, "custom", "static", "opencast"))
 
-TIME_INPUT_FORMATS=["%H:%M",*django.conf.global_settings.TIME_INPUT_FORMATS]
+TIME_INPUT_FORMATS = ["%H:%M", *django.conf.global_settings.TIME_INPUT_FORMATS]
