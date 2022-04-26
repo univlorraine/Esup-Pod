@@ -220,12 +220,10 @@ class EventForm(forms.ModelForm):
     def saving(self):
         try:
             build = Building.objects.filter(name=self.data.get("building")).first()
-            self.fields[
-                "broadcaster"
-            ].queryset = get_available_broadcasters_of_building(self.user, build.id)
-            self.fields[
-                "building"
-            ].queryset = get_building_having_available_broadcaster(
+            self.fields["broadcaster"].queryset = get_available_broadcasters_of_building(
+                self.user, build.id
+            )
+            self.fields["building"].queryset = get_building_having_available_broadcaster(
                 self.user, build.id
             )
             self.initial["building"] = build.name

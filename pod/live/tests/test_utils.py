@@ -11,4 +11,4 @@ class LiveTestUtils(TestCase):
         self.user = User.objects.create(username="pod", password="podword")
 
     def todo(self):
-        self.assertEqual("WILL DO", True)
+        self.assertEqual("TODO", True)

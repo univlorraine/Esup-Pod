@@ -136,9 +136,7 @@ def send_establishment(event, subject, message, from_email, to_email, html_messa
     event_estab = event.owner.owner.establishment.lower()
     manager = dict(MANAGERS)[event_estab]
     bcc_email = get_bcc(manager)
-    msg = EmailMultiAlternatives(
-        subject, message, from_email, to_email, bcc=bcc_email
-    )
+    msg = EmailMultiAlternatives(subject, message, from_email, to_email, bcc=bcc_email)
     msg.attach_alternative(html_message, "text/html")
     msg.send()
 
