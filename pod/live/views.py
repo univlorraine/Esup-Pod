@@ -728,7 +728,7 @@ def event_get_video_cards(request):
             )
         return JsonResponse({"content": html})
 
-    return HttpResponseBadRequest
+    return HttpResponseBadRequest()
 
 
 def event_video_transform(event_id, current_file, segment_number):
