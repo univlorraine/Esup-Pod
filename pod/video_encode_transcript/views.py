@@ -449,9 +449,7 @@ def _is_safe_path(dest_dir: str, member: str) -> bool:
     dest_path = os.path.normpath(os.path.join(dest_dir, member_path))
     normalized_dest = os.path.normpath(dest_dir)
     # Ensure extraction is within destination directory
-    return (
-        dest_path.startswith(normalized_dest + os.sep) or dest_path == normalized_dest
-    )
+    return dest_path.startswith(normalized_dest + os.sep) or dest_path == normalized_dest
 
 
 def _should_extract_transcription_member(member: str) -> bool:
@@ -544,7 +542,9 @@ def _create_manifest_temp_path(temp_dir: str) -> str:
     return temp_path
 
 
-def _stream_manifest_member_to_tempfile(response: requests.Response, temp_path: str) -> str:
+def _stream_manifest_member_to_tempfile(
+    response: requests.Response, temp_path: str
+) -> str:
     """Stream response content to temp_path and return computed SHA-256."""
     checksum = sha256()
     with open(temp_path, "wb") as target:

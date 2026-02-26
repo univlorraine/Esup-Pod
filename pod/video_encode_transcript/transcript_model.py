@@ -56,9 +56,7 @@ log = logging.getLogger(__name__)
 
 def get_model(lang):
     """Get model for Whisper or Vosk software to transcript audio."""
-    transript_model = Model(
-        TRANSCRIPTION_MODEL_PARAM[TRANSCRIPTION_TYPE][lang]["model"]
-    )
+    transript_model = Model(TRANSCRIPTION_MODEL_PARAM[TRANSCRIPTION_TYPE][lang]["model"])
     return transript_model
 
 
@@ -219,10 +217,7 @@ def words_to_vtt(
         # 0.58, 'duration': 7.34}
         text_caption.append(word["word"])
         if not (
-            (
-                ((word[start_key]) - start_caption)
-                < TRANSCRIPTION_STT_SENTENCE_MAX_LENGTH
-            )
+            (((word[start_key]) - start_caption) < TRANSCRIPTION_STT_SENTENCE_MAX_LENGTH)
             and (
                 next_word is not None
                 and (blank_duration < TRANSCRIPTION_STT_SENTENCE_BLANK_SPLIT_TIME)

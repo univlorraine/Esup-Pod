@@ -114,9 +114,7 @@ class Command(BaseCommand):
             video=video,
             encoding_format="application/x-mpegURL",
         )
-        list_mp4 = EncodingVideo.objects.filter(
-            video=video, encoding_format="video/mp4"
-        )
+        list_mp4 = EncodingVideo.objects.filter(video=video, encoding_format="video/mp4")
         if not len(list_mp2t) > 0:
             raise CommandError("no video/mp2t found")
         if not len(list_mp2t) + 1 == len(list_playlist_video):

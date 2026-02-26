@@ -346,9 +346,7 @@ class Command(BaseCommand):
                 self.print_log(
                     f"Processing studio task {task.id} for recording {recording.id}"
                 )
-                result = self._submit_studio_task(
-                    recording, task, site, runner_managers
-                )
+                result = self._submit_studio_task(recording, task, site, runner_managers)
                 if result:
                     success_count += 1
                     self.print_success(
@@ -516,9 +514,7 @@ class Command(BaseCommand):
             return
 
         self.print_log(f"Found {all_pending_tasks.count()} pending encoding task(s)")
-        self.print_log(
-            f"Found {all_pending_studio_tasks.count()} pending studio task(s)"
-        )
+        self.print_log(f"Found {all_pending_studio_tasks.count()} pending studio task(s)")
         self.print_log(
             f"Found {all_pending_transcription_tasks.count()} pending transcription task(s)"
         )
@@ -530,9 +526,7 @@ class Command(BaseCommand):
             all_pending_transcription_tasks, max_tasks
         )
 
-        self.print_log(
-            f"Processing {len(pending_tasks)} task(s) after priority sorting"
-        )
+        self.print_log(f"Processing {len(pending_tasks)} task(s) after priority sorting")
 
         # Get available runner managers for this site
         runner_managers = list(
@@ -546,9 +540,7 @@ class Command(BaseCommand):
             return
 
         # Process each pending task
-        success_count_encoding = self._process_tasks(
-            pending_tasks, site, runner_managers
-        )
+        success_count_encoding = self._process_tasks(pending_tasks, site, runner_managers)
         success_count_studio = self._process_studio_tasks(
             pending_studio_tasks, site, runner_managers
         )

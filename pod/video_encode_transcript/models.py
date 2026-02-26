@@ -136,8 +136,7 @@ class VideoRendition(models.Model):
             if not vb.isdigit():
                 msg = "Error in %s: " % _(name)
                 raise ValidationError(
-                    "%s %s"
-                    % (msg, VideoRendition._meta.get_field(field_name).help_text)
+                    "%s %s" % (msg, VideoRendition._meta.get_field(field_name).help_text)
                 )
 
     def clean_bitrate(self) -> None:
@@ -149,9 +148,7 @@ class VideoRendition(models.Model):
     def clean(self) -> None:
         """Clean the fields of the VideoRendition model."""
         if self.resolution and "x" not in self.resolution:
-            raise ValidationError(
-                VideoRendition._meta.get_field("resolution").help_text
-            )
+            raise ValidationError(VideoRendition._meta.get_field("resolution").help_text)
         else:
             res = self.resolution.replace("x", "")
             if not res.isdigit():

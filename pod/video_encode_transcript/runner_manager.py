@@ -502,8 +502,7 @@ def encode_video(video_id: int) -> None:
 
     except Exception as exc:
         log.error(
-            'Error to encode video "%(id)s": %(exc)s'
-            % {"id": video_id, "exc": str(exc)}
+            'Error to encode video "%(id)s": %(exc)s' % {"id": video_id, "exc": str(exc)}
         )
 
 

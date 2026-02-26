@@ -1,10 +1,8 @@
 from django.core.management.base import BaseCommand
 
 from pod.video.models import Video
-from pod.video_encode_transcript.encode import (end_of_encoding,
-                                                store_encoding_info)
-from pod.video_encode_transcript.Encoding_video_model import \
-    Encoding_video_model
+from pod.video_encode_transcript.encode import end_of_encoding, store_encoding_info
+from pod.video_encode_transcript.Encoding_video_model import Encoding_video_model
 
 
 class Command(BaseCommand):
@@ -19,6 +17,4 @@ class Command(BaseCommand):
         encoding_video = Encoding_video_model(video_id, vid.video.path)
         final_video = store_encoding_info(video_id, encoding_video)
         end_of_encoding(final_video)
-        self.stdout.write(
-            self.style.SUCCESS('Successfully import video "%s"' % video_id)
-        )
+        self.stdout.write(self.style.SUCCESS('Successfully import video "%s"' % video_id))

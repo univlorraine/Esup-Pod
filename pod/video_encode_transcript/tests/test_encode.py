@@ -14,8 +14,12 @@ from django.test import TestCase
 
 from pod.video.models import Type, Video
 from pod.video_encode_transcript import encode
-from pod.video_encode_transcript.models import (EncodingAudio, EncodingLog,
-                                                EncodingVideo, PlaylistVideo)
+from pod.video_encode_transcript.models import (
+    EncodingAudio,
+    EncodingLog,
+    EncodingVideo,
+    PlaylistVideo,
+)
 
 VIDEO_TEST = getattr(settings, "VIDEO_TEST", "pod/main/static/video_test/pod.mp4")
 
@@ -123,12 +127,8 @@ class EncodeTestCase(TestCase):
         # video id=1 & audio id=2
         audio = Video.objects.get(id=2)
         self.assertEqual("Audio1", audio.title)
-        list_m4a = EncodingAudio.objects.filter(
-            video=audio, encoding_format="video/mp4"
-        )
-        list_mp3 = EncodingAudio.objects.filter(
-            video=audio, encoding_format="audio/mp3"
-        )
+        list_m4a = EncodingAudio.objects.filter(video=audio, encoding_format="video/mp4")
+        list_mp3 = EncodingAudio.objects.filter(video=audio, encoding_format="audio/mp3")
         el = EncodingLog.objects.get(video=audio)
         self.assertTrue("NO VIDEO AND AUDIO FOUND" not in el.log)
         self.assertTrue(len(list_mp3) > 0)

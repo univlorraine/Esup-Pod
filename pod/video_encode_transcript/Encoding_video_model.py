@@ -13,11 +13,21 @@ from pod.completion.models import Track
 from pod.video.models import LANG_CHOICES, Video
 
 from .encoding_utils import check_file, launch_cmd
-from .Encoding_video import (FFMPEG_CMD, FFMPEG_CREATE_THUMBNAIL, FFMPEG_INPUT,
-                             FFMPEG_NB_THREADS, FFMPEG_NB_THUMBNAIL,
-                             Encoding_video)
-from .models import (EncodingAudio, EncodingLog, EncodingVideo, PlaylistVideo,
-                     VideoRendition)
+from .Encoding_video import (
+    FFMPEG_CMD,
+    FFMPEG_CREATE_THUMBNAIL,
+    FFMPEG_INPUT,
+    FFMPEG_NB_THREADS,
+    FFMPEG_NB_THUMBNAIL,
+    Encoding_video,
+)
+from .models import (
+    EncodingAudio,
+    EncodingLog,
+    EncodingVideo,
+    PlaylistVideo,
+    VideoRendition,
+)
 
 DEBUG = getattr(settings, "DEBUG", True)
 logger = logging.getLogger(__name__)
@@ -128,9 +138,7 @@ class Encoding_video_model(Encoding_video):
                     name="audio",
                     video=video_to_encode,
                     encoding_format=(
-                        "audio/mp3"
-                        if (encode_item == "list_mp3_files")
-                        else "video/mp4"
+                        "audio/mp3" if (encode_item == "list_mp3_files") else "video/mp4"
                     ),
                     # need to double check path
                     source_file=self.get_true_path(mp3_files[audio_file]),
@@ -141,9 +149,7 @@ class Encoding_video_model(Encoding_video):
         for video_file in mp4_files:
             if not check_file(mp4_files[video_file]):
                 continue
-            rendition = VideoRendition.objects.get(
-                resolution__contains="x" + video_file
-            )
+            rendition = VideoRendition.objects.get(resolution__contains="x" + video_file)
             encod_name = video_file + "p"
             encoding, created = EncodingVideo.objects.get_or_create(
                 name=encod_name,
@@ -157,9 +163,7 @@ class Encoding_video_model(Encoding_video):
         for video_file in hls_files:
             if not check_file(hls_files[video_file]):
                 continue
-            rendition = VideoRendition.objects.get(
-                resolution__contains="x" + video_file
-            )
+            rendition = VideoRendition.objects.get(resolution__contains="x" + video_file)
             encod_name = video_file + "p"
             encoding, created = PlaylistVideo.objects.get_or_create(
                 name=encod_name,

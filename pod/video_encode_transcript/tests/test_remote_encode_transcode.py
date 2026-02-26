@@ -228,9 +228,7 @@ class RemoteEncodeTranscriptTestCase(TestCase):
         currentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         simplefile = SimpleUploadedFile(
             name="testimage.jpg",
-            content=open(
-                os.path.join(currentdir, "tests", "testimage.jpg"), "rb"
-            ).read(),
+            content=open(os.path.join(currentdir, "tests", "testimage.jpg"), "rb").read(),
             content_type="image/jpeg",
         )
         if FILEPICKER:

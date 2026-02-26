@@ -202,9 +202,7 @@ if USE_HYPERLINKS:
 # IMPORT_VIDEO
 if USE_IMPORT_VIDEO:
     urlpatterns += [
-        path(
-            "import_video/", include("pod.import_video.urls", namespace="import_video")
-        ),
+        path("import_video/", include("pod.import_video.urls", namespace="import_video")),
     ]
 
 if USE_DUPLICATE:

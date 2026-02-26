@@ -33,9 +33,7 @@ class StudioFlowIntegrationTests(TestCase):
                 with open(studio_base, "wb") as f:
                     f.write(b"MP4DATA")
                 # Additional file to ensure the whole folder is moved
-                with open(
-                    os.path.join(src_dir, "extra.txt"), "w", encoding="utf-8"
-                ) as f:
+                with open(os.path.join(src_dir, "extra.txt"), "w", encoding="utf-8") as f:
                     f.write("EXTRA")
 
                 # Fake objects returned by patched calls
@@ -55,9 +53,7 @@ class StudioFlowIntegrationTests(TestCase):
                     return_value=fake_recording,
                 ) as mock_get_recording:
                     # Act
-                    video_id = _create_video_from_studio_task(
-                        task, extracted_dir=src_dir
-                    )
+                    video_id = _create_video_from_studio_task(task, extracted_dir=src_dir)
 
                 # Assert save_basic_video usage
                 mock_save_video.assert_called_once()
@@ -75,9 +71,7 @@ class StudioFlowIntegrationTests(TestCase):
                 # Source folder removed
                 self.assertFalse(os.path.exists(src_dir))
                 # Files moved
-                self.assertTrue(
-                    os.path.isfile(os.path.join(dest_dir, "studio_base.mp4"))
-                )
+                self.assertTrue(os.path.isfile(os.path.join(dest_dir, "studio_base.mp4")))
                 with open(
                     os.path.join(dest_dir, "extra.txt"), "r", encoding="utf-8"
                 ) as f:

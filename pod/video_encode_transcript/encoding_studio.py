@@ -5,13 +5,23 @@ import subprocess
 import time
 
 if __name__ == "__main__":
-    from encoding_settings import (FFMPEG_CMD, FFMPEG_CRF, FFMPEG_NB_THREADS,
-                                   FFMPEG_STUDIO_COMMAND, FFPROBE_CMD,
-                                   FFPROBE_GET_INFO)
+    from encoding_settings import (
+        FFMPEG_CMD,
+        FFMPEG_CRF,
+        FFMPEG_NB_THREADS,
+        FFMPEG_STUDIO_COMMAND,
+        FFPROBE_CMD,
+        FFPROBE_GET_INFO,
+    )
 else:
-    from .encoding_settings import (FFMPEG_CMD, FFMPEG_CRF, FFMPEG_NB_THREADS,
-                                    FFMPEG_STUDIO_COMMAND, FFPROBE_CMD,
-                                    FFPROBE_GET_INFO)
+    from .encoding_settings import (
+        FFMPEG_CMD,
+        FFMPEG_CRF,
+        FFMPEG_NB_THREADS,
+        FFMPEG_STUDIO_COMMAND,
+        FFPROBE_CMD,
+        FFPROBE_GET_INFO,
+    )
 
 try:
     from django.conf import settings

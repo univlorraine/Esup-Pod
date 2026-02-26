@@ -162,8 +162,7 @@ def launch_encode_view(request):
     if (
         video is not None
         and (
-            not hasattr(video, "launch_encode")
-            or getattr(video, "launch_encode") is True
+            not hasattr(video, "launch_encode") or getattr(video, "launch_encode") is True
         )
         and video.encoding_in_progress is False
     ):

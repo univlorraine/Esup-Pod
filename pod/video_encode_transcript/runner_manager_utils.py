@@ -263,9 +263,7 @@ def remote_video_part(
                 )
                 video_to_encode.save()
                 msg += "\n- existing overview:\n%s" % overview_vtt
-                add_encoding_log(
-                    video_id, "attach existing overview: %s" % overview_vtt
-                )
+                add_encoding_log(video_id, "attach existing overview: %s" % overview_vtt)
             except Exception as err:
                 err_msg = f"Error attaching existing overview: {err}"
                 add_encoding_log(video_id, err_msg)
@@ -277,9 +275,7 @@ def remote_video_part(
                 info_video["encode_thumbnail"], output_dir, video_to_encode
             )
         else:
-            add_encoding_log(
-                video_id, "No thumbnail info in json; skip thumbnail attach"
-            )
+            add_encoding_log(video_id, "No thumbnail info in json; skip thumbnail attach")
     elif info_video["has_stream_video"] or info_video.get("encode_video"):
         msg += "\n- has stream video but not info video "
         add_encoding_log(video_to_encode.id, msg)

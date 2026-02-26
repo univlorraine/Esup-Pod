@@ -95,9 +95,7 @@ class ViewsHelpersTests(unittest.TestCase):
 
         # Files in dest
         self._touch(os.path.join(dest_dir, "same.txt"), "DEST")  # should be replaced
-        self._touch(
-            os.path.join(dest_dir, "only_dest.txt"), "ONLY_DEST"
-        )  # should remain
+        self._touch(os.path.join(dest_dir, "only_dest.txt"), "ONLY_DEST")  # should remain
         os.makedirs(os.path.join(dest_dir, "dirX"), exist_ok=True)
         self._touch(
             os.path.join(dest_dir, "dirX", "to_remove.txt"), "TO_REMOVE"
@@ -116,9 +114,7 @@ class ViewsHelpersTests(unittest.TestCase):
             self.assertEqual(f.read(), "ONLY_SRC")  # added
         # dirX replaced by src version
         self.assertTrue(os.path.isdir(os.path.join(dest_dir, "dirX")))
-        self.assertFalse(
-            os.path.exists(os.path.join(dest_dir, "dirX", "to_remove.txt"))
-        )
+        self.assertFalse(os.path.exists(os.path.join(dest_dir, "dirX", "to_remove.txt")))
         with open(
             os.path.join(dest_dir, "dirX", "in_src.txt"), "r", encoding="utf-8"
         ) as f:

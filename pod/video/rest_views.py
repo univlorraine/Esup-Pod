@@ -214,10 +214,11 @@ class VideoViewSet(viewsets.ModelViewSet):
     def user_videos(self, request):
         # Manage additional_owners filtering
         username = request.GET.get("username")
-        user_videos = self.filter_queryset(self.get_queryset()).filter(
-            Q(owner__username=username)
-            | Q(additional_owners__username=username)
-        ).distinct()
+        user_videos = (
+            self.filter_queryset(self.get_queryset())
+            .filter(Q(owner__username=username) | Q(additional_owners__username=username))
+            .distinct()
+        )
         if request.GET.get("encoded") and request.GET.get("encoded") == "true":
             user_videos = user_videos.exclude(
                 pk__in=[vid.id for vid in user_videos if not vid.encoded]

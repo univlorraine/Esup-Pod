@@ -10,55 +10,85 @@ import unicodedata
 from webvtt import Caption, WebVTT
 
 if __name__ == "__main__":
-    from encoding_settings import (FFMPEG_AUDIO_BITRATE, FFMPEG_CMD,
-                                   FFMPEG_CREATE_OVERVIEW,
-                                   FFMPEG_CREATE_THUMBNAIL, FFMPEG_CRF,
-                                   FFMPEG_DRESSING_AUDIO,
-                                   FFMPEG_DRESSING_CONCAT,
-                                   FFMPEG_DRESSING_FILTER_COMPLEX,
-                                   FFMPEG_DRESSING_INPUT,
-                                   FFMPEG_DRESSING_OUTPUT,
-                                   FFMPEG_DRESSING_SCALE,
-                                   FFMPEG_DRESSING_SILENT,
-                                   FFMPEG_DRESSING_WATERMARK,
-                                   FFMPEG_EXTRACT_SUBTITLE,
-                                   FFMPEG_EXTRACT_THUMBNAIL,
-                                   FFMPEG_HLS_COMMON_PARAMS,
-                                   FFMPEG_HLS_ENCODE_PARAMS, FFMPEG_HLS_TIME,
-                                   FFMPEG_INPUT, FFMPEG_LEVEL, FFMPEG_LIBX,
-                                   FFMPEG_M4A_ENCODE, FFMPEG_MP3_ENCODE,
-                                   FFMPEG_MP4_ENCODE, FFMPEG_NB_THREADS,
-                                   FFMPEG_NB_THUMBNAIL, FFMPEG_PRESET,
-                                   FFMPEG_PROFILE, FFPROBE_CMD,
-                                   FFPROBE_GET_INFO)
-    from encoding_utils import (check_file, get_dressing_position_value,
-                                get_info_from_video, get_list_rendition,
-                                launch_cmd)
+    from encoding_settings import (
+        FFMPEG_AUDIO_BITRATE,
+        FFMPEG_CMD,
+        FFMPEG_CREATE_OVERVIEW,
+        FFMPEG_CREATE_THUMBNAIL,
+        FFMPEG_CRF,
+        FFMPEG_DRESSING_AUDIO,
+        FFMPEG_DRESSING_CONCAT,
+        FFMPEG_DRESSING_FILTER_COMPLEX,
+        FFMPEG_DRESSING_INPUT,
+        FFMPEG_DRESSING_OUTPUT,
+        FFMPEG_DRESSING_SCALE,
+        FFMPEG_DRESSING_SILENT,
+        FFMPEG_DRESSING_WATERMARK,
+        FFMPEG_EXTRACT_SUBTITLE,
+        FFMPEG_EXTRACT_THUMBNAIL,
+        FFMPEG_HLS_COMMON_PARAMS,
+        FFMPEG_HLS_ENCODE_PARAMS,
+        FFMPEG_HLS_TIME,
+        FFMPEG_INPUT,
+        FFMPEG_LEVEL,
+        FFMPEG_LIBX,
+        FFMPEG_M4A_ENCODE,
+        FFMPEG_MP3_ENCODE,
+        FFMPEG_MP4_ENCODE,
+        FFMPEG_NB_THREADS,
+        FFMPEG_NB_THUMBNAIL,
+        FFMPEG_PRESET,
+        FFMPEG_PROFILE,
+        FFPROBE_CMD,
+        FFPROBE_GET_INFO,
+    )
+    from encoding_utils import (
+        check_file,
+        get_dressing_position_value,
+        get_info_from_video,
+        get_list_rendition,
+        launch_cmd,
+    )
 else:
-    from .encoding_settings import (FFMPEG_AUDIO_BITRATE, FFMPEG_CMD,
-                                    FFMPEG_CREATE_OVERVIEW,
-                                    FFMPEG_CREATE_THUMBNAIL, FFMPEG_CRF,
-                                    FFMPEG_DRESSING_AUDIO,
-                                    FFMPEG_DRESSING_CONCAT,
-                                    FFMPEG_DRESSING_FILTER_COMPLEX,
-                                    FFMPEG_DRESSING_INPUT,
-                                    FFMPEG_DRESSING_OUTPUT,
-                                    FFMPEG_DRESSING_SCALE,
-                                    FFMPEG_DRESSING_SILENT,
-                                    FFMPEG_DRESSING_WATERMARK,
-                                    FFMPEG_EXTRACT_SUBTITLE,
-                                    FFMPEG_EXTRACT_THUMBNAIL,
-                                    FFMPEG_HLS_COMMON_PARAMS,
-                                    FFMPEG_HLS_ENCODE_PARAMS, FFMPEG_HLS_TIME,
-                                    FFMPEG_INPUT, FFMPEG_LEVEL, FFMPEG_LIBX,
-                                    FFMPEG_M4A_ENCODE, FFMPEG_MP3_ENCODE,
-                                    FFMPEG_MP4_ENCODE, FFMPEG_NB_THREADS,
-                                    FFMPEG_NB_THUMBNAIL, FFMPEG_PRESET,
-                                    FFMPEG_PROFILE, FFPROBE_CMD,
-                                    FFPROBE_GET_INFO)
-    from .encoding_utils import (check_file, get_dressing_position_value,
-                                 get_info_from_video, get_list_rendition,
-                                 launch_cmd)
+    from .encoding_settings import (
+        FFMPEG_AUDIO_BITRATE,
+        FFMPEG_CMD,
+        FFMPEG_CREATE_OVERVIEW,
+        FFMPEG_CREATE_THUMBNAIL,
+        FFMPEG_CRF,
+        FFMPEG_DRESSING_AUDIO,
+        FFMPEG_DRESSING_CONCAT,
+        FFMPEG_DRESSING_FILTER_COMPLEX,
+        FFMPEG_DRESSING_INPUT,
+        FFMPEG_DRESSING_OUTPUT,
+        FFMPEG_DRESSING_SCALE,
+        FFMPEG_DRESSING_SILENT,
+        FFMPEG_DRESSING_WATERMARK,
+        FFMPEG_EXTRACT_SUBTITLE,
+        FFMPEG_EXTRACT_THUMBNAIL,
+        FFMPEG_HLS_COMMON_PARAMS,
+        FFMPEG_HLS_ENCODE_PARAMS,
+        FFMPEG_HLS_TIME,
+        FFMPEG_INPUT,
+        FFMPEG_LEVEL,
+        FFMPEG_LIBX,
+        FFMPEG_M4A_ENCODE,
+        FFMPEG_MP3_ENCODE,
+        FFMPEG_MP4_ENCODE,
+        FFMPEG_NB_THREADS,
+        FFMPEG_NB_THUMBNAIL,
+        FFMPEG_PRESET,
+        FFMPEG_PROFILE,
+        FFPROBE_CMD,
+        FFPROBE_GET_INFO,
+    )
+    from .encoding_utils import (
+        check_file,
+        get_dressing_position_value,
+        get_info_from_video,
+        get_list_rendition,
+        launch_cmd,
+    )
 
 __author__ = "Nicolas CAN <nicolas.can@univ-lille.fr>"
 __license__ = "LGPL v3"
@@ -95,9 +125,7 @@ try:
     FFMPEG_MP3_ENCODE = getattr(settings, "FFMPEG_MP3_ENCODE", FFMPEG_MP3_ENCODE)
     FFMPEG_M4A_ENCODE = getattr(settings, "FFMPEG_M4A_ENCODE", FFMPEG_M4A_ENCODE)
     FFMPEG_NB_THREADS = getattr(settings, "FFMPEG_NB_THREADS", FFMPEG_NB_THREADS)
-    FFMPEG_AUDIO_BITRATE = getattr(
-        settings, "FFMPEG_AUDIO_BITRATE", FFMPEG_AUDIO_BITRATE
-    )
+    FFMPEG_AUDIO_BITRATE = getattr(settings, "FFMPEG_AUDIO_BITRATE", FFMPEG_AUDIO_BITRATE)
     FFMPEG_EXTRACT_THUMBNAIL = getattr(
         settings, "FFMPEG_EXTRACT_THUMBNAIL", FFMPEG_EXTRACT_THUMBNAIL
     )
@@ -293,9 +321,7 @@ class Encoding_video:
             language = ""
             if stream.get("tags"):
                 language = stream.get("tags").get("language", "")
-            self.list_subtitle_track["%s" % stream.get("index")] = {
-                "language": language
-            }
+            self.list_subtitle_track["%s" % stream.get("index")] = {"language": language}
 
     def get_output_dir(self) -> str:
         dirname = os.path.dirname(self.video_file)
@@ -465,9 +491,7 @@ class Encoding_video:
                     duration = self.json_dressing.get(duration_key)
 
                     try:
-                        duration = (
-                            int(duration) if duration and int(duration) > 0 else 1
-                        )
+                        duration = int(duration) if duration and int(duration) > 0 else 1
                     except (ValueError, TypeError):
                         duration = 1
 
@@ -614,8 +638,7 @@ class Encoding_video:
             params = f"{params}[{name}][{audio_out}]"
 
         filters.append(
-            FFMPEG_DRESSING_SCALE
-            % {"number": str(order), "height": height, "name": name}
+            FFMPEG_DRESSING_SCALE % {"number": str(order), "height": height, "name": name}
         )
 
         return filters, params, interval_silent
@@ -673,9 +696,7 @@ class Encoding_video:
             "input": self.video_file,
             "nb_threads": FFMPEG_NB_THREADS,
         }
-        output_file = os.path.join(
-            self.output_dir, "audio_%s.mp3" % FFMPEG_AUDIO_BITRATE
-        )
+        output_file = os.path.join(self.output_dir, "audio_%s.mp3" % FFMPEG_AUDIO_BITRATE)
         mp3_command += FFMPEG_MP3_ENCODE % {
             # "audio_bitrate": AUDIO_BITRATE,
             "cut": self.get_subtime(self.cutting_start, self.cutting_stop),
@@ -690,9 +711,7 @@ class Encoding_video:
             "input": self.video_file,
             "nb_threads": FFMPEG_NB_THREADS,
         }
-        output_file = os.path.join(
-            self.output_dir, "audio_%s.m4a" % FFMPEG_AUDIO_BITRATE
-        )
+        output_file = os.path.join(self.output_dir, "audio_%s.m4a" % FFMPEG_AUDIO_BITRATE)
         m4a_command += FFMPEG_M4A_ENCODE % {
             "cut": self.get_subtime(self.cutting_start, self.cutting_stop),
             "audio_bitrate": FFMPEG_AUDIO_BITRATE,

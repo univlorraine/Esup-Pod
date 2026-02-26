@@ -48,9 +48,7 @@ USE_REMOTE_ENCODING_TRANSCODING = getattr(
 if USE_REMOTE_ENCODING_TRANSCODING:
     from .encoding_tasks import start_encoding_task, start_studio_task
 
-FFMPEG_DRESSING_INPUT = getattr(
-    settings, "FFMPEG_DRESSING_INPUT", FFMPEG_DRESSING_INPUT
-)
+FFMPEG_DRESSING_INPUT = getattr(settings, "FFMPEG_DRESSING_INPUT", FFMPEG_DRESSING_INPUT)
 
 USE_RUNNER_MANAGER = getattr(settings, "USE_RUNNER_MANAGER", False)
 
@@ -94,9 +92,7 @@ def start_encode_studio(
 
         encode_studio_recording(recording_id)
     else:
-        log.info(
-            "Start encode studio, without runner manager, for id: %s" % recording_id
-        )
+        log.info("Start encode studio, without runner manager, for id: %s" % recording_id)
         if threaded:
             if CELERY_TO_ENCODE:
                 task_start_encode_studio.delay(
