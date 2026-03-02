@@ -86,17 +86,13 @@ class ChannelTestView(TestCase):
         self.assertEqual(response.context["channel"], self.c)
         self.assertEqual(response.context["theme"], None)
         self.assertEqual(response.context["videos"].paginator.count, 1)
-        print(
-            "   --->  test_channel_without_theme _in_argument of ChannelTestView: OK!"
-        )
+        print("   --->  test_channel_without_theme _in_argument of ChannelTestView: OK!")
         response = self.client.get("/%s/" % self.c2.slug)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.context["channel"], self.c2)
         self.assertEqual(response.context["theme"], None)
         self.assertEqual(response.context["videos"].paginator.count, 0)
-        print(
-            "   --->  test_channel_2_without_theme_in_argument of ChannelTestView: OK!"
-        )
+        print("   --->  test_channel_2_without_theme_in_argument of ChannelTestView: OK!")
         response = self.client.get("/%s/%s/" % (self.c.slug, self.theme.slug))
         self.assertEqual(response.status_code, HTTPStatus.OK)
         print("   --->  test_channel_with_theme_in_argument of ChannelTestView: OK!")
@@ -590,9 +586,7 @@ class VideosTestView(TestCase):
         response = self.client.get(url + "?discipline=discipline2")
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.context["videos"].paginator.count, 2)
-        response = self.client.get(
-            url + "?discipline=discipline1&discipline=discipline2"
-        )
+        response = self.client.get(url + "?discipline=discipline1&discipline=discipline2")
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.context["videos"].paginator.count, 3)
         discipline1_id = Discipline.objects.get(slug="discipline1").id
@@ -605,9 +599,7 @@ class VideosTestView(TestCase):
         )
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.context["videos"].paginator.count, 3)
-        response = self.client.get(
-            url + f"?discipline={discipline1_id},{discipline2_id}"
-        )
+        response = self.client.get(url + f"?discipline={discipline1_id},{discipline2_id}")
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(response.context["videos"].paginator.count, 3)
         # owner
@@ -1154,9 +1146,7 @@ class video_notesTestView(TestCase):
         self.assertEqual(note.note, "coucou")
         self.assertEqual(note.timestamp, 10)
         self.assertEqual(note.status, "0")
-        print(
-            " --->  test_video_notesTestView_post_request of video_notesTestView: OK!"
-        )
+        print(" --->  test_video_notesTestView_post_request of video_notesTestView: OK!")
 
 
 class video_countTestView(TestCase):
@@ -1195,9 +1185,7 @@ class video_countTestView(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTrue(b"ok" in response.content)
         self.assertEqual(video.get_viewcount(), 1)
-        print(
-            " --->  test_video_countTestView_post_request of video_countTestView: OK!"
-        )
+        print(" --->  test_video_countTestView_post_request of video_countTestView: OK!")
 
 
 class VideoMarkerTestView(TestCase):
@@ -1331,9 +1319,7 @@ class VideoTestUpdateOwner(TransactionTestCase):
         # Good request
         response = self.client.post(
             url,
-            json.dumps(
-                {"videos": [video1_id, video2_id], "owner": self.simple_user.id}
-            ),
+            json.dumps({"videos": [video1_id, video2_id], "owner": self.simple_user.id}),
             content_type="application/json",
         )
 

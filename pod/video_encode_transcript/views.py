@@ -896,9 +896,7 @@ def _move_task_directory_to_video(
 
     user_hashkey = _get_user_hashkey_from_recording(recording)
     video_dir = _format_video_directory(video_id)
-    dest_dir = os.path.join(
-        _get_media_root(), _get_videos_dir(), user_hashkey, video_dir
-    )
+    dest_dir = os.path.join(_get_media_root(), _get_videos_dir(), user_hashkey, video_dir)
 
     _merge_or_move_directory(source_dir, dest_dir)
 

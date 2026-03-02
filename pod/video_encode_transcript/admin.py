@@ -493,8 +493,7 @@ class TaskAdmin(admin.ModelAdmin):
         refresh_pending_task_ranks()
         self.message_user(
             request,
-            _("%(count)s task(s) relaunched immediately.")
-            % {"count": relaunched_count},
+            _("%(count)s task(s) relaunched immediately.") % {"count": relaunched_count},
             level=messages.SUCCESS,
         )
         if skipped_count:

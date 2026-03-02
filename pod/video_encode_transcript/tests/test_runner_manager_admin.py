@@ -76,9 +76,7 @@ class RunnerManagerAdminTests(TestCase):
 
     def test_changelist_displays_activation_badge(self):
         """Display activation badge in runner manager changelist."""
-        changelist_url = reverse(
-            "admin:video_encode_transcript_runnermanager_changelist"
-        )
+        changelist_url = reverse("admin:video_encode_transcript_runnermanager_changelist")
 
         response = self.client.get(changelist_url)
         self.assertEqual(response.status_code, 200)

@@ -246,9 +246,7 @@ def _rotate_same_priority_runner_managers(
 def _get_runner_managers(site: Site) -> list[RunnerManager]:
     """Return active site runner managers ordered by priority with round-robin per priority."""
     ordered_runner_managers = list(
-        RunnerManager.objects.filter(site=site, is_active=True).order_by(
-            "priority", "id"
-        )
+        RunnerManager.objects.filter(site=site, is_active=True).order_by("priority", "id")
     )
     if len(ordered_runner_managers) <= 1:
         return ordered_runner_managers
@@ -507,8 +505,7 @@ def encode_video(video_id: int) -> None:
 
     except Exception as exc:
         log.error(
-            'Error to encode video "%(id)s": %(exc)s'
-            % {"id": video_id, "exc": str(exc)}
+            'Error to encode video "%(id)s": %(exc)s' % {"id": video_id, "exc": str(exc)}
         )
 
 

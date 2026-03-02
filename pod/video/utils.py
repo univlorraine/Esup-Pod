@@ -81,9 +81,7 @@ def pagination_data(request_path, offset, limit, total_count):
     if offset + limit < total_count and limit <= total_count:
         next_url = "{}?limit={}&offset={}".format(request_path, limit, limit + offset)
     if offset - limit >= 0 and limit <= total_count:
-        previous_url = "{}?limit={}&offset={}".format(
-            request_path, limit, offset - limit
-        )
+        previous_url = "{}?limit={}&offset={}".format(request_path, limit, offset - limit)
 
     current_page = 1 if offset <= 0 else int((offset / limit)) + 1
     total = ceil(total_count / limit)
@@ -314,9 +312,7 @@ def get_storage_path_video(instance, filename) -> str:
     Video.get_storage_path_video(instance, filename)
 
 
-def verify_field_length(
-    field, field_name: str = "title", max_length: int = 100
-) -> list:
+def verify_field_length(field, field_name: str = "title", max_length: int = 100) -> list:
     """Check field length, and return message."""
     msg = list()
     if not field or field == "":
@@ -472,7 +468,7 @@ def get_filtered_owners_for_videos(user_videos, search_term=None, limit=20):
         )
 
     return list(
-        users_qs.order_by("username").values(
-            "id", "username", "first_name", "last_name"
-        )[:limit]
+        users_qs.order_by("username").values("id", "username", "first_name", "last_name")[
+            :limit
+        ]
     )
