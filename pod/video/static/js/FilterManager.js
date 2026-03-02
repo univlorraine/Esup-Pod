@@ -225,8 +225,8 @@ class FilterManager {
       )
         .map((value) => slugify(String(value)))
         .filter((value) => value !== "");
-      const selectedKeysFromUrl = this.getFilterValuesFromUrl(param).map((value) =>
-        slugify(String(value)),
+      const selectedKeysFromUrl = this.getFilterValuesFromUrl(param).map(
+        (value) => slugify(String(value)),
       );
       const selectedKeys =
         selectedKeysFromUrl.length > 0
@@ -324,8 +324,7 @@ class FilterManager {
         (item) => slugify(filter.itemKey(item)) === key,
       );
       const label =
-        providedLabel ||
-        (matchedItem ? filter.itemLabel(matchedItem) : value);
+        providedLabel || (matchedItem ? filter.itemLabel(matchedItem) : value);
 
       uniqueEntries.push({ key, value, label });
     });
@@ -371,7 +370,9 @@ class FilterManager {
   getSelectedFiltersSnapshot() {
     const selectedFilters = {};
     Object.keys(this.filters).forEach((param) => {
-      selectedFilters[param] = Array.from(this.filters[param].selectedItems.keys());
+      selectedFilters[param] = Array.from(
+        this.filters[param].selectedItems.keys(),
+      );
     });
     return selectedFilters;
   }

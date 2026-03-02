@@ -103,11 +103,15 @@ filterManager.initializeFilters().then(() => {
 });
 
 document.addEventListener("pod:aside-category-filter-updated", (event) => {
-  filterManager.syncFilterSelection("categories", event.detail?.categories || [], {
-    refresh: false,
-    emitEvent: false,
-    updateUrl: false,
-  });
+  filterManager.syncFilterSelection(
+    "categories",
+    event.detail?.categories || [],
+    {
+      refresh: false,
+      emitEvent: false,
+      updateUrl: false,
+    },
+  );
 });
 
 /**
