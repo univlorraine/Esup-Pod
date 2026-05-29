@@ -3,6 +3,7 @@
 from django.db.models.functions import Lower
 import os
 import json
+import ast
 import re
 import shutil
 import logging
@@ -60,6 +61,60 @@ VIDEOS_DIR = getattr(settings, "VIDEOS_DIR", "videos")
 
 NUMBER_TAGS_CLOUD = getattr(settings, "NUMBER_TAGS_CLOUD", 20)
 
+<<<<<<< Updated upstream
+=======
+ARCHIVE_CSV = "%s/archived.csv" % settings.LOG_DIRECTORY
+
+ARCHIVE_OWNER_USERNAME = getattr(settings, "ARCHIVE_OWNER_USERNAME", "archive")
+
+ARCHIVE_ROOT = getattr(settings, "ARCHIVE_ROOT", "/video_archiving")
+
+
+def is_archiving_authorized(vid: Video) -> bool:
+    """Check if video owner's affiliation is allowed to archive."""
+    if vid is None:
+        return False
+
+    pod_archive_affiliation = getattr(settings, "POD_ARCHIVE_AFFILIATION", [])
+    allowed_affiliations = {
+        str(affiliation).strip()
+        for affiliation in pod_archive_affiliation
+        if str(affiliation).strip()
+    }
+    if not allowed_affiliations:
+        return False
+
+    owner = getattr(vid.owner, "owner", None)
+    owner_affiliation = getattr(owner, "affiliation", "")
+    if not owner_affiliation:
+        return False
+
+    if isinstance(owner_affiliation, str):
+        owner_affiliation = owner_affiliation.strip()
+        try:
+            parsed_affiliation = ast.literal_eval(owner_affiliation)
+            if isinstance(parsed_affiliation, (list, tuple, set)):
+                owner_affiliations = {
+                    str(affiliation).strip()
+                    for affiliation in parsed_affiliation
+                    if str(affiliation).strip()
+                }
+            else:
+                owner_affiliations = {owner_affiliation}
+        except (SyntaxError, ValueError):
+            owner_affiliations = {owner_affiliation}
+    elif isinstance(owner_affiliation, (list, tuple, set)):
+        owner_affiliations = {
+            str(affiliation).strip()
+            for affiliation in owner_affiliation
+            if str(affiliation).strip()
+        }
+    else:
+        owner_affiliations = {str(owner_affiliation).strip()}
+
+    return bool(owner_affiliations.intersection(allowed_affiliations))
+
+>>>>>>> Stashed changes
 ###############################################################
 # EMAIL
 ###############################################################
