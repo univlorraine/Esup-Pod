@@ -196,6 +196,384 @@ class ObsolescenceTestCase(TestCase):
         self.assertTrue(video7 in list_video["other"]["7"])
         print("--->  test_obsolete_video of ObsolescenceTestCase: OK")
 
+    def test_get_video_treatment_and_notify_sends_one_mail_per_recipient(self):
+        """Check that a single aggregated mail is sent per recipient email."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        video60 = Video.objects.get(id=3)  # owner user1 -> pod@univ.fr
+        video30 = Video.objects.get(id=4)  # owner user2 -> pod@univ.fr
+        video7 = Video.objects.get(id=5)  # owner user3 -> pod@univ.fr
+
+        # All users share the same email "pod@univ.fr"
+        with patch(
+            "pod.video.management.commands.check_obsolete_videos.send_mail"
+        ) as mock_send_mail:
+            mock_send_mail.return_value = 1
+            cmd.get_video_treatment_and_notify_user()
+
+        # One and only one mail should be sent for the shared email.
+        self.assertEqual(mock_send_mail.call_count, 1)
+        html_message = mock_send_mail.call_args.kwargs["html_message"]
+        # The aggregated mail lists the three videos.
+        for title in ("Video1_60", "Video2_30", "Video3_7"):
+            self.assertIn(title, html_message)
+        print("--->  test_one_mail_per_recipient of ObsolescenceTestCase: OK")
+
+    def test_collect_user_notification_groups_owner_and_additional(self):
+        """Check collection regroups owner and additional owners by email."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="collect_owner", email="owner@univ.fr"
+        )
+        additional = User.objects.create(
+            username="collect_additional", email="additional@univ.fr"
+        )
+        video = Video.objects.create(
+            title="Collect_video",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video.additional_owners.add(additional)
+
+        notifications = cmd.collect_user_notification({}, video, 7)
+
+        self.assertIn("owner@univ.fr", notifications)
+        self.assertIn("additional@univ.fr", notifications)
+        # Owner is not flagged as additional owner.
+        self.assertEqual(
+            notifications["owner@univ.fr"]["7"][0][1], False
+        )
+        # Additional owner is flagged as additional owner.
+        self.assertEqual(
+            notifications["additional@univ.fr"]["7"][0][1], True
+        )
+        print("--->  test_collect_user_notification of ObsolescenceTestCase: OK")
+
+    def test_get_user_aggregated_videos_skips_name(self):
+        """Check aggregated videos ignore the "name" key."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        data = {"name": "John Doe", "7": [("video", False)], "30": [("video2", True)]}
+        aggregated = cmd.get_user_aggregated_videos(data)
+        self.assertNotIn("name", aggregated)
+        self.assertEqual(set(aggregated.keys()), {"7", "30"})
+        print("--->  test_get_user_aggregated_videos of ObsolescenceTestCase: OK")
+
+    def test_aggregated_mail_marks_additional_owner_and_deadlines(self):
+        """Check aggregated mail flags additional owners and groups by deadline."""
+        from django.core import mail as djmail
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="agg_owner", email="owner@univ.fr", is_staff=False
+        )
+        additional = User.objects.create(
+            username="agg_additional", email="additional@univ.fr"
+        )
+        video7 = Video.objects.create(
+            title="Agg_video_7",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video7.date_delete = date.today() + timedelta(days=7)
+        video7.save(update_fields=["date_delete"])
+        video7.additional_owners.add(additional)
+
+        video30 = Video.objects.create(
+            title="Agg_video_30",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video30.date_delete = date.today() + timedelta(days=30)
+        video30.save(update_fields=["date_delete"])
+
+        notifications = cmd.collect_user_notification({}, video7, 7)
+        notifications = cmd.collect_user_notification(notifications, video30, 30)
+
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_aggregated("owner@univ.fr", notifications["owner@univ.fr"])
+            cmd.notify_user_aggregated(
+                "additional@univ.fr", notifications["additional@univ.fr"]
+            )
+
+        self.assertEqual(len(djmail.outbox), 2)
+
+        owner_mail = next(m for m in djmail.outbox if m.to == ["owner@univ.fr"])
+        # Owner receives both videos, grouped by deadline, none flagged additional.
+        self.assertIn("In 7 days:", owner_mail.body)
+        self.assertIn("In 30 days:", owner_mail.body)
+        self.assertIn("Agg_video_7", owner_mail.body)
+        self.assertIn("Agg_video_30", owner_mail.body)
+        self.assertNotIn("(additional owner)", owner_mail.body)
+
+        additional_mail = next(m for m in djmail.outbox if m.to == ["additional@univ.fr"])
+        # Additional owner receives only its video, flagged as additional owner.
+        self.assertIn("(additional owner)", additional_mail.body)
+        self.assertNotIn("Agg_video_30", additional_mail.body)
+        print("--->  test_aggregated_mail of ObsolescenceTestCase: OK")
+
+    @patch("pod.video.management.commands.check_obsolete_videos.ENABLE_PAGE_OBSO_MAIL", True)
+    def test_aggregated_mail_has_action_link_for_each_video(self):
+        """Check each video line has its own respite action link."""
+        from django.core import mail as djmail
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="link_owner", email="owner@univ.fr", is_staff=False
+        )
+        video7 = Video.objects.create(
+            title="Link_video_7",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video7.date_delete = date.today() + timedelta(days=7)
+        video7.save(update_fields=["date_delete"])
+
+        video30 = Video.objects.create(
+            title="Link_video_30",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video30.date_delete = date.today() + timedelta(days=30)
+        video30.save(update_fields=["date_delete"])
+
+        notifications = cmd.collect_user_notification({}, video7, 7)
+        notifications = cmd.collect_user_notification(notifications, video30, 30)
+
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_aggregated("owner@univ.fr", notifications["owner@univ.fr"])
+
+        self.assertEqual(len(djmail.outbox), 1)
+        message = djmail.outbox[0]
+        # One action link per video line (2 videos), no single bottom link.
+        self.assertEqual(message.body.count("Choose an action for my video"), 2)
+        html_message = message.alternatives[0][0]
+        self.assertIn("/video/respite/%s" % video7.slug, html_message)
+        self.assertIn("/video/respite/%s" % video30.slug, html_message)
+        print("--->  test_action_link_per_video of ObsolescenceTestCase: OK")
+
+    def test_aggregated_mail_singular_plural(self):
+        """Check singular/plural forms in subject and intro of aggregated mail."""
+        from django.core import mail as djmail
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="plural_owner", email="owner@univ.fr", is_staff=True
+        )
+
+        video1 = Video.objects.create(
+            title="Plural_video_1",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video1.date_delete = date.today() + timedelta(days=7)
+        video1.save(update_fields=["date_delete"])
+
+        # One video: singular forms.
+        notifications = cmd.collect_user_notification({}, video1, 7)
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_aggregated(
+                "owner@univ.fr", notifications["owner@univ.fr"]
+            )
+        self.assertEqual(len(djmail.outbox), 1)
+        self.assertIn("Your video will be obsolete soon", djmail.outbox[0].subject)
+        self.assertIn("The following video will", djmail.outbox[0].body)
+        self.assertIn("by editing your video:", djmail.outbox[0].body)
+
+        video2 = Video.objects.create(
+            title="Plural_video_2",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video2.date_delete = date.today() + timedelta(days=30)
+        video2.save(update_fields=["date_delete"])
+
+        # Two videos: plural forms.
+        notifications = cmd.collect_user_notification(notifications, video2, 30)
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_aggregated(
+                "owner@univ.fr", notifications["owner@univ.fr"]
+            )
+        self.assertEqual(len(djmail.outbox), 2)
+        self.assertIn("Your videos will be obsolete soon", djmail.outbox[1].subject)
+        self.assertIn("The following videos will", djmail.outbox[1].body)
+        self.assertIn("by editing your videos:", djmail.outbox[1].body)
+        print("--->  test_singular_plural of ObsolescenceTestCase: OK")
+
+    def test_notify_user_returns_count_without_exception(self):
+        """Check notify_user still works as a single-video fallback."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        video60 = Video.objects.get(id=3)
+        mail = cmd.notify_user(video60, 60)
+        self.assertEqual(mail, 1)
+        print("--->  test_notify_user_returns_count of ObsolescenceTestCase: OK")
+
+    def test_get_video_recipients_returns_owner_and_additional(self):
+        """Check recipients list contains owner and additional owners emails."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="rec_owner", email="owner@univ.fr"
+        )
+        additional = User.objects.create(
+            username="rec_additional", email="additional@univ.fr"
+        )
+        video = Video.objects.create(
+            title="Recipients_video",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        video.additional_owners.add(additional)
+
+        recipients = cmd.get_video_recipients(video)
+        self.assertEqual(
+            [(u.email, is_add) for u, is_add in recipients],
+            [("owner@univ.fr", False), ("additional@univ.fr", True)],
+        )
+        print("--->  test_get_video_recipients of ObsolescenceTestCase: OK")
+
+    def test_notify_user_archived_deleted_two_sublists(self):
+        """Check aggregated mail lists archived and deleted videos separately."""
+        from django.core import mail as djmail
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="ad_owner", email="owner@univ.fr", is_staff=False
+        )
+        additional = User.objects.create(
+            username="ad_additional", email="additional@univ.fr"
+        )
+
+        archived_video = Video.objects.create(
+            title="Agg_archived",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+        archived_video.save()
+        archived_video.additional_owners.add(additional)
+
+        notifications = {
+            "owner@univ.fr": {
+                "name": "owner",
+                "archived": [(archived_video, False)],
+                "deleted": [("0002 - Agg_deleted", True)],
+            }
+        }
+
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_archived_deleted("owner@univ.fr", notifications["owner@univ.fr"])
+
+        self.assertEqual(len(djmail.outbox), 1)
+        mail_body = djmail.outbox[0].body
+        self.assertIn("Archived videos:", mail_body)
+        self.assertIn("Deleted videos:", mail_body)
+        self.assertIn("Agg_archived", mail_body)
+        self.assertIn("Agg_deleted", mail_body)
+        self.assertIn("(additional owner)", mail_body)
+        print("--->  test_notify_user_archived_deleted of ObsolescenceTestCase: OK")
+
+    def test_archived_deleted_mail_singular_plural(self):
+        """Check singular/plural forms in archived/deleted mail intro."""
+        from django.core import mail as djmail
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        owner = User.objects.create(
+            username="adpl_owner", email="owner@univ.fr", is_staff=False
+        )
+
+        video1 = Video.objects.create(
+            title="ADpl_video_1",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+
+        # One video: singular form.
+        data = {"name": "owner", "archived": [(video1, False)], "deleted": []}
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_archived_deleted("owner@univ.fr", data)
+        self.assertEqual(len(djmail.outbox), 1)
+        self.assertIn(
+            "Your video has reached its deletion deadline.", djmail.outbox[0].body
+        )
+
+        video2 = Video.objects.create(
+            title="ADpl_video_2",
+            owner=owner,
+            video="test.mp4",
+            type=Type.objects.get(id=1),
+        )
+
+        # Two videos: plural form.
+        data = {
+            "name": "owner",
+            "archived": [(video1, False), (video2, False)],
+            "deleted": [],
+        }
+        with self.settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            cmd.notify_user_archived_deleted("owner@univ.fr", data)
+        self.assertEqual(len(djmail.outbox), 2)
+        self.assertIn(
+            "Your videos have reached their deletion deadline.", djmail.outbox[1].body
+        )
+        print("--->  test_archived_deleted_singular_plural of ObsolescenceTestCase: OK")
+
+    @override_settings(POD_ARCHIVE_AFFILIATION=["faculty"])
+    def test_archived_deleted_treatment_sends_one_mail_per_recipient(self):
+        """Check one aggregated mail per recipient for archived/deleted videos."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        # video6 (owner user_faculty) is archived, video7 (owner user4) is deleted.
+        # Both owners share the email pod@univ.fr.
+        with patch(
+            "pod.video.management.commands.check_obsolete_videos.send_mail"
+        ) as mock_send_mail:
+            mock_send_mail.return_value = 1
+            cmd.get_video_archived_deleted_treatment()
+
+        # One and only one mail for the shared email.
+        self.assertEqual(mock_send_mail.call_count, 1)
+        html_message = mock_send_mail.call_args.kwargs["html_message"]
+        self.assertIn("Archived videos:", html_message)
+        self.assertIn("Deleted videos:", html_message)
+        print("--->  test_archived_deleted_one_mail of ObsolescenceTestCase: OK")
+
+    @override_settings(POD_ARCHIVE_AFFILIATION=["faculty"])
+    def test_archived_deleted_treatment_dry_does_not_send_mail(self):
+        """Check no mail is sent in dry mode for archived/deleted videos."""
+        from pod.video.management.commands import check_obsolete_videos
+
+        cmd = check_obsolete_videos.Command()
+        cmd.dry_mode = True
+        with patch(
+            "pod.video.management.commands.check_obsolete_videos.send_mail"
+        ) as mock_send_mail:
+            cmd.get_video_archived_deleted_treatment()
+        mock_send_mail.assert_not_called()
+        print("--->  test_archived_deleted_dry of ObsolescenceTestCase: OK")
+
     @override_settings(POD_ARCHIVE_AFFILIATION=["faculty"])
     def test_delete_obsolete_video(self):
         """Check that obsolete videos are deleted."""

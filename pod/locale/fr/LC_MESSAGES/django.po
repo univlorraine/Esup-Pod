@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pod\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 15:39+0200\n"
+"POT-Creation-Date: 2026-09-28 11:56+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: obado <bado@unice.fr>\n"
 "Language-Team: Pod Team cotech-esup-pod@esup-portail.org\n"
@@ -1763,8 +1763,8 @@ msgstr ""
 #: pod/completion/templates/video_completion.html
 msgid "Subtitle and/or caption file(s) must be in “.vtt” format."
 msgstr ""
-"Les fichiers de sous-titres et/ou de légendes doivent être au format "
-"« .vtt »."
+"Les fichiers de sous-titres et/ou de légendes doivent être au format « ."
+"vtt »."
 
 #: pod/completion/templates/video_completion.html
 msgid "You can use"
@@ -7506,10 +7506,6 @@ msgid "The playlist has been deleted."
 msgstr "La liste de lecture a été supprimée."
 
 #: pod/playlist/views.py
-msgid "Delete the playlist"
-msgstr "Supprimer la liste de lecture"
-
-#: pod/playlist/views.py
 #, python-format
 msgid "Edit the playlist “%(pname)s”"
 msgstr "Modifier la liste de lecture « %(pname)s »"
@@ -7909,7 +7905,7 @@ msgstr "Veuillez choisir si les réponses correctes seront affichées ou non."
 msgid "Quizzes"
 msgstr "Quiz"
 
-#: pod/quiz/models.py pod/quiz/tests/test_models.py
+#: pod/quiz/models.py
 msgid "Quiz of video"
 msgstr "Quiz de la vidéo"
 
@@ -9265,80 +9261,107 @@ msgid "%s video(s) archived."
 msgstr "%s vidéo(s) archivée(s)."
 
 #: pod/video/management/commands/check_obsolete_videos.py
-msgid "You can choose to do an action on your video:"
-msgstr "Vous pouvez choisir d’effectuer une action sur votre vidéo :"
-
-#: pod/video/management/commands/check_obsolete_videos.py
-msgid "Choose an action for my video"
-msgstr "Choisir une action pour ma vidéo"
-
-#: pod/video/management/commands/check_obsolete_videos.py
-msgid ""
-"Unless you take action, your video will be archived (unpublished) and may be "
-"deleted."
-msgstr ""
-"Sans action de votre part, votre vidéo sera archivée (dépubliée) et pourra "
-"être supprimée."
-
-#: pod/video/management/commands/check_obsolete_videos.py
 #: pod/video/management/commands/check_video_owner_exists.py
 #, python-format
 msgid "Hello %(name)s,"
 msgstr "Bonjour %(name)s,"
 
 #: pod/video/management/commands/check_obsolete_videos.py
-#, python-format
-msgid ""
-"Your video entitled <a href=\"%(scheme)s:%(url)s\">“%(title)s”</a> will soon "
-"arrive at the deletion deadline."
-msgstr ""
-"Votre vidéo intitulée « <a href=\"%(scheme)s:%(url)s\">%(title)s</a> » "
-"arrive bientôt à la date limite de suppression."
+msgid "Your video has reached its deletion deadline."
+msgid_plural "Your videos have reached their deletion deadline."
+msgstr[0] "Votre vidéo arrive bientôt à sa date limite de suppression."
+msgstr[1] "Vos vidéos arrivent bientôt à leur date limite de suppression."
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid "Archived videos:"
+msgstr "Vidéos archivées"
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid "(additional owner)"
+msgstr "(propriétaire additionnel)"
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid "Deleted videos:"
+msgstr "Supprimer la vidéo"
 
 #: pod/video/management/commands/check_obsolete_videos.py
 #, python-format
-msgid "It will be unpublished on <strong>%(date_delete)s</strong>."
-msgstr "Elle sera dépubliée le <strong>%(date_delete)s</strong>."
+msgid "Sending archiving/deletion mail to %(email)s for %(nb)s video(s)."
+msgstr ""
+"Envoi du courriel d'archivage/suppression à %(email)s pour %(nb)s video(s)."
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid "Your videos have reached their deletion deadline"
+msgstr "Votre vidéo a atteint sa la date limite de suppression."
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid ""
+"The following video will soon arrive at the deletion deadline and will be "
+"unpublished on the date indicated."
+msgid_plural ""
+"The following videos will soon arrive at the deletion deadline and will be "
+"unpublished on the indicated dates."
+msgstr[0] ""
+"La vidéo suivante arrive bientôt à la date limite de suppression et sera "
+"dépubliée à la date indiquée."
+msgstr[1] ""
+"Les vidéos suivantes arrivent bientôt à leur date limite de suppression et "
+"seront dépubliées aux dates indiquées."
 
 #: pod/video/management/commands/check_obsolete_videos.py
 msgid ""
 "If you want to keep it, you can change the removal date by editing your "
 "video:"
-msgstr ""
+msgid_plural ""
+"If you want to keep them, you can change the removal date by editing your "
+"videos:"
+msgstr[0] ""
 "Si vous souhaitez la conserver, vous pouvez modifier la date de suppression "
-"en éditant votre vidéo :"
+"en éditant votre vidéo :"
+msgstr[1] ""
+"Si vous souhaitez les conserver, vous pouvez modifier leur date de "
+"suppression en éditant vos vidéos :"
 
 #: pod/video/management/commands/check_obsolete_videos.py
 #, python-format
 msgid ""
-"Your video entitled “%(title)s” will soon arrive at the deletion deadline."
-msgstr ""
-"Votre vidéo intitulée « %(title)s » arrive bientôt à la date limite de "
-"suppression."
-
-#: pod/video/management/commands/check_obsolete_videos.py
-#, python-format
-msgid "It will be deleted on %(date_delete)s."
-msgstr "Elle sera supprimée le %(date_delete)s."
-
-#: pod/video/management/commands/check_obsolete_videos.py
-#, python-format
-msgid ""
-"If you want to keep it, please contact the manager(s) in charge of your "
+"If you want to keep them, please contact the manager(s) in charge of your "
 "establishment at this address(es): %(email_address)s."
 msgstr ""
-"Si vous souhaitez la conserver, veuillez contacter le(s) gestionnaire(s) en "
-"charge de votre établissement à l’adresse suivante : %(email_address)s."
+"Si vous souhaitez les conserver, veuillez contacter le(s) gestionnaire(s) en "
+"charge de votre établissement à l’adresse suivante : %(email_address)s."
 
 #: pod/video/management/commands/check_obsolete_videos.py
-#: pod/video/management/commands/check_video_owner_exists.py
 #, python-format
-msgid "Sending mail to %(to_email)s for video %(title)s."
-msgstr "Envoi d’un courriel à %(to_email)s pour la vidéo %(title)s."
+msgid "Sending aggregated mail to %(email)s for %(nb)s video(s)."
+msgstr "Envoi d’un courriel aggrégé à %(email)s pour %(nb)s video(s)."
 
 #: pod/video/management/commands/check_obsolete_videos.py
 msgid "Your video will be obsolete soon"
-msgstr "Votre vidéo sera bientôt obsolète"
+msgid_plural "Your videos will be obsolete soon"
+msgstr[0] "Votre vidéo sera bientôt obsolète"
+msgstr[1] "Vos vidéos seront bientôt obsolètes"
+
+#: pod/video/management/commands/check_obsolete_videos.py
+#, python-format
+msgid "In %(deadline)s days:"
+msgstr "Dans %(deadline)s jours :"
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid "Choose an action for my video"
+msgstr "Choisir une action pour ma vidéo"
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid "You can choose to do an action on your videos:"
+msgstr "Vous pouvez choisir d’effectuer une action sur votre/vos vidéo(s) :"
+
+#: pod/video/management/commands/check_obsolete_videos.py
+msgid ""
+"Unless you take action, your videos will be archived (unpublished) and may "
+"be deleted."
+msgstr ""
+"Sans action de votre part, votre/vos vidéo(s) sera/seront archivée(s) "
+"(dépubliée(s)) et pourra/pourront être supprimée(s)."
 
 #: pod/video/management/commands/check_obsolete_videos.py
 msgid "archive it (it will be unpublished and no longer accessible)"
@@ -9420,11 +9443,6 @@ msgstr ""
 "Le(s) gestionnaire(s) de « %(estab)s » ont été notifié(s) de %(nb)s vidéo(s) "
 "archivée(s)."
 
-#: pod/video/management/commands/check_obsolete_videos.py
-#, python-format
-msgid "In %(deadline)s days:"
-msgstr "Dans %(deadline)s jours :"
-
 #: pod/video/management/commands/check_video_owner_exists.py
 msgid "For information, you will find below the list of reaffected videos."
 msgstr ""
@@ -9466,6 +9484,11 @@ msgstr ""
 "Vous avez été automatiquement désigné comme titulaire, car l’ancien "
 "titulaire ne fait plus partie de l’établissement et que vous étiez "
 "auparavant propriétaire additionnel."
+
+#: pod/video/management/commands/check_video_owner_exists.py
+#, python-format
+msgid "Sending mail to %(to_email)s for video %(title)s."
+msgstr "Envoi d’un courriel à %(to_email)s pour la vidéo %(title)s."
 
 #: pod/video/management/commands/check_video_owner_exists.py
 msgid "You have been designated as the owner of a video"
@@ -11930,3 +11953,27 @@ msgstr "Résultats de la recherche"
 #: pod/xapi/apps.py
 msgid "Esup-Pod xAPI"
 msgstr "xAPI Esup-Pod"
+
+#, python-format
+#~ msgid "Your video(s) have reached their deletion deadline."
+#~ msgstr ""
+#~ "Votre/vos vidéo(s) arrive(nt) bientôt à la date limite de suppression."
+
+#~ msgid "Delete the playlist"
+#~ msgstr "Supprimer la liste de lecture"
+
+#, python-format
+#~ msgid ""
+#~ "Your video entitled <a href=\"%(scheme)s:%(url)s\">“%(title)s”</a> will "
+#~ "soon arrive at the deletion deadline."
+#~ msgstr ""
+#~ "Votre vidéo intitulée « <a href=\"%(scheme)s:%(url)s\">%(title)s</a> » "
+#~ "arrive bientôt à la date limite de suppression."
+
+#, python-format
+#~ msgid "It will be unpublished on <strong>%(date_delete)s</strong>."
+#~ msgstr "Elle sera dépubliée le <strong>%(date_delete)s</strong>."
+
+#, python-format
+#~ msgid "It will be deleted on %(date_delete)s."
+#~ msgstr "Elle sera supprimée le %(date_delete)s."
